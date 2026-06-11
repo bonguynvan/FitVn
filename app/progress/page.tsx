@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import {
   ArrowDownRight,
   Flame,
   HeartPulse,
+  LineChart,
   Medal,
   Ruler,
   Scale,
@@ -13,6 +15,7 @@ import {
 
 import {
   Card,
+  EmptyState,
   IconBadge,
   MiniBarChart,
   Pill,
@@ -23,17 +26,27 @@ import {
 import {
   AchievementRow,
   type Achievement,
+  type AchievementTone,
 } from "@/components/progress/AchievementRow";
 import { PageHeader } from "@/components/nav/PageHeader";
+import {
+  getProgress,
+  type AchievementId,
+  type MeasurementId,
+  type MeasurementStat,
+  type ProgressData,
+} from "@/lib/data/progress";
 
 /**
  * Progress — weight trend, body measurements, streak/consistency, and
  * achievement badges.
  *
- * Server Component built entirely from mock Vietnamese data + the shared UI
- * primitives. Mirrors the home screen's visual language: signature coral→orange
- * gradient accents, big bold stat numbers vs small uppercase muted labels, bento
- * composition, and lucide icons only. No network, no client state.
+ * Async Server Component: reads its snapshot from the gated data layer
+ * (`getProgress`) which returns EMPTY until Supabase is wired up. With no data
+ * it shows a polished empty state; once measurements/sessions exist it renders
+ * the rich bento layout. Mirrors the home screen's visual language — signature
+ * coral→orange gradient accents, big bold stat numbers vs small uppercase muted
+ * labels, lucide icons only. No client state.
  */
 
 export const metadata: Metadata = {
@@ -42,14 +55,9 @@ export const metadata: Metadata = {
     "Theo dõi cân nặng, số đo cơ thể, chuỗi ngày tập luyện và thành tích của bạn.",
 };
 
-// --- Mock data (static, realistic) -----------------------------------------
-
-/** ~8 weeks of body weight in kg, oldest → newest. */
-const WEIGHT_SERIES = [72.0, 71.7, 71.5, 71.2, 71.3, 70.9, 70.7, 70.5] as const;
-
-const WEIGHT_CURRENT = WEIGHT_SERIES[WEIGHT_SERIES.length - 1];
-const WEIGHT_START = WEIGHT_SERIES[0];
-const WEIGHT_DELTA = WEIGHT_CURRENT - WEIGHT_START; // -1.5
+// --- Static presentation catalogs ------------------------------------------
+// The data layer is icon-free and keyed by stable ids; the page owns the icons,
+// Vietnamese labels and fixed copy and maps ids → presentation.
 
 interface RangeOption {
   readonly id: string;
@@ -65,102 +73,52 @@ const RANGE_OPTIONS: ReadonlyArray<RangeOption> = [
 /** Currently highlighted range (static — interactivity comes later). */
 const ACTIVE_RANGE = "8w";
 
-interface Measurement {
-  readonly label: string;
-  readonly value: string;
-  readonly unit: string;
-  readonly icon: LucideIcon;
-  readonly delta: string;
-  readonly deltaTone: "success" | "danger" | "muted";
-  /** Span two columns in the bento grid. */
-  readonly wide?: boolean;
-}
+/** Per-measurement icon + display label, keyed by the data layer's id. */
+const MEASUREMENT_META: Record<
+  MeasurementId,
+  { readonly label: string; readonly icon: LucideIcon; readonly wide?: boolean }
+> = {
+  weight: { label: "Cân nặng", icon: Scale, wide: true },
+  body_fat: { label: "Tỷ lệ mỡ", icon: HeartPulse },
+  waist: { label: "Vòng eo", icon: Ruler },
+  chest: { label: "Vòng ngực", icon: Ruler },
+};
 
-const MEASUREMENTS: ReadonlyArray<Measurement> = [
+/** Fixed achievement catalog (icon + tone + copy), keyed by the data layer's id. */
+const ACHIEVEMENT_META: Record<
+  AchievementId,
   {
-    label: "Cân nặng",
-    value: "70,5",
-    unit: "kg",
-    icon: Scale,
-    delta: "-1,5kg so với 8 tuần",
-    deltaTone: "success",
-    wide: true,
-  },
-  {
-    label: "Tỷ lệ mỡ",
-    value: "18,2",
-    unit: "%",
-    icon: HeartPulse,
-    delta: "-2,1%",
-    deltaTone: "success",
-  },
-  {
-    label: "Vòng eo",
-    value: "82",
-    unit: "cm",
-    icon: Ruler,
-    delta: "-3cm",
-    deltaTone: "success",
-  },
-  {
-    label: "Vòng ngực",
-    value: "98",
-    unit: "cm",
-    icon: Ruler,
-    delta: "+1cm",
-    deltaTone: "muted",
-  },
-];
-
-const STREAK_DAYS = 12;
-const STREAK_BEST = 18;
-
-/** Workouts completed per week over the last 6 weeks. */
-const WEEKLY_WORKOUTS = [
-  { label: "T1", value: 3 },
-  { label: "T2", value: 4 },
-  { label: "T3", value: 2 },
-  { label: "T4", value: 4 },
-  { label: "T5", value: 5 },
-  { label: "T6", value: 4 },
-] as const;
-
-const WORKOUT_GOAL = 4;
-
-const ACHIEVEMENTS: ReadonlyArray<Achievement> = [
-  {
+    readonly icon: LucideIcon;
+    readonly title: string;
+    readonly description: string;
+    readonly tone: AchievementTone;
+  }
+> = {
+  streak_7: {
     icon: Flame,
     title: "Chuỗi 7 ngày",
     description: "Tập đều 7 ngày liên tiếp không nghỉ.",
     tone: "primary",
-    earned: true,
-    meta: "06/06",
   },
-  {
+  protein_goal: {
     icon: Target,
     title: "Đạt mục tiêu đạm",
     description: "Đủ lượng đạm mục tiêu 5 ngày liên tiếp.",
     tone: "accent",
-    earned: true,
-    meta: "10/06",
   },
-  {
+  first_kg: {
     icon: Medal,
     title: "Giảm 1kg đầu tiên",
     description: "Giảm được 1kg so với cân nặng ban đầu.",
     tone: "success",
-    earned: true,
-    meta: "28/05",
   },
-  {
+  streak_30: {
     icon: Trophy,
     title: "Chuỗi 30 ngày",
     description: "Duy trì chuỗi tập luyện 30 ngày liên tiếp.",
     tone: "warning",
-    earned: false,
-    meta: "12/30 ngày",
   },
-];
+};
 
 // --- Helpers ---------------------------------------------------------------
 
@@ -168,11 +126,11 @@ function formatKg(n: number): string {
   return n.toFixed(1).replace(".", ",");
 }
 
-const EARNED_COUNT = ACHIEVEMENTS.filter((a) => a.earned).length;
-
 // --- Page ------------------------------------------------------------------
 
-export default function ProgressPage() {
+export default async function ProgressPage() {
+  const data = await getProgress();
+
   return (
     <main className="flex flex-1 flex-col gap-6 pt-safe">
       <div className="pt-6">
@@ -183,6 +141,40 @@ export default function ProgressPage() {
         />
       </div>
 
+      {data.hasData ? (
+        <ProgressContent data={data} />
+      ) : (
+        <EmptyState
+          icon={LineChart}
+          title="Chưa có dữ liệu tiến độ"
+          description="Ghi số đo đầu tiên để FitVN vẽ biểu đồ cân nặng, theo dõi sự đều đặn và mở khóa thành tích cho bạn."
+          action={
+            <Link
+              href="/progress/new"
+              className="inline-flex items-center gap-2 rounded-btn bg-primary px-4 py-2.5 text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-95"
+            >
+              <Scale size={16} aria-hidden />
+              Ghi số đo
+            </Link>
+          }
+        />
+      )}
+
+      <footer className="px-1 pt-1 text-center text-xs text-muted">
+        Số liệu cập nhật hằng ngày · FitVN
+      </footer>
+    </main>
+  );
+}
+
+/** Data-present layout: weight trend, measurements, consistency, achievements. */
+function ProgressContent({ data }: { data: ProgressData }) {
+  const { weight, measurements, consistency, achievements } = data;
+  const weightSeries = weight.series.map((p) => p.weightKg);
+  const earnedCount = achievements.filter((a) => a.earned).length;
+
+  return (
+    <>
       {/* Weight trend — signature gradient header + area sparkline */}
       <section aria-labelledby="weight-heading" className="flex flex-col gap-3">
         <SectionHeader
@@ -211,38 +203,53 @@ export default function ProgressPage() {
               </p>
               <div className="mt-1 flex items-baseline gap-1.5">
                 <span className="text-4xl font-extrabold leading-none text-text">
-                  {formatKg(WEIGHT_CURRENT)}
+                  {weight.currentKg != null ? formatKg(weight.currentKg) : "—"}
                 </span>
                 <span className="text-base font-semibold text-muted">kg</span>
               </div>
             </div>
-            <Pill
-              tone="success"
-              icon={<ArrowDownRight size={14} aria-hidden />}
-            >
-              {formatKg(WEIGHT_DELTA)} kg
-            </Pill>
+            {weight.deltaKg != null ? (
+              <Pill
+                tone={weight.deltaKg <= 0 ? "success" : "muted"}
+                icon={
+                  weight.deltaKg <= 0 ? (
+                    <ArrowDownRight size={14} aria-hidden />
+                  ) : undefined
+                }
+              >
+                {formatKg(weight.deltaKg)} kg
+              </Pill>
+            ) : null}
           </div>
 
-          <div className="-mx-1">
-            <Sparkline
-              points={[...WEIGHT_SERIES]}
-              height={88}
-              ariaLabel={`Xu hướng cân nặng 8 tuần, từ ${formatKg(
-                WEIGHT_START,
-              )} xuống ${formatKg(WEIGHT_CURRENT)} kg`}
-            />
-          </div>
+          {weightSeries.length >= 2 ? (
+            <div className="-mx-1">
+              <Sparkline
+                points={weightSeries}
+                height={88}
+                ariaLabel={
+                  weight.startKg != null && weight.currentKg != null
+                    ? `Xu hướng cân nặng, từ ${formatKg(
+                        weight.startKg,
+                      )} xuống ${formatKg(weight.currentKg)} kg`
+                    : "Xu hướng cân nặng"
+                }
+              />
+            </div>
+          ) : null}
 
           <div className="flex items-center justify-between border-t border-border pt-3 text-xs">
             <span className="text-muted">
               Bắt đầu{" "}
               <span className="font-bold text-text">
-                {formatKg(WEIGHT_START)} kg
+                {weight.startKg != null ? formatKg(weight.startKg) : "—"} kg
               </span>
             </span>
             <span className="text-muted">
-              Mục tiêu <span className="font-bold text-text">68,0 kg</span>
+              Mục tiêu{" "}
+              <span className="font-bold text-text">
+                {weight.goalKg != null ? formatKg(weight.goalKg) : "—"} kg
+              </span>
             </span>
           </div>
         </Card>
@@ -252,18 +259,22 @@ export default function ProgressPage() {
       <section aria-labelledby="measure-heading" className="flex flex-col gap-3">
         <SectionHeader id="measure-heading">Số đo cơ thể</SectionHeader>
         <div className="grid grid-cols-2 gap-3">
-          {MEASUREMENTS.map((m) => (
-            <StatTile
-              key={m.label}
-              label={m.label}
-              value={m.value}
-              unit={m.unit}
-              icon={<m.icon size={18} aria-hidden />}
-              delta={m.delta}
-              deltaTone={m.deltaTone}
-              className={m.wide ? "col-span-2" : "col-span-1"}
-            />
-          ))}
+          {measurements.map((m: MeasurementStat) => {
+            const meta = MEASUREMENT_META[m.id];
+            const Icon = meta.icon;
+            return (
+              <StatTile
+                key={m.id}
+                label={meta.label}
+                value={m.value}
+                unit={m.unit}
+                icon={<Icon size={18} aria-hidden />}
+                delta={m.delta || undefined}
+                deltaTone={m.deltaTone}
+                className={meta.wide ? "col-span-2" : "col-span-1"}
+              />
+            );
+          })}
         </div>
       </section>
 
@@ -294,39 +305,41 @@ export default function ProgressPage() {
               </p>
               <div className="mt-0.5 flex items-baseline gap-1.5">
                 <span className="text-3xl font-extrabold leading-none">
-                  {STREAK_DAYS}
+                  {consistency.currentStreakDays}
                 </span>
                 <span className="text-sm font-semibold opacity-90">ngày</span>
               </div>
               <p className="mt-1 text-xs opacity-90">
-                Kỷ lục của bạn: {STREAK_BEST} ngày — cố lên!
+                Kỷ lục của bạn: {consistency.bestStreakDays} ngày — cố lên!
               </p>
             </div>
           </div>
         </Card>
 
         {/* Workouts per week */}
-        <Card padding="lg" className="flex flex-col gap-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <IconBadge tone="accent" size="sm">
-                <Target size={18} aria-hidden />
-              </IconBadge>
-              <div>
-                <p className="text-sm font-bold text-text">
-                  Buổi tập mỗi tuần
-                </p>
-                <p className="text-xs text-muted">6 tuần gần nhất</p>
+        {consistency.weekly.length > 0 ? (
+          <Card padding="lg" className="flex flex-col gap-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <IconBadge tone="accent" size="sm">
+                  <Target size={18} aria-hidden />
+                </IconBadge>
+                <div>
+                  <p className="text-sm font-bold text-text">
+                    Buổi tập mỗi tuần
+                  </p>
+                  <p className="text-xs text-muted">6 tuần gần nhất</p>
+                </div>
               </div>
+              <Pill tone="muted">Mục tiêu {consistency.weeklyGoal}/tuần</Pill>
             </div>
-            <Pill tone="muted">Mục tiêu {WORKOUT_GOAL}/tuần</Pill>
-          </div>
-          <MiniBarChart
-            data={WEEKLY_WORKOUTS}
-            goal={WORKOUT_GOAL}
-            ariaLabel="Số buổi tập mỗi tuần trong 6 tuần gần nhất, đường mục tiêu 4 buổi"
-          />
-        </Card>
+            <MiniBarChart
+              data={[...consistency.weekly]}
+              goal={consistency.weeklyGoal}
+              ariaLabel={`Số buổi tập mỗi tuần trong 6 tuần gần nhất, đường mục tiêu ${consistency.weeklyGoal} buổi`}
+            />
+          </Card>
+        ) : null}
       </section>
 
       {/* Achievements */}
@@ -335,25 +348,29 @@ export default function ProgressPage() {
           id="awards-heading"
           action={
             <span className="text-xs font-bold text-primary">
-              {EARNED_COUNT}/{ACHIEVEMENTS.length}
+              {earnedCount}/{achievements.length}
             </span>
           }
         >
           Thành tích
         </SectionHeader>
         <div className="flex flex-col gap-3">
-          {ACHIEVEMENTS.map((achievement) => (
-            <AchievementRow
-              key={achievement.title}
-              achievement={achievement}
-            />
-          ))}
+          {achievements.map((status) => {
+            const meta = ACHIEVEMENT_META[status.id];
+            const achievement: Achievement = {
+              icon: meta.icon,
+              title: meta.title,
+              description: meta.description,
+              tone: meta.tone,
+              earned: status.earned,
+              meta: status.meta,
+            };
+            return (
+              <AchievementRow key={status.id} achievement={achievement} />
+            );
+          })}
         </div>
       </section>
-
-      <footer className="px-1 pt-1 text-center text-xs text-muted">
-        Số liệu cập nhật hằng ngày · FitVN
-      </footer>
-    </main>
+    </>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
 import { useOfflineSync } from "@/hooks/useOfflineSync";
 import { InstallPrompt } from "./InstallPrompt";
 
@@ -15,6 +17,9 @@ import { InstallPrompt } from "./InstallPrompt";
  * - `<InstallPrompt />` renders its own fixed, dismissible banner.
  */
 export function PwaShell() {
+  const pathname = usePathname();
   useOfflineSync();
+  // No install banner on the auth screen.
+  if (pathname === "/login") return null;
   return <InstallPrompt />;
 }
