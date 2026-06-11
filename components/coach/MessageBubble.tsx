@@ -10,6 +10,7 @@
  */
 
 import type { UIMessage } from 'ai';
+import { Bot } from 'lucide-react';
 
 interface MessageBubbleProps {
   message: UIMessage;
@@ -34,7 +35,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       <div className={`flex max-w-[85%] flex-col ${isUser ? 'items-end' : 'items-start'}`}>
         {!isUser && (
           <span className="mb-1 ml-1 flex items-center gap-1 text-xs font-semibold text-muted">
-            <span aria-hidden>🤖</span> HLV FitVN
+            <Bot size={14} aria-hidden /> HLV FitVN
           </span>
         )}
         <div

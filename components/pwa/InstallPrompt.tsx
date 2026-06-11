@@ -166,14 +166,14 @@ export function InstallPrompt() {
             <button
               type="button"
               onClick={dismiss}
-              className="flex-1 rounded-pill px-4 py-2.5 text-sm font-semibold text-muted transition active:scale-95"
+              className="flex-1 rounded-btn px-4 py-2.5 text-sm font-semibold text-muted transition active:scale-95"
             >
               Để sau
             </button>
             <button
               type="button"
               onClick={handleInstall}
-              className="flex-[2] rounded-pill bg-primary px-4 py-2.5 text-sm font-semibold text-primary-fg transition active:scale-95"
+              className="flex-[2] rounded-btn bg-primary px-4 py-2.5 text-sm font-semibold text-primary-fg transition active:scale-95"
             >
               Cài đặt
             </button>

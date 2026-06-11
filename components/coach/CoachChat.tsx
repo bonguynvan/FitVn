@@ -14,12 +14,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
+import { SendHorizontal, Sparkles, Square } from 'lucide-react';
 
 import { MessageBubble } from './MessageBubble';
 import { QuickActions } from './QuickActions';
 
 /** Empty-state copy shown before the first message. */
-const EMPTY_TITLE = 'Chào bạn 👋';
+const EMPTY_TITLE = 'Chào bạn!';
 const EMPTY_BODY =
   'Mình là HLV FitVN. Hỏi mình về dinh dưỡng, macro còn lại hôm nay, hay buổi tập của bạn nhé.';
 
@@ -65,9 +66,12 @@ export function CoachChat() {
         aria-label="Cuộc trò chuyện với HLV AI"
       >
         {!hasMessages && (
-          <div className="m-auto flex max-w-[34ch] flex-col items-center gap-2 px-4 py-8 text-center">
-            <span className="text-4xl" aria-hidden>
-              🤖
+          <div className="m-auto flex max-w-[34ch] flex-col items-center gap-3 px-4 py-8 text-center">
+            <span
+              aria-hidden
+              className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/12 text-primary"
+            >
+              <Sparkles size={26} />
             </span>
             <p className="text-lg font-bold text-text">{EMPTY_TITLE}</p>
             <p className="text-sm leading-relaxed text-muted">{EMPTY_BODY}</p>
@@ -132,19 +136,19 @@ export function CoachChat() {
           <button
             type="button"
             onClick={stop}
-            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-pill bg-danger px-4 text-sm font-bold text-white transition-transform active:scale-95"
+            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-btn bg-danger px-4 text-sm font-bold text-primary-fg transition-transform active:scale-95"
             aria-label="Dừng tạo phản hồi"
           >
-            <span aria-hidden>⏹</span> Dừng
+            <Square size={16} fill="currentColor" aria-hidden /> Dừng
           </button>
         ) : (
           <button
             type="submit"
             disabled={!input.trim()}
-            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-pill bg-primary px-4 text-sm font-bold text-primary-fg transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-btn bg-primary px-4 text-sm font-bold text-primary-fg transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Gửi tin nhắn"
           >
-            Gửi <span aria-hidden>↑</span>
+            Gửi <SendHorizontal size={16} aria-hidden />
           </button>
         )}
       </form>

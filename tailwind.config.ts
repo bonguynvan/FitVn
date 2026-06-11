@@ -34,14 +34,29 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "Georgia", "serif"],
+      },
+      /*
+       * Soft-weight remap for the "warm earthy lifestyle" direction: headings
+       * should read at ~500, never 700. Remapping the scale keeps every existing
+       * font-bold/semibold/extrabold class soft without touching each file.
+       */
+      fontWeight: {
+        normal: "400",
+        medium: "500",
+        semibold: "500",
+        bold: "500",
+        extrabold: "600",
       },
       borderRadius: {
         card: "var(--radius-card)",
+        btn: "var(--radius-btn)",
         pill: "var(--radius-pill)",
       },
       boxShadow: {
         card: "var(--shadow-card)",
         glow: "var(--shadow-glow)",
+        raised: "var(--shadow-raised)",
       },
       maxWidth: {
         app: "var(--app-max-width)",

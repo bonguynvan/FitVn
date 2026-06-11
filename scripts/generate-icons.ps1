@@ -50,14 +50,14 @@ function Draw-Master([System.Drawing.Graphics]$g, [bool]$rounded) {
   # --- Background: diagonal 3-stop coral -> orange -> deep-orange gradient ---
   $bg = New-Object System.Drawing.Drawing2D.LinearGradientBrush(
     $full,
-    [System.Drawing.Color]::FromArgb(255, 138, 76),
-    [System.Drawing.Color]::FromArgb(241, 73, 47),
+    [System.Drawing.Color]::FromArgb(207, 141, 93),
+    [System.Drawing.Color]::FromArgb(176, 106, 62),
     [System.Drawing.Drawing2D.LinearGradientMode]::ForwardDiagonal)
   $blend = New-Object System.Drawing.Drawing2D.ColorBlend(3)
   $blend.Colors    = @(
-    [System.Drawing.Color]::FromArgb(255, 138, 76),
-    [System.Drawing.Color]::FromArgb(255, 107, 61),
-    [System.Drawing.Color]::FromArgb(241, 73, 47))
+    [System.Drawing.Color]::FromArgb(207, 141, 93),
+    [System.Drawing.Color]::FromArgb(196, 122, 74),
+    [System.Drawing.Color]::FromArgb(176, 106, 62))
   $blend.Positions = @([float]0.0, [float]0.55, [float]1.0)
   $bg.InterpolationColors = $blend
 
@@ -95,9 +95,9 @@ function Draw-Master([System.Drawing.Graphics]$g, [bool]$rounded) {
   $cream.Dispose()
   $peach.Dispose()
 
-  # --- Lime "go" accent: a rising tick across the bar ---
-  $lime = [System.Drawing.Color]::FromArgb(243, 183, 236, 66)
-  $pen = New-Object System.Drawing.Pen($lime, 26)
+  # --- Warm cream "go" accent: a rising tick across the bar ---
+  $tick = [System.Drawing.Color]::FromArgb(255, 255, 246, 234)
+  $pen = New-Object System.Drawing.Pen($tick, 26)
   $pen.StartCap  = [System.Drawing.Drawing2D.LineCap]::Round
   $pen.EndCap    = [System.Drawing.Drawing2D.LineCap]::Round
   $pen.LineJoin  = [System.Drawing.Drawing2D.LineJoin]::Round
@@ -110,7 +110,7 @@ function Draw-Master([System.Drawing.Graphics]$g, [bool]$rounded) {
   $pen.Dispose()
 
   # --- Wordmark dot tag ---
-  $dot = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(183, 236, 66))
+  $dot = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(255, 246, 234))
   $g.FillEllipse($dot, 372, 176, 40, 40)
   $dot.Dispose()
 }

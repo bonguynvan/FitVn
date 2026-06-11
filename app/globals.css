@@ -3,64 +3,62 @@
 @tailwind utilities;
 
 /*
- * FitVN design tokens.
- * Warm, energetic fitness palette built in oklch (perceptually uniform).
- * Primary = energetic orange/coral; accent = electric lime for "go" cues.
- * Deliberately NOT a generic gray UI.
+ * FitVN design tokens — "warm earthy lifestyle".
+ * Calm, soft, organic. Cream surfaces, terra-cotta brand, warm-brown text.
+ * No dark backgrounds, no neon, no blue/purple/green as primary.
+ * Single source of truth: Tailwind reads these via var(--...) (tailwind.config.ts).
  */
 :root {
   /* Surfaces */
-  --color-bg: oklch(98.5% 0.012 70);
-  --color-surface: oklch(100% 0 0);
-  --color-surface-raised: oklch(97% 0.018 65);
-  --color-border: oklch(90% 0.02 60);
+  --color-bg: #faf8f4; /* warm cream */
+  --color-surface: #ffffff;
+  --color-surface-raised: #f5f1ea; /* warm off-white for raised tiles */
+  --color-border: #e0d9ce; /* soft warm sand */
 
   /* Text */
-  --color-text: oklch(24% 0.03 50);
-  --color-text-muted: oklch(52% 0.03 55);
+  --color-text: #2c2218; /* warm near-black brown */
+  --color-text-muted: #b5a89a; /* soft warm taupe (per brand spec) */
 
-  /* Brand */
-  --color-primary: oklch(68% 0.2 38); /* energetic coral-orange */
-  --color-primary-fg: oklch(99% 0.01 80);
-  --color-accent: oklch(82% 0.19 130); /* electric lime */
-  --color-accent-fg: oklch(28% 0.06 130);
+  /* Brand — terra-cotta */
+  --color-primary: #c47a4a;
+  --color-primary-fg: #ffffff;
+  /* Accent shares the terra-cotta family (progress bars use accent). */
+  --color-accent: #c47a4a;
+  --color-accent-fg: #ffffff;
 
-  /* Semantic */
-  --color-success: oklch(72% 0.17 150);
-  --color-warning: oklch(80% 0.16 80);
-  --color-danger: oklch(62% 0.21 25);
+  /* Semantic — kept earthy (no blue/green/purple/neon) */
+  --color-success: #a8824e; /* warm honey-brown = positive */
+  --color-warning: #c2913f; /* amber */
+  --color-danger: #b3543b; /* warm brick */
 
-  /* Typography */
-  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  /* Typography — soft serif display + warm humanist sans (Vietnamese-ready) */
+  --font-sans: var(--font-nunito), "Segoe UI", system-ui, sans-serif;
+  --font-display: var(--font-lora), Georgia, "Times New Roman", serif;
 
-  /* Shape */
-  --radius-card: 1.25rem;
+  /* Shape — soft, no sharp edges */
+  --radius-card: 0.75rem; /* 12px cards */
+  --radius-btn: 0.625rem; /* 10px buttons */
   --radius-pill: 999px;
 
-  /* Elevation */
-  --shadow-card: 0 1px 2px oklch(40% 0.05 50 / 0.06),
-    0 8px 24px oklch(40% 0.05 50 / 0.08);
-  --shadow-glow: 0 8px 30px oklch(68% 0.2 38 / 0.35);
+  /* Elevation — subtle and warm (no glow) */
+  --shadow-card: 0 1px 2px rgba(44, 34, 24, 0.04),
+    0 4px 14px rgba(44, 34, 24, 0.05);
+  --shadow-glow: 0 6px 18px rgba(196, 122, 74, 0.16); /* soft warm lift */
+  --shadow-raised: 0 2px 6px rgba(44, 34, 24, 0.05),
+    0 12px 30px rgba(44, 34, 24, 0.07);
+
+  /* Atmosphere */
+  --surface-gradient: linear-gradient(160deg, #ffffff 0%, #f7f2ea 100%);
+  /* Warm in-palette hero band (replaces the old saturated coral→orange). */
+  --gradient-hero: linear-gradient(
+    150deg,
+    #cf8d5d 0%,
+    #c47a4a 55%,
+    #b06a3e 100%
+  );
 
   /* Layout */
   --app-max-width: 30rem; /* mobile-first single column */
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: oklch(20% 0.02 50);
-    --color-surface: oklch(24% 0.025 50);
-    --color-surface-raised: oklch(28% 0.03 50);
-    --color-border: oklch(34% 0.03 50);
-    --color-text: oklch(95% 0.015 75);
-    --color-text-muted: oklch(72% 0.025 60);
-    --color-primary: oklch(72% 0.2 40);
-    --color-primary-fg: oklch(20% 0.03 50);
-    --color-accent: oklch(85% 0.19 130);
-    --color-accent-fg: oklch(22% 0.06 130);
-    --shadow-card: 0 1px 2px oklch(0% 0 0 / 0.3),
-      0 8px 24px oklch(0% 0 0 / 0.4);
-  }
 }
 
 @layer base {
@@ -73,10 +71,18 @@
     background-color: var(--color-bg);
     color: var(--color-text);
     font-family: var(--font-sans);
+    font-weight: 400;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     /* Prevent overscroll bounce revealing browser chrome in PWA */
     overscroll-behavior-y: none;
+  }
+
+  /* Page titles use the soft serif display face at a gentle weight. */
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.005em;
   }
 
   :focus-visible {
@@ -105,5 +111,15 @@
   }
   .min-h-dvh {
     min-height: 100dvh;
+  }
+
+  /* Soft atmospheric surface gradient for subtle card depth. */
+  .bg-surface-gradient {
+    background-image: var(--surface-gradient);
+  }
+
+  /* Warm terra-cotta hero band used for the greeting / feature headers. */
+  .bg-hero {
+    background-image: var(--gradient-hero);
   }
 }

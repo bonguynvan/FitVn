@@ -12,30 +12,38 @@
  * (the parent decides via `visible`) to keep the chat focused.
  */
 
+import {
+  BarChart3,
+  Dumbbell,
+  Timer,
+  UtensilsCrossed,
+  type LucideIcon,
+} from 'lucide-react';
+
 interface QuickAction {
   readonly label: string;
   readonly prompt: string;
-  readonly emoji: string;
+  readonly icon: LucideIcon;
 }
 
 const QUICK_ACTIONS: ReadonlyArray<QuickAction> = [
   {
-    emoji: '💪',
+    icon: Dumbbell,
     label: 'Còn thiếu protein?',
     prompt: 'Hôm nay tôi còn thiếu bao nhiêu protein?',
   },
   {
-    emoji: '🍱',
+    icon: UtensilsCrossed,
     label: 'Gợi ý món ăn',
     prompt: 'Gợi ý món ăn cho lượng macro còn lại của tôi hôm nay.',
   },
   {
-    emoji: '📊',
+    icon: BarChart3,
     label: 'Nhận xét tuần tập',
     prompt: 'Nhận xét tuần tập vừa rồi của tôi và đề xuất điều chỉnh.',
   },
   {
-    emoji: '⏱️',
+    icon: Timer,
     label: 'Ăn quanh buổi tập',
     prompt: 'Tôi nên ăn gì trước và sau buổi tập?',
   },
@@ -55,18 +63,21 @@ export function QuickActions({ onSend, disabled = false }: QuickActionsProps) {
       role="group"
       aria-label="Câu hỏi gợi ý cho HLV AI"
     >
-      {QUICK_ACTIONS.map((action) => (
-        <button
-          key={action.prompt}
-          type="button"
-          disabled={disabled}
-          onClick={() => onSend(action.prompt)}
-          className="inline-flex items-center gap-1.5 rounded-pill border border-border bg-surface px-3.5 py-2 text-sm font-medium text-text shadow-card transition-colors hover:border-primary/60 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <span aria-hidden>{action.emoji}</span>
-          {action.label}
-        </button>
-      ))}
+      {QUICK_ACTIONS.map((action) => {
+        const Icon = action.icon;
+        return (
+          <button
+            key={action.prompt}
+            type="button"
+            disabled={disabled}
+            onClick={() => onSend(action.prompt)}
+            className="inline-flex items-center gap-1.5 rounded-pill border border-border bg-surface px-3.5 py-2 text-sm font-medium text-text shadow-card transition-colors hover:border-primary/60 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Icon size={16} className="text-primary" aria-hidden />
+            {action.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

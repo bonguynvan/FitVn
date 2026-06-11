@@ -212,7 +212,7 @@ function StatusBody({
             type="button"
             onClick={onUnsubscribe}
             disabled={busy}
-            className="w-full rounded-pill border border-border bg-surface px-5 py-3 text-sm font-semibold text-text transition active:scale-95 disabled:opacity-60"
+            className="w-full rounded-btn border border-border bg-surface px-5 py-3 text-sm font-semibold text-text transition active:scale-95 disabled:opacity-60"
           >
             {busy ? "Đang tắt…" : "Tắt thông báo"}
           </button>
@@ -226,7 +226,7 @@ function StatusBody({
           type="button"
           onClick={onSubscribe}
           disabled={busy}
-          className="w-full rounded-pill bg-primary px-5 py-3 text-sm font-semibold text-primary-fg shadow-glow transition active:scale-95 disabled:opacity-60"
+          className="w-full rounded-btn bg-primary px-5 py-3 text-sm font-semibold text-primary-fg shadow-glow transition active:scale-95 disabled:opacity-60"
         >
           {busy ? "Đang bật…" : "Bật thông báo"}
         </button>

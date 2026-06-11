@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
+import { Bot } from 'lucide-react';
 
 import { CoachChat } from '@/components/coach/CoachChat';
+import { IconBadge } from '@/components/ui';
 
 export const metadata: Metadata = {
   title: 'HLV AI · FitVN',
@@ -23,16 +25,23 @@ export default function CoachPage() {
           aria-hidden
           className="pointer-events-none absolute -right-6 -top-8 h-24 w-24 rounded-full bg-accent/40 blur-2xl"
         />
-        <p className="text-xs font-medium uppercase tracking-widest opacity-90">
-          Huấn luyện viên AI
-        </p>
-        <h1 className="mt-1 text-2xl font-extrabold leading-tight">
-          HLV FitVN 🤖
-        </h1>
-        <p className="mt-2 max-w-[40ch] text-sm leading-relaxed opacity-95">
-          Hỏi đáp dinh dưỡng &amp; tập luyện, cá nhân hoá theo macro và buổi tập
-          của bạn hôm nay.
-        </p>
+        <div className="flex items-start gap-3">
+          <IconBadge tone="accent" size="lg" className="shadow-card">
+            <Bot size={26} aria-hidden />
+          </IconBadge>
+          <div className="min-w-0">
+            <p className="text-xs font-medium tracking-wide opacity-90">
+              Huấn luyện viên AI
+            </p>
+            <h1 className="mt-1 text-2xl font-extrabold leading-tight">
+              HLV FitVN
+            </h1>
+            <p className="mt-2 max-w-[40ch] text-sm leading-relaxed opacity-95">
+              Hỏi đáp dinh dưỡng &amp; tập luyện, cá nhân hoá theo macro và buổi
+              tập của bạn hôm nay.
+            </p>
+          </div>
+        </div>
       </header>
 
       <CoachChat />

@@ -60,7 +60,7 @@ export default function OfflinePage() {
 
       {/* What still works offline */}
       <section className="w-full max-w-xs rounded-card bg-surface p-5 text-left shadow-card">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">
+        <h2 className="mb-3 text-xs font-semibold tracking-wide text-muted">
           Vẫn dùng được khi offline
         </h2>
         <ul className="space-y-3">
@@ -104,7 +104,7 @@ export default function OfflinePage() {
       */}
       <a
         href="/"
-        className="rounded-pill bg-primary px-6 py-3 text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-95"
+        className="rounded-btn bg-primary px-6 py-3 text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-95"
       >
         Thử kết nối lại
       </a>
