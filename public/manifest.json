@@ -10,8 +10,8 @@
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "portrait",
-  "background_color": "#faf8f4",
-  "theme_color": "#c47a4a",
+  "background_color": "#f6f8f5",
+  "theme_color": "#0e9f6e",
   "categories": ["health", "fitness", "lifestyle", "food"],
   "prefer_related_applications": false,
   "icons": [

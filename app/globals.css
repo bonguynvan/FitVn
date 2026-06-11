@@ -3,58 +3,57 @@
 @tailwind utilities;
 
 /*
- * FitVN design tokens — "warm earthy lifestyle".
- * Calm, soft, organic. Cream surfaces, terra-cotta brand, warm-brown text.
- * No dark backgrounds, no neon, no blue/purple/green as primary.
- * Single source of truth: Tailwind reads these via var(--...) (tailwind.config.ts).
+ * FitVN design tokens — "fresh & healthy".
+ * Clean light surfaces, emerald brand, deep green-charcoal text.
+ * Mobile-first PWA. Single source of truth: Tailwind reads these via var(--...).
  */
 :root {
   /* Surfaces */
-  --color-bg: #faf8f4; /* warm cream */
+  --color-bg: #f6f8f5; /* soft fresh off-white */
   --color-surface: #ffffff;
-  --color-surface-raised: #f5f1ea; /* warm off-white for raised tiles */
-  --color-border: #e0d9ce; /* soft warm sand */
+  --color-surface-raised: #eef2ee; /* light cool tile */
+  --color-border: #e2e8e3; /* soft cool sand-green */
 
   /* Text */
-  --color-text: #2c2218; /* warm near-black brown */
-  --color-text-muted: #b5a89a; /* soft warm taupe (per brand spec) */
+  --color-text: #16241d; /* deep green-charcoal */
+  --color-text-muted: #71807a; /* readable cool sage-gray */
 
-  /* Brand — terra-cotta */
-  --color-primary: #c47a4a;
+  /* Brand — emerald */
+  --color-primary: #0e9f6e;
   --color-primary-fg: #ffffff;
-  /* Accent shares the terra-cotta family (progress bars use accent). */
-  --color-accent: #c47a4a;
+  /* Accent shares the emerald family (progress bars use accent). */
+  --color-accent: #0e9f6e;
   --color-accent-fg: #ffffff;
 
-  /* Semantic — kept earthy (no blue/green/purple/neon) */
-  --color-success: #a8824e; /* warm honey-brown = positive */
-  --color-warning: #c2913f; /* amber */
-  --color-danger: #b3543b; /* warm brick */
+  /* Semantic */
+  --color-success: #0e9f6e; /* on-brand positive */
+  --color-warning: #d9892b; /* amber */
+  --color-danger: #e11d48; /* fresh rose-red */
 
-  /* Typography — soft serif display + warm humanist sans (Vietnamese-ready) */
-  --font-sans: var(--font-nunito), "Segoe UI", system-ui, sans-serif;
-  --font-display: var(--font-lora), Georgia, "Times New Roman", serif;
+  /* Typography — single warm humanist family, set by next/font in layout.tsx */
+  --font-sans: var(--font-app-sans), "Segoe UI", system-ui, sans-serif;
+  --font-display: var(--font-app-sans), "Segoe UI", system-ui, sans-serif;
 
   /* Shape — soft, no sharp edges */
   --radius-card: 0.75rem; /* 12px cards */
   --radius-btn: 0.625rem; /* 10px buttons */
   --radius-pill: 999px;
 
-  /* Elevation — subtle and warm (no glow) */
-  --shadow-card: 0 1px 2px rgba(44, 34, 24, 0.04),
-    0 4px 14px rgba(44, 34, 24, 0.05);
-  --shadow-glow: 0 6px 18px rgba(196, 122, 74, 0.16); /* soft warm lift */
-  --shadow-raised: 0 2px 6px rgba(44, 34, 24, 0.05),
-    0 12px 30px rgba(44, 34, 24, 0.07);
+  /* Elevation — subtle, cool neutral */
+  --shadow-card: 0 1px 2px rgba(16, 36, 28, 0.04),
+    0 4px 14px rgba(16, 36, 28, 0.06);
+  --shadow-glow: 0 6px 18px rgba(14, 159, 110, 0.2); /* soft emerald lift */
+  --shadow-raised: 0 2px 6px rgba(16, 36, 28, 0.05),
+    0 12px 30px rgba(16, 36, 28, 0.08);
 
   /* Atmosphere */
-  --surface-gradient: linear-gradient(160deg, #ffffff 0%, #f7f2ea 100%);
-  /* Warm in-palette hero band (replaces the old saturated coral→orange). */
+  --surface-gradient: linear-gradient(160deg, #ffffff 0%, #eef4f0 100%);
+  /* Emerald hero band for greeting / feature headers. */
   --gradient-hero: linear-gradient(
     150deg,
-    #cf8d5d 0%,
-    #c47a4a 55%,
-    #b06a3e 100%
+    #18b07e 0%,
+    #0e9f6e 55%,
+    #0a7d56 100%
   );
 
   /* Layout */
@@ -74,15 +73,15 @@
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    /* Prevent overscroll bounce revealing browser chrome in PWA */
+    /* App-like feel: no tap flash, no overscroll chrome reveal. */
+    -webkit-tap-highlight-color: transparent;
     overscroll-behavior-y: none;
   }
 
-  /* Page titles use the soft serif display face at a gentle weight. */
+  /* Headings: soft weight, slightly tightened tracking. */
   h1 {
-    font-family: var(--font-display);
-    font-weight: 500;
-    letter-spacing: -0.005em;
+    font-weight: 600;
+    letter-spacing: -0.01em;
   }
 
   :focus-visible {
@@ -118,7 +117,7 @@
     background-image: var(--surface-gradient);
   }
 
-  /* Warm terra-cotta hero band used for the greeting / feature headers. */
+  /* Emerald hero band used for the greeting / feature headers. */
   .bg-hero {
     background-image: var(--gradient-hero);
   }

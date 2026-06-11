@@ -50,14 +50,14 @@ function Draw-Master([System.Drawing.Graphics]$g, [bool]$rounded) {
   # --- Background: diagonal 3-stop coral -> orange -> deep-orange gradient ---
   $bg = New-Object System.Drawing.Drawing2D.LinearGradientBrush(
     $full,
-    [System.Drawing.Color]::FromArgb(207, 141, 93),
-    [System.Drawing.Color]::FromArgb(176, 106, 62),
+    [System.Drawing.Color]::FromArgb(24, 176, 126),
+    [System.Drawing.Color]::FromArgb(10, 125, 86),
     [System.Drawing.Drawing2D.LinearGradientMode]::ForwardDiagonal)
   $blend = New-Object System.Drawing.Drawing2D.ColorBlend(3)
   $blend.Colors    = @(
-    [System.Drawing.Color]::FromArgb(207, 141, 93),
-    [System.Drawing.Color]::FromArgb(196, 122, 74),
-    [System.Drawing.Color]::FromArgb(176, 106, 62))
+    [System.Drawing.Color]::FromArgb(24, 176, 126),
+    [System.Drawing.Color]::FromArgb(14, 159, 110),
+    [System.Drawing.Color]::FromArgb(10, 125, 86))
   $blend.Positions = @([float]0.0, [float]0.55, [float]1.0)
   $bg.InterpolationColors = $blend
 
