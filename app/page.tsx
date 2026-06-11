@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Bot, Dumbbell, LineChart, LogOut, Salad, type LucideIcon } from "lucide-react";
+import { Bot, Dumbbell, LineChart, Salad, User, type LucideIcon } from "lucide-react";
 
 import { getCurrentUser } from "@/lib/auth/session";
-import { logout } from "@/app/login/actions";
+import { ProfileNudge } from "@/components/home/ProfileNudge";
 import { TodayDashboard } from "@/components/home/TodayDashboard";
 import { PushManager } from "@/components/pwa/PushManager";
 import { IconBadge, SectionHeader } from "@/components/ui";
@@ -44,21 +44,22 @@ export default async function HomePage() {
         />
         <div className="flex items-start justify-between gap-3">
           <p className="text-xs font-semibold tracking-wide opacity-90">{todayLabel()}</p>
-          <form action={logout}>
-            <button
-              type="submit"
-              aria-label="Đăng xuất"
-              className="-mr-1 -mt-1 inline-flex h-9 w-9 items-center justify-center rounded-btn bg-white/15 text-primary-fg transition active:scale-95"
-            >
-              <LogOut size={17} aria-hidden />
-            </button>
-          </form>
+          <Link
+            href="/profile"
+            aria-label="Hồ sơ"
+            className="-mr-1 -mt-1 inline-flex h-9 w-9 items-center justify-center rounded-btn bg-white/15 text-primary-fg transition active:scale-95"
+          >
+            <User size={17} aria-hidden />
+          </Link>
         </div>
         <h1 className="mt-1 text-3xl leading-tight">Chào {name}!</h1>
         <p className="mt-2 max-w-[32ch] text-sm leading-relaxed opacity-95">
           Sẵn sàng cho một ngày khỏe mạnh chứ?
         </p>
       </header>
+
+      {/* Personalize-goal nudge (hidden once a profile exists) */}
+      <ProfileNudge />
 
       {/* Today — reactive to locally-logged data */}
       <TodayDashboard />

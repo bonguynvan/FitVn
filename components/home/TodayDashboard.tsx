@@ -11,7 +11,7 @@ import {
   SectionHeader,
   StatTile,
 } from "@/components/ui";
-import { DAILY_TARGETS } from "@/lib/config/targets";
+import { useDailyTargets } from "@/lib/store/profile-store";
 import { todayIso } from "@/lib/date";
 import { useDayFoods } from "@/lib/store/nutrition-store";
 import { useSessions } from "@/lib/store/workout-store";
@@ -43,6 +43,7 @@ export function TodayDashboard() {
   const foods = useDayFoods(today);
   const sessions = useSessions();
   const measurements = useMeasurements();
+  const targets = useDailyTargets();
 
   const hasData =
     foods.length > 0 || sessions.length > 0 || measurements.length > 0;
@@ -87,11 +88,11 @@ export function TodayDashboard() {
     }),
     { cal: 0, protein: 0, carbs: 0, fat: 0 },
   );
-  const remaining = Math.max(DAILY_TARGETS.calories - totals.cal, 0);
+  const remaining = Math.max(targets.calories - totals.cal, 0);
   const macros = [
-    { label: "Đạm", value: totals.protein, target: DAILY_TARGETS.proteinG },
-    { label: "Tinh bột", value: totals.carbs, target: DAILY_TARGETS.carbsG },
-    { label: "Chất béo", value: totals.fat, target: DAILY_TARGETS.fatG },
+    { label: "Đạm", value: totals.protein, target: targets.proteinG },
+    { label: "Tinh bột", value: totals.carbs, target: targets.carbsG },
+    { label: "Chất béo", value: totals.fat, target: targets.fatG },
   ];
 
   const sessionDates = new Set(sessions.map((s) => s.performedOn));
@@ -109,17 +110,17 @@ export function TodayDashboard() {
         <div className="flex items-center gap-5">
           <ProgressRing
             value={totals.cal}
-            max={DAILY_TARGETS.calories}
+            max={targets.calories}
             size={116}
             stroke={12}
-            label={`${fmt(totals.cal)} trên ${fmt(DAILY_TARGETS.calories)} kcal`}
+            label={`${fmt(totals.cal)} trên ${fmt(targets.calories)} kcal`}
           >
             <Flame size={20} className="text-primary" aria-hidden />
             <span className="mt-0.5 text-xl font-semibold leading-none text-text">
               {fmt(totals.cal)}
             </span>
             <span className="text-[11px] font-medium text-muted">
-              / {fmt(DAILY_TARGETS.calories)} kcal
+              / {fmt(targets.calories)} kcal
             </span>
           </ProgressRing>
           <div className="min-w-0 flex-1">
