@@ -1,0 +1,72 @@
+{
+  "id": "/",
+  "name": "FitVN — Gym & Dinh dưỡng",
+  "short_name": "FitVN",
+  "description": "Ứng dụng tập gym và dinh dưỡng cho người Việt: kế hoạch tập luyện, ghi log buổi tập, theo dõi món ăn và huấn luyện viên AI — dùng được cả khi offline.",
+  "lang": "vi",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait",
+  "background_color": "#fff4ec",
+  "theme_color": "#ff6b3d",
+  "categories": ["health", "fitness", "lifestyle", "food"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-256.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ghi log buổi tập",
+      "short_name": "Log tập",
+      "description": "Ghi nhanh buổi tập hôm nay",
+      "url": "/workout/log?utm_source=pwa_shortcut",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Ghi log món ăn",
+      "short_name": "Log ăn",
+      "description": "Thêm món ăn vào nhật ký dinh dưỡng",
+      "url": "/nutrition/log?utm_source=pwa_shortcut",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Huấn luyện viên AI",
+      "short_name": "AI Coach",
+      "description": "Hỏi AI Coach về tập luyện và dinh dưỡng",
+      "url": "/coach?utm_source=pwa_shortcut",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

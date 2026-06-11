@@ -1,0 +1,164 @@
+'use client';
+
+/**
+ * FitVN — AI Coach chat UI (AI SDK v5).
+ *
+ * Streaming chat against /api/coach using useChat + DefaultChatTransport.
+ * Renders message bubbles (text parts only), auto-scrolls to the latest
+ * message, shows a typing indicator while the assistant streams, and exposes
+ * a stop button. Quick-action chips seed the conversation and disappear once
+ * a dialogue is under way. Mobile-first, intentionally styled with the app's
+ * design tokens (not a generic gray chat).
+ */
+
+import { useEffect, useRef, useState } from 'react';
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
+
+import { MessageBubble } from './MessageBubble';
+import { QuickActions } from './QuickActions';
+
+/** Empty-state copy shown before the first message. */
+const EMPTY_TITLE = 'Chào bạn 👋';
+const EMPTY_BODY =
+  'Mình là HLV FitVN. Hỏi mình về dinh dưỡng, macro còn lại hôm nay, hay buổi tập của bạn nhé.';
+
+export function CoachChat() {
+  const { messages, sendMessage, status, stop, error } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/coach' }),
+  });
+
+  const [input, setInput] = useState('');
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const isBusy = status === 'submitted' || status === 'streaming';
+  const hasMessages = messages.length > 0;
+
+  // Auto-scroll to the newest message / token as the stream grows.
+  useEffect(() => {
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: 'smooth',
+    });
+  }, [messages, status]);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const text = input.trim();
+    if (!text || isBusy) return;
+    sendMessage({ text });
+    setInput('');
+  }
+
+  function handleQuickAction(text: string) {
+    if (isBusy) return;
+    sendMessage({ text });
+  }
+
+  return (
+    <div className="flex flex-1 flex-col gap-3 overflow-hidden">
+      {/* Scrollable conversation area */}
+      <div
+        ref={scrollRef}
+        className="flex flex-1 flex-col gap-3 overflow-y-auto rounded-card bg-bg/40 p-1"
+        aria-live="polite"
+        aria-label="Cuộc trò chuyện với HLV AI"
+      >
+        {!hasMessages && (
+          <div className="m-auto flex max-w-[34ch] flex-col items-center gap-2 px-4 py-8 text-center">
+            <span className="text-4xl" aria-hidden>
+              🤖
+            </span>
+            <p className="text-lg font-bold text-text">{EMPTY_TITLE}</p>
+            <p className="text-sm leading-relaxed text-muted">{EMPTY_BODY}</p>
+          </div>
+        )}
+
+        {messages.map((message) => (
+          <MessageBubble key={message.id} message={message} />
+        ))}
+
+        {/* Typing indicator while the assistant prepares/streams a reply */}
+        {status === 'submitted' && (
+          <div className="flex justify-start">
+            <div className="flex items-center gap-1.5 rounded-card rounded-bl-sm border border-border bg-surface px-4 py-3 shadow-card">
+              <Dot delay="0ms" />
+              <Dot delay="150ms" />
+              <Dot delay="300ms" />
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div
+            role="alert"
+            className="rounded-card border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger"
+          >
+            Đã có lỗi xảy ra. Vui lòng thử gửi lại tin nhắn.
+          </div>
+        )}
+      </div>
+
+      {/* Quick actions — only before the conversation starts */}
+      {!hasMessages && (
+        <QuickActions onSend={handleQuickAction} disabled={isBusy} />
+      )}
+
+      {/* Composer */}
+      <form
+        onSubmit={handleSubmit}
+        className="flex items-end gap-2 rounded-card border border-border bg-surface p-2 shadow-card"
+      >
+        <label htmlFor="coach-input" className="sr-only">
+          Nhập câu hỏi cho HLV AI
+        </label>
+        <textarea
+          id="coach-input"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            // Enter sends; Shift+Enter inserts a newline.
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSubmit(e);
+            }
+          }}
+          rows={1}
+          placeholder="Hỏi HLV về dinh dưỡng hoặc buổi tập…"
+          className="max-h-32 flex-1 resize-none bg-transparent px-2 py-2 text-sm text-text outline-none placeholder:text-muted"
+        />
+
+        {isBusy ? (
+          <button
+            type="button"
+            onClick={stop}
+            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-pill bg-danger px-4 text-sm font-bold text-white transition-transform active:scale-95"
+            aria-label="Dừng tạo phản hồi"
+          >
+            <span aria-hidden>⏹</span> Dừng
+          </button>
+        ) : (
+          <button
+            type="submit"
+            disabled={!input.trim()}
+            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-pill bg-primary px-4 text-sm font-bold text-primary-fg transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label="Gửi tin nhắn"
+          >
+            Gửi <span aria-hidden>↑</span>
+          </button>
+        )}
+      </form>
+    </div>
+  );
+}
+
+/** A single bouncing dot for the typing indicator. */
+function Dot({ delay }: { delay: string }) {
+  return (
+    <span
+      className="h-2 w-2 animate-bounce rounded-full bg-muted"
+      style={{ animationDelay: delay }}
+      aria-hidden
+    />
+  );
+}
