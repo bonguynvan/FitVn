@@ -15,3 +15,4 @@ export { Sparkline } from "./Sparkline";
 export { IconBadge, ICON_BADGE_GLYPH_SIZE } from "./IconBadge";
 export { Pill } from "./Pill";
 export { EmptyState } from "./EmptyState";
+export { Sheet } from "./Sheet";

@@ -121,4 +121,26 @@
   .bg-hero {
     background-image: var(--gradient-hero);
   }
+
+  /* Bottom-sheet slide-up entrance. */
+  .animate-sheet-up {
+    animation: sheet-up 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(12%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-sheet-up {
+    animation: none;
+  }
 }
