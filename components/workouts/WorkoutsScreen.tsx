@@ -5,7 +5,9 @@ import {
   Clock,
   Dumbbell,
   Hash,
+  LayoutTemplate,
   Minus,
+  Play,
   Plus,
   Trash2,
   Weight,
@@ -28,11 +30,23 @@ import {
   removeSession,
   useSessions,
 } from "@/lib/store/workout-store";
+import {
+  addTemplate,
+  removeTemplate,
+  useTemplates,
+} from "@/lib/store/template-store";
+import { PRESET_TEMPLATES } from "@/lib/data/workout-templates";
 import type {
   LoggedExercise,
   LoggedSet,
   WorkoutSession,
 } from "@/lib/store/types";
+
+/** Shape used to prefill the add-session form from a template. */
+interface TemplateInitial {
+  name: string;
+  exercises: { name: string; setCount: number }[];
+}
 
 const DEFAULT_SESSION_NAME = "Buổi tập";
 /** Weekday labels T2..CN, indexed Monday-first. */
@@ -74,8 +88,25 @@ function startOfWeekIso(iso: string): string {
 
 export function WorkoutsScreen() {
   const sessions = useSessions();
+  const templates = useTemplates();
   const today = todayIso();
   const [adding, setAdding] = useState(false);
+  // The template to prefill the form with (null = blank manual session).
+  const [formInitial, setFormInitial] = useState<TemplateInitial | null>(null);
+  // Bumped whenever the form should re-seed, so AddSessionForm remounts.
+  const [formKey, setFormKey] = useState(0);
+
+  function openBlank() {
+    setFormInitial(null);
+    setFormKey((k) => k + 1);
+    setAdding(true);
+  }
+
+  function openFromTemplate(initial: TemplateInitial) {
+    setFormInitial(initial);
+    setFormKey((k) => k + 1);
+    setAdding(true);
+  }
 
   const weekStartIso = useMemo(() => startOfWeekIso(today), [today]);
 
@@ -113,13 +144,20 @@ export function WorkoutsScreen() {
         action={
           <button
             type="button"
-            onClick={() => setAdding(true)}
+            onClick={openBlank}
             aria-label="Ghi buổi tập"
             className="inline-flex h-11 w-11 items-center justify-center rounded-btn bg-primary text-primary-fg shadow-glow transition-transform active:scale-95"
           >
             <Plus size={22} />
           </button>
         }
+      />
+
+      {/* Quick-start templates (shown in both empty and populated states) */}
+      <TemplatesSection
+        templates={templates}
+        onStart={openFromTemplate}
+        onRemove={removeTemplate}
       />
 
       {hasSessions ? (
@@ -187,7 +225,7 @@ export function WorkoutsScreen() {
             </p>
             <button
               type="button"
-              onClick={() => setAdding(true)}
+              onClick={openBlank}
               className="inline-flex items-center gap-2 rounded-btn bg-primary px-4 py-2.5 text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-95"
             >
               <Plus size={16} /> Ghi buổi tập
@@ -198,11 +236,107 @@ export function WorkoutsScreen() {
 
       <Sheet open={adding} onClose={() => setAdding(false)} title="Ghi buổi tập">
         <AddSessionForm
+          key={formKey}
           today={today}
+          initial={formInitial ?? undefined}
           onSaved={() => setAdding(false)}
         />
       </Sheet>
     </main>
+  );
+}
+
+function TemplatesSection({
+  templates,
+  onStart,
+  onRemove,
+}: {
+  templates: ReturnType<typeof useTemplates>;
+  onStart: (initial: TemplateInitial) => void;
+  onRemove: (id: string) => void;
+}) {
+  return (
+    <section aria-labelledby="templates-heading" className="flex flex-col gap-3">
+      <SectionHeader id="templates-heading">Mẫu tập nhanh</SectionHeader>
+      <ul className="flex flex-col gap-3">
+        {templates.map((tpl) => (
+          <li key={tpl.id}>
+            <TemplateCard
+              name={tpl.name}
+              exerciseCount={tpl.exercises.length}
+              isUser
+              onStart={() =>
+                onStart({ name: tpl.name, exercises: tpl.exercises })
+              }
+              onRemove={() => onRemove(tpl.id)}
+            />
+          </li>
+        ))}
+        {PRESET_TEMPLATES.map((preset) => (
+          <li key={preset.id}>
+            <TemplateCard
+              name={preset.name}
+              exerciseCount={preset.exercises.length}
+              onStart={() =>
+                onStart({
+                  name: preset.name,
+                  exercises: preset.exercises.map((ex) => ({ ...ex })),
+                })
+              }
+            />
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function TemplateCard({
+  name,
+  exerciseCount,
+  isUser = false,
+  onStart,
+  onRemove,
+}: {
+  name: string;
+  exerciseCount: number;
+  isUser?: boolean;
+  onStart: () => void;
+  onRemove?: () => void;
+}) {
+  return (
+    <Card padding="md" className="flex items-center gap-3">
+      <IconBadge tone="primary" size="md">
+        <LayoutTemplate size={20} aria-hidden />
+      </IconBadge>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <p className="truncate text-sm font-bold text-text">{name}</p>
+          {isUser ? <Pill tone="primary">Của bạn</Pill> : null}
+        </div>
+        <p className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-muted">
+          <Hash size={12} aria-hidden />
+          {exerciseCount} bài
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={onStart}
+        className="inline-flex shrink-0 items-center gap-1.5 rounded-btn bg-primary px-3 py-2 text-xs font-semibold text-primary-fg shadow-glow transition-transform active:scale-95"
+      >
+        <Play size={14} aria-hidden /> Bắt đầu
+      </button>
+      {isUser && onRemove ? (
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label={`Xóa mẫu ${name}`}
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-btn text-muted transition hover:bg-surface-raised hover:text-danger"
+        >
+          <Trash2 size={16} />
+        </button>
+      ) : null}
+    </Card>
   );
 }
 
@@ -268,18 +402,33 @@ function newDraftExercise(): DraftExercise {
   return { id: newId(), name: "", sets: [emptySet()] };
 }
 
+/** Build draft exercises from a template: each exercise gets `setCount` empty
+ *  sets (reps/weight null). Always at least one set per exercise. */
+function draftsFromInitial(initial: TemplateInitial): DraftExercise[] {
+  if (initial.exercises.length === 0) return [newDraftExercise()];
+  return initial.exercises.map((ex) => ({
+    id: newId(),
+    name: ex.name,
+    sets: Array.from({ length: Math.max(1, ex.setCount) }, emptySet),
+  }));
+}
+
 function AddSessionForm({
   today,
+  initial,
   onSaved,
 }: {
   today: string;
+  initial?: TemplateInitial;
   onSaved: () => void;
 }) {
-  const [name, setName] = useState(DEFAULT_SESSION_NAME);
+  // Seeded once at mount; the parent remounts via `key` when `initial` changes.
+  const [name, setName] = useState(initial?.name ?? DEFAULT_SESSION_NAME);
   const [duration, setDuration] = useState("");
-  const [exercises, setExercises] = useState<DraftExercise[]>([
-    newDraftExercise(),
-  ]);
+  const [exercises, setExercises] = useState<DraftExercise[]>(() =>
+    initial ? draftsFromInitial(initial) : [newDraftExercise()],
+  );
+  const [saveAsTemplate, setSaveAsTemplate] = useState(false);
 
   function updateExercise(id: string, patch: Partial<DraftExercise>) {
     setExercises((list) =>
@@ -359,6 +508,17 @@ function AddSessionForm({
       durationMin,
       exercises: builtExercises,
     });
+
+    if (saveAsTemplate) {
+      addTemplate({
+        name: name.trim(),
+        exercises: namedExercises.map((ex) => ({
+          name: ex.name.trim(),
+          setCount: Math.max(1, ex.sets.length),
+        })),
+      });
+    }
+
     onSaved();
   }
 
@@ -481,6 +641,24 @@ function AddSessionForm({
           <Plus size={16} /> Thêm bài tập
         </button>
       </div>
+
+      {/* Save as template toggle */}
+      <label className="flex cursor-pointer items-center gap-3 rounded-card bg-surface-raised p-3">
+        <input
+          type="checkbox"
+          checked={saveAsTemplate}
+          onChange={(e) => setSaveAsTemplate(e.target.checked)}
+          className="h-5 w-5 shrink-0 accent-primary"
+        />
+        <span className="flex min-w-0 flex-col">
+          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-text">
+            <LayoutTemplate size={15} aria-hidden /> Lưu làm mẫu
+          </span>
+          <span className="text-xs text-muted">
+            Dùng lại buổi tập này cho lần sau.
+          </span>
+        </span>
+      </label>
 
       {!canSave ? (
         <p className="text-xs text-muted">

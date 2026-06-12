@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import {
+  Check,
   Coffee,
   Cookie,
   Droplet,
@@ -11,12 +12,14 @@ import {
   Plus,
   Trash2,
   UtensilsCrossed,
+  X,
   type LucideIcon,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/nav/PageHeader";
 import { Card, IconBadge, Pill, ProgressRing, SectionHeader, Sheet } from "@/components/ui";
-import { SEED_FOODS, type SeedFood } from "@/lib/data/foods-seed";
+import { type SeedFood } from "@/lib/data/foods-seed";
+import { addCustomFood, useAllFoods, useRecentFoods } from "@/lib/store/food-store";
 import { WATER_GOAL_CUPS } from "@/lib/config/targets";
 import { useDailyTargets } from "@/lib/store/profile-store";
 import { todayIso } from "@/lib/date";
@@ -276,15 +279,23 @@ function MealGroup({
 }
 
 function AddFoodForm({ onAdd }: { onAdd: (food: Omit<LoggedFood, "id">) => void }) {
+  const allFoods = useAllFoods();
+  const recentFoods = useRecentFoods();
   const [mealType, setMealType] = useState<MealType>(defaultMealByHour());
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<SeedFood | null>(null);
   const [qty, setQty] = useState(1);
+  const [creating, setCreating] = useState(false);
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return (q ? SEED_FOODS.filter((f) => f.name.toLowerCase().includes(q)) : SEED_FOODS).slice(0, 8);
-  }, [query]);
+    return (q ? allFoods.filter((f) => f.name.toLowerCase().includes(q)) : allFoods).slice(0, 8);
+  }, [query, allFoods]);
+
+  function pickFood(food: SeedFood) {
+    setSelected(food);
+    setQuery("");
+  }
 
   const preview = selected
     ? {
@@ -330,6 +341,32 @@ function AddFoodForm({ onAdd }: { onAdd: (food: Omit<LoggedFood, "id">) => void 
         ))}
       </div>
 
+      {/* Recently logged */}
+      {recentFoods.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          <span className="text-xs font-semibold text-muted">Gần đây</span>
+          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+            {recentFoods.map((f) => {
+              const active = selected?.id === f.id;
+              return (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => pickFood(f)}
+                  className={`shrink-0 rounded-pill border px-3 py-2 text-sm font-medium transition-colors ${
+                    active
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-surface text-text hover:border-primary/40"
+                  }`}
+                >
+                  {f.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
       {/* Search */}
       <input
         type="text"
@@ -364,6 +401,26 @@ function AddFoodForm({ onAdd }: { onAdd: (food: Omit<LoggedFood, "id">) => void 
           <li className="py-2 text-center text-sm text-muted">Không tìm thấy món.</li>
         ) : null}
       </ul>
+
+      {/* Create custom food */}
+      {creating ? (
+        <CreateFoodForm
+          onCancel={() => setCreating(false)}
+          onCreate={(draft) => {
+            const newFood = addCustomFood(draft);
+            pickFood(newFood);
+            setCreating(false);
+          }}
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setCreating(true)}
+          className="inline-flex items-center justify-center gap-2 rounded-btn border border-dashed border-border bg-surface px-4 py-3 text-sm font-semibold text-muted transition-colors hover:border-primary/50 hover:text-primary"
+        >
+          <Plus size={16} /> Tạo món mới
+        </button>
+      )}
 
       {/* Quantity + preview + submit */}
       {selected ? (
@@ -410,6 +467,113 @@ function AddFoodForm({ onAdd }: { onAdd: (food: Omit<LoggedFood, "id">) => void 
         className="inline-flex h-12 items-center justify-center rounded-btn bg-primary text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-[0.98] disabled:opacity-50"
       >
         Thêm vào nhật ký
+      </button>
+    </div>
+  );
+}
+
+const CREATE_FIELDS: ReadonlyArray<{
+  key: keyof Omit<SeedFood, "id" | "name" | "unit">;
+  label: string;
+}> = [
+  { key: "calories", label: "Calo (kcal)" },
+  { key: "protein", label: "Đạm (g)" },
+  { key: "carbs", label: "Tinh bột (g)" },
+  { key: "fat", label: "Béo (g)" },
+];
+
+function CreateFoodForm({
+  onCreate,
+  onCancel,
+}: {
+  onCreate: (food: Omit<SeedFood, "id">) => void;
+  onCancel: () => void;
+}) {
+  const [name, setName] = useState("");
+  const [unit, setUnit] = useState("phần");
+  const [macros, setMacros] = useState({ calories: "", protein: "", carbs: "", fat: "" });
+
+  const num = (v: string) => {
+    const n = Number.parseFloat(v);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const trimmedName = name.trim();
+  const valid = trimmedName.length > 0 && num(macros.calories) >= 0;
+
+  function save() {
+    if (!valid) return;
+    onCreate({
+      name: trimmedName,
+      unit: unit.trim() || "phần",
+      calories: num(macros.calories),
+      protein: num(macros.protein),
+      carbs: num(macros.carbs),
+      fat: num(macros.fat),
+    });
+  }
+
+  const inputClass =
+    "w-full rounded-btn border border-border bg-surface px-3 py-2.5 text-base text-text outline-none placeholder:text-muted focus:border-primary";
+
+  return (
+    <div className="flex flex-col gap-3 rounded-card border border-border bg-surface-raised p-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-semibold text-text">Món mới</span>
+        <button
+          type="button"
+          onClick={onCancel}
+          aria-label="Hủy tạo món"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-btn text-muted transition hover:bg-surface hover:text-text"
+        >
+          <X size={16} />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-[1fr_auto] gap-2">
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Tên món"
+          className={inputClass}
+        />
+        <input
+          type="text"
+          value={unit}
+          onChange={(e) => setUnit(e.target.value)}
+          placeholder="Đơn vị"
+          aria-label="Đơn vị"
+          className={`${inputClass} w-24`}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        {CREATE_FIELDS.map((field) => (
+          <label key={field.key} className="flex flex-col gap-1 text-xs font-medium text-muted">
+            {field.label}
+            <input
+              type="number"
+              inputMode="decimal"
+              min={0}
+              value={macros[field.key]}
+              onChange={(e) =>
+                setMacros((m) => ({ ...m, [field.key]: e.target.value }))
+              }
+              placeholder="0"
+              className={inputClass}
+            />
+          </label>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={save}
+        disabled={!valid}
+        className="inline-flex h-11 items-center justify-center gap-2 rounded-btn bg-primary text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-[0.98] disabled:opacity-50"
+      >
+        <Check size={16} /> Lưu món
       </button>
     </div>
   );
