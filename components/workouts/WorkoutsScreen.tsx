@@ -38,6 +38,7 @@ import {
 } from "@/lib/store/template-store";
 import { PRESET_TEMPLATES } from "@/lib/data/workout-templates";
 import { SessionDetail } from "@/components/workouts/SessionDetail";
+import { ExerciseProgress } from "@/components/workouts/ExerciseProgress";
 import type {
   LoggedExercise,
   LoggedSet,
@@ -213,6 +214,9 @@ export function WorkoutsScreen() {
             </Card>
           </section>
 
+          {/* Per-exercise progress & personal records */}
+          <ExerciseProgress sessions={sessions} />
+
           {/* Recent sessions */}
           <section aria-labelledby="recent-heading" className="flex flex-col gap-3">
             <SectionHeader id="recent-heading">Buổi tập gần đây</SectionHeader>
@@ -273,6 +277,7 @@ export function WorkoutsScreen() {
         {detailSession ? (
           <SessionDetail
             session={detailSession}
+            allSessions={sessions}
             onEdit={() => {
               const s = detailSession;
               setDetailSession(null);

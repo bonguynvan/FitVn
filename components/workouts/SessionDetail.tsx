@@ -1,9 +1,11 @@
 "use client";
 
-import { Clock, Hash, Pencil, Weight } from "lucide-react";
+import { useMemo } from "react";
+import { Clock, Hash, Pencil, Trophy, Weight } from "lucide-react";
 
-import { Card, IconBadge } from "@/components/ui";
+import { Card, IconBadge, Pill } from "@/components/ui";
 import { shortDateVi } from "@/lib/date";
+import { prsInSession } from "@/lib/fitness/exercise-history";
 import type { WorkoutSession } from "@/lib/store/types";
 
 const fmt = (n: number) => Math.round(n).toLocaleString("vi-VN");
@@ -16,13 +18,20 @@ function exerciseVolume(sets: { reps: number | null; weightKg: number | null }[]
 /** Read-only breakdown of a logged workout session, with an edit affordance. */
 export function SessionDetail({
   session,
+  allSessions = [],
   onEdit,
 }: {
   session: WorkoutSession;
+  /** Every logged session, used to flag exercises that set a new PR here. */
+  allSessions?: readonly WorkoutSession[];
   onEdit: () => void;
 }) {
   const totalVolume = session.exercises.reduce((a, ex) => a + exerciseVolume(ex.sets), 0);
   const totalSets = session.exercises.reduce((a, ex) => a + ex.sets.length, 0);
+  const prNames = useMemo(
+    () => prsInSession(session, allSessions),
+    [session, allSessions],
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -41,7 +50,14 @@ export function SessionDetail({
           return (
             <Card key={ex.id} padding="md" className="flex flex-col gap-2">
               <div className="flex items-center justify-between gap-2">
-                <p className="min-w-0 truncate text-sm font-semibold text-text">{ex.name}</p>
+                <div className="flex min-w-0 items-center gap-2">
+                  <p className="min-w-0 truncate text-sm font-semibold text-text">{ex.name}</p>
+                  {prNames.has(ex.name.trim()) ? (
+                    <Pill tone="primary" icon={<Trophy size={11} aria-hidden />}>
+                      PR
+                    </Pill>
+                  ) : null}
+                </div>
                 {vol > 0 ? (
                   <span className="shrink-0 text-xs font-semibold tabular-nums text-muted">
                     {fmt(vol)} kg
