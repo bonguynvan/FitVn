@@ -5,7 +5,7 @@ import { Check, Flame, LogOut } from "lucide-react";
 
 import { logout } from "@/app/login/actions";
 import { BrandHero } from "@/components/nav/BrandHero";
-import { Card, IconBadge, SectionHeader } from "@/components/ui";
+import { Card, IconBadge, SectionHeader, Toggle } from "@/components/ui";
 import {
   ACTIVITY_OPTIONS,
   GOAL_OPTIONS,
@@ -231,25 +231,10 @@ export function ProfileScreen() {
         </Field>
 
         <Field label="Mục tiêu dinh dưỡng">
-          <button
-            type="button"
-            role="switch"
-            aria-checked={manual}
-            onClick={toggleManual}
-            className="flex items-center justify-between rounded-btn border border-border bg-surface px-4 py-3"
-          >
+          <div className="flex items-center justify-between rounded-btn border border-border bg-surface px-4 py-3">
             <span className="text-sm font-medium text-text">Tự đặt mục tiêu</span>
-            <span
-              className={`relative inline-block h-6 w-10 shrink-0 rounded-pill transition-colors ${
-                manual ? "bg-primary" : "bg-surface-raised"
-              }`}
-            >
-              <span
-                className="absolute top-0.5 h-5 w-5 rounded-pill bg-surface shadow-card transition-all"
-                style={{ left: manual ? "1.125rem" : "0.125rem" }}
-              />
-            </span>
-          </button>
+            <Toggle checked={manual} onChange={toggleManual} ariaLabel="Tự đặt mục tiêu" />
+          </div>
           {manual ? (
             <div className="grid grid-cols-2 gap-2">
               <CustomField
@@ -286,31 +271,22 @@ export function ProfileScreen() {
               const def = CONDITIONS[key];
               const on = hasCondition(form.conditions, key);
               return (
-                <button
+                <div
                   key={key}
-                  type="button"
-                  role="switch"
-                  aria-checked={on}
-                  onClick={() => toggleCondition(key)}
-                  className={`flex items-center justify-between rounded-btn border px-4 py-3 text-left transition-colors ${
+                  className={`flex items-center justify-between gap-2 rounded-btn border px-4 py-3 transition-colors ${
                     on ? "border-primary bg-primary/10" : "border-border bg-surface"
                   }`}
                 >
-                  <span className="flex flex-col">
+                  <button
+                    type="button"
+                    onClick={() => toggleCondition(key)}
+                    className="flex min-w-0 flex-1 flex-col text-left"
+                  >
                     <span className="text-sm font-medium text-text">{def.label}</span>
                     <span className="text-[11px] leading-tight text-muted">{def.hint}</span>
-                  </span>
-                  <span
-                    className={`relative ml-2 inline-block h-6 w-10 shrink-0 rounded-pill transition-colors ${
-                      on ? "bg-primary" : "bg-surface-raised"
-                    }`}
-                  >
-                    <span
-                      className="absolute top-0.5 h-5 w-5 rounded-pill bg-surface shadow-card transition-all"
-                      style={{ left: on ? "1.125rem" : "0.125rem" }}
-                    />
-                  </span>
-                </button>
+                  </button>
+                  <Toggle checked={on} onChange={() => toggleCondition(key)} ariaLabel={def.label} />
+                </div>
               );
             })}
           </div>
