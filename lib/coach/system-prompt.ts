@@ -226,6 +226,12 @@ export function buildSystemPrompt(ctx: CoachContext): string {
     renderHistory(ctx.history7d),
     ...(weekly ? ['', weekly] : []),
     ...(markers ? ['', markers] : []),
+    ...(ctx.checkin && (ctx.checkin.mood || ctx.checkin.energy || ctx.checkin.sleepHours)
+      ? [
+          '',
+          `CẢM NHẬN HÔM NAY: tâm trạng ${ctx.checkin.mood ?? '?'}/5, năng lượng ${ctx.checkin.energy ?? '?'}/5, ngủ ${ctx.checkin.sleepHours ?? '?'} giờ.`,
+        ]
+      : []),
     '=== HẾT DỮ LIỆU ===',
   ].join('\n');
 

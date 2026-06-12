@@ -178,4 +178,10 @@ export interface CoachContext {
   readonly markers?: readonly CoachMarker[];
   /** Whether the user has gout mode on (for marker-aware advice). */
   readonly goutMode?: boolean;
+  /** Today's wellbeing check-in (optional; client-built). */
+  readonly checkin?: {
+    readonly mood: number | null;
+    readonly energy: number | null;
+    readonly sleepHours: number | null;
+  } | null;
 }

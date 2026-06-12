@@ -39,6 +39,7 @@ const WORKOUTS_KEY = "fitvn:workouts:v1";
 const MEASUREMENTS_KEY = "fitvn:measurements:v1";
 const PROFILE_KEY = "fitvn:profile:v1";
 const HEALTH_KEY = "fitvn:health:v1";
+const CHECKIN_KEY = "fitvn:checkin:v1";
 
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
 const round = (n: number) => Math.round(n);
@@ -217,5 +218,10 @@ export function buildLocalCoachContext(): CoachContext {
     },
     markers,
     goutMode,
+    checkin:
+      readLocal<Record<string, { mood: number | null; energy: number | null; sleepHours: number | null }>>(
+        CHECKIN_KEY,
+        {},
+      )[today] ?? null,
   };
 }

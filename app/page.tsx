@@ -3,6 +3,7 @@ import { Bot, Dumbbell, LineChart, Salad, User, type LucideIcon } from "lucide-r
 
 import { getCurrentUser } from "@/lib/auth/session";
 import { CoachNudge } from "@/components/home/CoachNudge";
+import { DailyCheckIn } from "@/components/home/DailyCheckIn";
 import { ProfileNudge } from "@/components/home/ProfileNudge";
 import { TodayDashboard } from "@/components/home/TodayDashboard";
 import { PushManager } from "@/components/pwa/PushManager";
@@ -67,6 +68,9 @@ export default async function HomePage() {
 
       {/* Today — reactive to locally-logged data */}
       <TodayDashboard />
+
+      {/* Daily wellbeing check-in */}
+      <DailyCheckIn />
 
       {/* Quick links */}
       <section aria-labelledby="links-heading" className="flex flex-col gap-3">

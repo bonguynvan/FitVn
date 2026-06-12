@@ -61,6 +61,12 @@ function summary(ctx: CoachContext): string {
   } else {
     lines.push("• Bạn chưa đặt mục tiêu calo — vào Hồ sơ để thiết lập nhé.");
   }
+  const ci = ctx.checkin;
+  if (ci && ((ci.sleepHours != null && ci.sleepHours < 6) || (ci.energy != null && ci.energy <= 2))) {
+    lines.push(
+      "• Bạn đang thiếu ngủ/ít năng lượng — ưu tiên ngủ đủ, giảm cường độ tập và đủ nước hôm nay.",
+    );
+  }
   return lines.join("\n");
 }
 
