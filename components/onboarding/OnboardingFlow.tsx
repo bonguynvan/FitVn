@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, Flame, Sparkles } from "lucide-react";
 
-import { Card, IconBadge } from "@/components/ui";
+import { Card, IconBadge, Toggle } from "@/components/ui";
 import {
   ACTIVITY_OPTIONS,
   GOAL_OPTIONS,
@@ -12,6 +12,12 @@ import {
   computeTargets,
   type UserProfile,
 } from "@/lib/fitness/targets";
+import {
+  CONDITION_ORDER,
+  CONDITIONS,
+  hasCondition,
+  type ConditionKey,
+} from "@/lib/health/conditions";
 import { getProfile, saveProfile } from "@/lib/store/profile-store";
 
 const fmt = (n: number) => Math.round(n).toLocaleString("vi-VN");
@@ -24,11 +30,13 @@ const DEFAULTS: UserProfile = {
   heightCm: 170,
   weightKg: 65,
   activityLevel: "moderate",
+  targetWeightKg: null,
+  conditions: [],
 };
 
-const STEPS = ["Chào mừng", "Mục tiêu", "Cơ thể"] as const;
+const STEPS = ["Chào mừng", "Mục tiêu", "Cơ thể", "Sức khỏe"] as const;
 
-/** First-run guided setup: name → goal → body, then saves the profile. */
+/** First-run guided setup: name → goal → body → health, then saves the profile. */
 export function OnboardingFlow() {
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -38,8 +46,23 @@ export function OnboardingFlow() {
   const set = <K extends keyof UserProfile>(k: K, v: UserProfile[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
+  function toggleCondition(key: ConditionKey) {
+    setForm((f) => {
+      const cur = f.conditions ?? [];
+      const next = cur.includes(key) ? cur.filter((k) => k !== key) : [...cur, key];
+      return { ...f, conditions: next, goutMode: next.includes("gout") };
+    });
+  }
+
   function finish() {
-    saveProfile({ ...form, name: form.name.trim(), customTargets: null });
+    const conditions = form.conditions ?? [];
+    saveProfile({
+      ...form,
+      name: form.name.trim(),
+      conditions,
+      goutMode: conditions.includes("gout"),
+      customTargets: null,
+    });
     router.push("/");
   }
 
@@ -125,6 +148,23 @@ export function OnboardingFlow() {
             <NumberField label="Cao (cm)" value={form.heightCm} onChange={(v) => set("heightCm", v)} min={120} max={230} />
             <NumberField label="Nặng (kg)" value={form.weightKg} onChange={(v) => set("weightKg", v)} min={30} max={250} />
           </div>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-semibold text-text">
+              Cân nặng mục tiêu <span className="font-medium text-muted">(kg, tùy chọn)</span>
+            </span>
+            <input
+              type="number"
+              inputMode="decimal"
+              min={30}
+              max={250}
+              value={form.targetWeightKg ?? ""}
+              onChange={(e) =>
+                set("targetWeightKg", e.target.value === "" ? null : Number(e.target.value))
+              }
+              placeholder="Ví dụ: 60"
+              className="w-full rounded-btn border border-border bg-surface px-4 py-3 text-base font-semibold text-text outline-none placeholder:font-normal placeholder:text-muted focus:border-primary"
+            />
+          </label>
           <Field label="Mức vận động">
             <div className="flex flex-col gap-2">
               {ACTIVITY_OPTIONS.map((a) => (
@@ -152,6 +192,41 @@ export function OnboardingFlow() {
               </p>
             </div>
           </Card>
+        </div>
+      ) : null}
+
+      {step === 3 ? (
+        <div className="flex flex-1 flex-col gap-5">
+          <div>
+            <h1 className="text-2xl font-extrabold leading-tight text-text">Tình trạng sức khỏe</h1>
+            <p className="mt-2 text-sm leading-relaxed text-muted">
+              Chọn tình trạng (nếu có) để FitVN điều chỉnh cảnh báo và lời khuyên. Có thể bỏ qua.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2">
+            {CONDITION_ORDER.map((key) => {
+              const def = CONDITIONS[key];
+              const on = hasCondition(form.conditions, key);
+              return (
+                <div
+                  key={key}
+                  className={`flex items-center justify-between gap-2 rounded-btn border px-4 py-3 transition-colors ${
+                    on ? "border-primary bg-primary/10" : "border-border bg-surface"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggleCondition(key)}
+                    className="flex min-w-0 flex-1 flex-col text-left"
+                  >
+                    <span className="text-sm font-medium text-text">{def.label}</span>
+                    <span className="text-[11px] leading-tight text-muted">{def.hint}</span>
+                  </button>
+                  <Toggle checked={on} onChange={() => toggleCondition(key)} ariaLabel={def.label} />
+                </div>
+              );
+            })}
+          </div>
         </div>
       ) : null}
 
