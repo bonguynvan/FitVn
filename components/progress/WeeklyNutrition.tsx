@@ -2,7 +2,7 @@
 
 import { Flame, Leaf, Salad, Target } from "lucide-react";
 
-import { Card, IconBadge, Pill, SectionHeader, Sparkline, StatTile } from "@/components/ui";
+import { Card, EmptyState, Pill, SectionHeader, Sparkline, StatTile } from "@/components/ui";
 import { useWeeklyNutrition } from "@/lib/store/nutrition-insights-store";
 
 const fmt = (n: number) => Math.round(n).toLocaleString("vi-VN");
@@ -24,14 +24,11 @@ export function WeeklyNutrition() {
       </SectionHeader>
 
       {w.daysLogged === 0 ? (
-        <Card padding="lg" className="flex flex-col items-center gap-2 border-dashed text-center">
-          <IconBadge tone="primary" size="md">
-            <Salad size={20} aria-hidden />
-          </IconBadge>
-          <p className="text-sm text-muted">
-            Ghi bữa ăn để FitVN tổng hợp xu hướng dinh dưỡng tuần này.
-          </p>
-        </Card>
+        <EmptyState
+          size="sm"
+          icon={Salad}
+          description="Ghi bữa ăn để FitVN tổng hợp xu hướng dinh dưỡng tuần này."
+        />
       ) : (
         <>
           <Card raised padding="lg" className="flex flex-col gap-4">

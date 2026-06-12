@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Activity, HeartPulse, Plus, Trash2 } from "lucide-react";
 
-import { Card, IconBadge, Pill, SectionHeader, Sheet, Sparkline } from "@/components/ui";
+import { Card, EmptyState, Pill, SectionHeader, Sheet, Sparkline } from "@/components/ui";
 import { todayIso, shortDateVi } from "@/lib/date";
 import { MARKERS, MARKER_ORDER, type MarkerKey } from "@/lib/health/markers";
 import {
@@ -56,14 +56,11 @@ export function HealthMarkers() {
       </SectionHeader>
 
       {shown.length === 0 ? (
-        <Card padding="lg" className="flex flex-col items-center gap-2 border-dashed text-center">
-          <IconBadge tone="primary" size="md">
-            <HeartPulse size={20} aria-hidden />
-          </IconBadge>
-          <p className="text-sm text-muted">
-            Ghi acid uric, huyết áp, đường huyết, mỡ máu… để theo dõi và nhận tư vấn.
-          </p>
-        </Card>
+        <EmptyState
+          size="sm"
+          icon={HeartPulse}
+          description="Ghi acid uric, huyết áp, đường huyết, mỡ máu… để theo dõi và nhận tư vấn."
+        />
       ) : (
         <div className="flex flex-col gap-3">
           {shown.map((key) => {

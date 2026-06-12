@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Check, ChevronRight, Plus, Trash2, UtensilsCrossed } from "lucide-react";
 
-import { Card, IconBadge, Pill, SectionHeader, Sheet } from "@/components/ui";
+import { Card, EmptyState, SectionHeader, Sheet } from "@/components/ui";
 import { MealBuilder } from "@/components/nutrition/MealBuilder";
 import { defaultMealByHour } from "@/lib/nutrition/meal-time";
 import { addManyFoods } from "@/lib/store/nutrition-store";
@@ -50,17 +50,11 @@ export function SavedMeals({ dateIso }: { dateIso: string }) {
       </SectionHeader>
 
       {meals.length === 0 ? (
-        <Card
-          padding="lg"
-          className="flex flex-col items-center gap-2 border-dashed text-center"
-        >
-          <IconBadge tone="primary" size="md">
-            <UtensilsCrossed size={20} aria-hidden />
-          </IconBadge>
-          <p className="text-sm text-muted">
-            Tạo bữa quen thuộc để ghi nhanh chỉ với một chạm.
-          </p>
-        </Card>
+        <EmptyState
+          size="sm"
+          icon={UtensilsCrossed}
+          description="Tạo bữa quen thuộc để ghi nhanh chỉ với một chạm."
+        />
       ) : (
         <Card padding="md">
           <ul className="flex flex-col divide-y divide-border">

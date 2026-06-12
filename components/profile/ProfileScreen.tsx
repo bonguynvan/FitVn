@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Check, Flame, LogOut } from "lucide-react";
 
 import { logout } from "@/app/login/actions";
-import { PageHeader } from "@/components/nav/PageHeader";
+import { BrandHero } from "@/components/nav/BrandHero";
 import { Card, IconBadge, SectionHeader } from "@/components/ui";
 import {
   ACTIVITY_OPTIONS,
@@ -125,7 +125,7 @@ export function ProfileScreen() {
 
   return (
     <main className="flex flex-1 flex-col gap-6 pt-safe">
-      <PageHeader
+      <BrandHero
         eyebrow="Hồ sơ"
         title="Thông tin & mục tiêu"
         subtitle="Cá nhân hoá mục tiêu calo và macro mỗi ngày"

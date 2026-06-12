@@ -45,8 +45,12 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
         onClick={onClose}
         className="absolute inset-0 bg-text/40 backdrop-blur-sm"
       />
-      <div className="animate-sheet-up relative z-10 w-full max-w-app rounded-t-card border border-border bg-surface pb-safe shadow-raised">
-        <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
+      <div className="animate-sheet-up relative z-10 w-full max-w-app rounded-t-[1.5rem] border border-border bg-surface pb-safe shadow-raised">
+        <span
+          aria-hidden
+          className="mx-auto mt-2.5 block h-1.5 w-10 rounded-pill bg-border"
+        />
+        <div className="flex items-center justify-between gap-3 border-b border-border px-5 pb-4 pt-3">
           <h2 className="text-base font-semibold text-text">{title}</h2>
           <button
             type="button"

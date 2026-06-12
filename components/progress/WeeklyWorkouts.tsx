@@ -2,7 +2,7 @@
 
 import { Dumbbell, Layers, Timer, TrendingUp } from "lucide-react";
 
-import { Card, IconBadge, Pill, SectionHeader, Sparkline, StatTile } from "@/components/ui";
+import { Card, EmptyState, Pill, SectionHeader, Sparkline, StatTile } from "@/components/ui";
 import { useWeeklyWorkouts } from "@/lib/store/workout-insights-store";
 
 const fmt = (n: number) => Math.round(n).toLocaleString("vi-VN");
@@ -24,14 +24,11 @@ export function WeeklyWorkouts() {
       </SectionHeader>
 
       {w.totalSessions === 0 ? (
-        <Card padding="lg" className="flex flex-col items-center gap-2 border-dashed text-center">
-          <IconBadge tone="primary" size="md">
-            <Dumbbell size={20} aria-hidden />
-          </IconBadge>
-          <p className="text-sm text-muted">
-            Ghi buổi tập để FitVN tổng hợp khối lượng và tần suất tuần này.
-          </p>
-        </Card>
+        <EmptyState
+          size="sm"
+          icon={Dumbbell}
+          description="Ghi buổi tập để FitVN tổng hợp khối lượng và tần suất tuần này."
+        />
       ) : (
         <>
           <Card raised padding="lg" className="flex flex-col gap-4">

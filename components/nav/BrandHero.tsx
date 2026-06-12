@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 import type { ReactNode } from "react";
 
 /**
@@ -16,6 +18,9 @@ interface BrandHeroProps {
   icon?: ReactNode;
   /** Trailing element (e.g. a profile link). */
   action?: ReactNode;
+  /** When set, shows a back chevron link above the title. */
+  backHref?: string;
+  backLabel?: string;
   className?: string;
 }
 
@@ -25,11 +30,13 @@ export function BrandHero({
   subtitle,
   icon,
   action,
+  backHref,
+  backLabel = "Quay lại",
   className = "",
 }: BrandHeroProps) {
   return (
     <header
-      className={`relative overflow-hidden rounded-card bg-hero px-5 pb-6 pt-7 text-primary-fg shadow-glow ${className}`}
+      className={`relative overflow-hidden rounded-card bg-hero px-5 pb-6 pt-6 text-primary-fg shadow-glow ${className}`}
     >
       <span
         aria-hidden
@@ -39,6 +46,16 @@ export function BrandHero({
         aria-hidden
         className="pointer-events-none absolute -bottom-16 -left-10 h-32 w-32 rounded-full bg-black/10 blur-2xl"
       />
+      {backHref ? (
+        <Link
+          href={backHref}
+          aria-label={backLabel}
+          className="relative -ml-1 mb-2 inline-flex w-fit items-center gap-1 rounded-pill py-1 pl-1 pr-2.5 text-sm font-semibold text-primary-fg/90 active:scale-95"
+        >
+          <ChevronLeft size={18} strokeWidth={2.4} />
+          {backLabel}
+        </Link>
+      ) : null}
       <div className="relative flex items-start gap-3">
         {icon ? <div className="shrink-0">{icon}</div> : null}
         <div className="min-w-0 flex-1">

@@ -9,11 +9,15 @@ import { IconBadge } from "./IconBadge";
  */
 interface EmptyStateProps {
   icon: LucideIcon;
-  title: string;
+  /** Optional heading. When omitted (compact section empties), the description
+   *  becomes the main line. */
+  title?: string;
   description?: string;
   /** Optional call-to-action (button/link). */
   action?: ReactNode;
   tone?: "primary" | "accent" | "muted";
+  /** "lg" for full-screen empties (default); "sm" for compact section empties. */
+  size?: "sm" | "lg";
   className?: string;
 }
 
@@ -23,19 +27,31 @@ export function EmptyState({
   description,
   action,
   tone = "primary",
+  size = "lg",
   className = "",
 }: EmptyStateProps) {
+  const sm = size === "sm";
   return (
     <div
-      className={`flex flex-col items-center gap-3 rounded-card border border-dashed border-border bg-surface px-6 py-10 text-center ${className}`}
+      className={`flex flex-col items-center rounded-card border border-dashed border-border bg-surface text-center ${
+        sm ? "gap-2 px-4 py-6" : "gap-3 px-6 py-10"
+      } ${className}`}
     >
-      <IconBadge tone={tone} size="lg">
-        <Icon size={26} aria-hidden />
+      <IconBadge tone={tone} size={sm ? "md" : "lg"}>
+        <Icon size={sm ? 20 : 26} aria-hidden />
       </IconBadge>
       <div className="flex flex-col gap-1">
-        <h3 className="text-base font-semibold text-text">{title}</h3>
+        {title ? (
+          <h3 className={`font-semibold text-text ${sm ? "text-sm" : "text-base"}`}>
+            {title}
+          </h3>
+        ) : null}
         {description ? (
-          <p className="mx-auto max-w-[34ch] text-sm leading-relaxed text-muted">
+          <p
+            className={`mx-auto max-w-[34ch] leading-relaxed text-muted ${
+              sm ? "text-sm" : "text-sm"
+            }`}
+          >
             {description}
           </p>
         ) : null}
