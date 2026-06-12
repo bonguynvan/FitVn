@@ -23,6 +23,7 @@ import { BrandHero } from "@/components/nav/BrandHero";
 import { WeeklyNutrition } from "@/components/progress/WeeklyNutrition";
 import { WeeklyWorkouts } from "@/components/progress/WeeklyWorkouts";
 import { HealthMarkers } from "@/components/progress/HealthMarkers";
+import { ShareProgress } from "@/components/progress/ShareProgress";
 import { Card, IconBadge, Pill, SectionHeader, Sparkline, StatTile, Sheet } from "@/components/ui";
 import { shortDateVi, todayIso } from "@/lib/date";
 import type { Achievement } from "@/lib/fitness/achievements";
@@ -137,6 +138,9 @@ export function ProgressScreen() {
           />
         </div>
       </section>
+
+      {/* Share progress summary */}
+      <ShareProgress />
 
       {/* Weekly nutrition rollup */}
       <WeeklyNutrition />
