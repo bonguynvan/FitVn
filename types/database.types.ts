@@ -294,15 +294,24 @@ export interface Database {
       foods: {
         Row: {
           id: string;
+          slug: string | null;
           name_vi: string;
           name_en: string | null;
           brand: string | null;
+          food_group: string | null;
+          refuse_pct: number;
           serving_desc: string | null;
+          serving_unit: string | null;
+          serving_grams: number | null;
           calories_per_100g: number;
           protein_g: number;
           carbs_g: number;
           fat_g: number;
           fiber_g: number | null;
+          sodium_mg: number | null;
+          calcium_mg: number | null;
+          iron_mg: number | null;
+          purine_mg: number | null;
           is_vietnamese: boolean;
           is_verified: boolean;
           created_by: string | null;
@@ -310,15 +319,24 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          slug?: string | null;
           name_vi: string;
           name_en?: string | null;
           brand?: string | null;
+          food_group?: string | null;
+          refuse_pct?: number;
           serving_desc?: string | null;
+          serving_unit?: string | null;
+          serving_grams?: number | null;
           calories_per_100g: number;
           protein_g?: number;
           carbs_g?: number;
           fat_g?: number;
           fiber_g?: number | null;
+          sodium_mg?: number | null;
+          calcium_mg?: number | null;
+          iron_mg?: number | null;
+          purine_mg?: number | null;
           is_vietnamese?: boolean;
           is_verified?: boolean;
           created_by?: string | null;
@@ -326,15 +344,24 @@ export interface Database {
         };
         Update: {
           id?: string;
+          slug?: string | null;
           name_vi?: string;
           name_en?: string | null;
           brand?: string | null;
+          food_group?: string | null;
+          refuse_pct?: number;
           serving_desc?: string | null;
+          serving_unit?: string | null;
+          serving_grams?: number | null;
           calories_per_100g?: number;
           protein_g?: number;
           carbs_g?: number;
           fat_g?: number;
           fiber_g?: number | null;
+          sodium_mg?: number | null;
+          calcium_mg?: number | null;
+          iron_mg?: number | null;
+          purine_mg?: number | null;
           is_vietnamese?: boolean;
           is_verified?: boolean;
           created_by?: string | null;

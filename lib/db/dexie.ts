@@ -1,5 +1,6 @@
 import Dexie, { type Table } from "dexie";
 
+import type { FoodItem } from "@/lib/data/foods-db";
 import type {
   Food,
   LogItem,
@@ -85,6 +86,17 @@ export interface CachedFood
   cachedAt: number;
 }
 
+/**
+ * A cached FCT library food (the full app-facing model) for offline browse +
+ * search. Keyed by the stable slug (FoodItem.id). Separate from `cachedFoods`,
+ * which mirrors the legacy public.foods shape used by the offline log sync.
+ */
+export interface CachedLibraryFood extends FoodItem {
+  /** Lowercased "name nameEn" for case-insensitive substring search. */
+  searchKey: string;
+  cachedAt: number;
+}
+
 export type SyncEntity = "workout_session" | "log_item";
 export type SyncOp = "create";
 
@@ -106,6 +118,7 @@ export class FitVnDatabase extends Dexie {
   pendingWorkoutSessions!: Table<PendingWorkoutSession, string>;
   pendingLogItems!: Table<PendingLogItem, string>;
   cachedFoods!: Table<CachedFood, string>;
+  libraryFoods!: Table<CachedLibraryFood, string>;
   syncQueue!: Table<SyncQueueEntry, number>;
 
   constructor() {
@@ -121,6 +134,11 @@ export class FitVnDatabase extends Dexie {
       cachedFoods: "&id, searchKey, is_vietnamese, cachedAt",
       // ++id auto-increment keeps insertion (replay) order.
       syncQueue: "++id, entity, localId, enqueuedAt",
+    });
+
+    // v2: FCT library cache keyed by slug; group + searchKey indexed for browse.
+    this.version(2).stores({
+      libraryFoods: "&id, group, searchKey, cachedAt",
     });
   }
 }

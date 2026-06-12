@@ -1,7 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import { newId, updateLocal, useLocalValue } from "./local-store";
 import { FOODS, type FoodItem } from "@/lib/data/foods-db";
+import { loadFoodLibrary } from "@/lib/data/food-repository";
 import type { LoggedFood } from "./types";
 
 const CUSTOM_KEY = "fitvn:custom-foods:v2";
@@ -26,10 +29,36 @@ export function removeCustomFood(id: string): void {
   );
 }
 
-/** Custom foods first, then the built-in FCT database. */
+/**
+ * The food library: the bundled FCT foods, upgraded after mount to the Dexie
+ * cache / Supabase remote when available. Starts with {@link FOODS} so the UI
+ * never waits on the network and works fully offline.
+ */
+export function useLibraryFoods(): FoodItem[] {
+  const [library, setLibrary] = useState<FoodItem[]>(FOODS as FoodItem[]);
+
+  useEffect(() => {
+    let active = true;
+    loadFoodLibrary()
+      .then((foods) => {
+        if (active && foods.length > 0) setLibrary(foods);
+      })
+      .catch(() => {
+        /* keep the bundled fallback already in state */
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return library;
+}
+
+/** Custom foods first, then the food library (remote/cache/bundle). */
 export function useAllFoods(): FoodItem[] {
   const custom = useCustomFoods();
-  return [...custom, ...FOODS];
+  const library = useLibraryFoods();
+  return [...custom, ...library];
 }
 
 /** Recently-logged foods (most recent first), resolved to FoodItem. */
