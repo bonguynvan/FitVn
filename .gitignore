@@ -45,3 +45,6 @@ next-env.d.ts
 /public/worker-*.js
 /public/worker-*.js.map
 /public/fallback-*.js
+
+# User-provided FCT-2007 source (run npm run import:fct to generate fct-foods.json)
+data/fct-2007.csv

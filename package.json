@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed:foods": "tsx scripts/seed-foods.ts"
+    "seed:foods": "tsx scripts/seed-foods.ts",
+    "import:fct": "tsx scripts/import-fct.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.0",
