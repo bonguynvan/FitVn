@@ -10,6 +10,8 @@ export interface UserProfile {
   heightCm: number;
   weightKg: number;
   activityLevel: ActivityLevel;
+  /** When set, overrides the auto-computed targets. */
+  customTargets?: DailyTargets | null;
 }
 
 export interface DailyTargets {

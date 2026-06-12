@@ -24,3 +24,12 @@ export function removeSession(id: string): void {
     list.filter((s) => s.id !== id),
   );
 }
+
+export function updateSession(
+  id: string,
+  patch: Partial<Omit<WorkoutSession, "id" | "createdAt">>,
+): void {
+  updateLocal<WorkoutSession[]>(KEY, [], (list) =>
+    list.map((s) => (s.id === id ? { ...s, ...patch } : s)),
+  );
+}

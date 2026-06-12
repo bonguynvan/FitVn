@@ -11,6 +11,7 @@ import {
   GOAL_OPTIONS,
   SEX_OPTIONS,
   computeTargets,
+  type DailyTargets,
   type UserProfile,
 } from "@/lib/fitness/targets";
 import { getProfile, saveProfile } from "@/lib/store/profile-store";
@@ -26,15 +27,39 @@ const DEFAULTS: UserProfile = {
 };
 
 const fmt = (n: number) => Math.round(n).toLocaleString("vi-VN");
+const num = (v: string) => {
+  const n = Number.parseFloat(v);
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : 0;
+};
+const toStrings = (t: DailyTargets) => ({
+  calories: String(t.calories),
+  proteinG: String(t.proteinG),
+  carbsG: String(t.carbsG),
+  fatG: String(t.fatG),
+});
 
 export function ProfileScreen() {
   const [form, setForm] = useState<UserProfile>(DEFAULTS);
   const [saved, setSaved] = useState(false);
+  const [manual, setManual] = useState(false);
+  const [custom, setCustom] = useState({
+    calories: "",
+    proteinG: "",
+    carbsG: "",
+    fatG: "",
+  });
 
   // Load the stored profile after mount (avoids SSR/hydration mismatch).
   useEffect(() => {
     const stored = getProfile();
+    const base = stored ?? DEFAULTS;
     if (stored) setForm({ ...DEFAULTS, ...stored });
+    if (stored?.customTargets) {
+      setManual(true);
+      setCustom(toStrings(stored.customTargets));
+    } else {
+      setCustom(toStrings(computeTargets(base)));
+    }
   }, []);
 
   function set<K extends keyof UserProfile>(key: K, value: UserProfile[K]) {
@@ -42,10 +67,35 @@ export function ProfileScreen() {
     setSaved(false);
   }
 
-  const targets = computeTargets(form);
+  function setCustomField(key: keyof typeof custom, value: string) {
+    setCustom((c) => ({ ...c, [key]: value }));
+    setSaved(false);
+  }
+
+  const computed = computeTargets(form);
+  const customTargets: DailyTargets = {
+    calories: num(custom.calories),
+    proteinG: num(custom.proteinG),
+    carbsG: num(custom.carbsG),
+    fatG: num(custom.fatG),
+  };
+  const targets = manual ? customTargets : computed;
+
+  function toggleManual() {
+    setManual((prev) => {
+      const next = !prev;
+      if (next) setCustom(toStrings(computeTargets(form)));
+      return next;
+    });
+    setSaved(false);
+  }
 
   function onSave() {
-    saveProfile({ ...form, name: form.name.trim() });
+    saveProfile({
+      ...form,
+      name: form.name.trim(),
+      customTargets: manual ? customTargets : null,
+    });
     setSaved(true);
   }
 
@@ -155,6 +205,56 @@ export function ProfileScreen() {
           </div>
         </Field>
 
+        <Field label="Mục tiêu dinh dưỡng">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={manual}
+            onClick={toggleManual}
+            className="flex items-center justify-between rounded-btn border border-border bg-surface px-4 py-3"
+          >
+            <span className="text-sm font-medium text-text">Tự đặt mục tiêu</span>
+            <span
+              className={`relative inline-block h-6 w-10 shrink-0 rounded-pill transition-colors ${
+                manual ? "bg-primary" : "bg-surface-raised"
+              }`}
+            >
+              <span
+                className="absolute top-0.5 h-5 w-5 rounded-pill bg-surface shadow-card transition-all"
+                style={{ left: manual ? "1.125rem" : "0.125rem" }}
+              />
+            </span>
+          </button>
+          {manual ? (
+            <div className="grid grid-cols-2 gap-2">
+              <CustomField
+                label="Calo (kcal)"
+                value={custom.calories}
+                onChange={(v) => setCustomField("calories", v)}
+              />
+              <CustomField
+                label="Đạm (g)"
+                value={custom.proteinG}
+                onChange={(v) => setCustomField("proteinG", v)}
+              />
+              <CustomField
+                label="Tinh bột (g)"
+                value={custom.carbsG}
+                onChange={(v) => setCustomField("carbsG", v)}
+              />
+              <CustomField
+                label="Béo (g)"
+                value={custom.fatG}
+                onChange={(v) => setCustomField("fatG", v)}
+              />
+            </div>
+          ) : (
+            <p className="text-xs leading-relaxed text-muted">
+              Mục tiêu được tính tự động từ thông tin của bạn. Bật để tự nhập.
+            </p>
+          )}
+        </Field>
+
         <button
           type="button"
           onClick={onSave}
@@ -222,6 +322,31 @@ function Choice({
       </span>
       {hint ? <span className="text-[11px] leading-tight text-muted">{hint}</span> : null}
     </button>
+  );
+}
+
+function CustomField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="flex flex-col gap-1 text-xs font-medium text-muted">
+      {label}
+      <input
+        type="number"
+        inputMode="numeric"
+        min={0}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="0"
+        className="w-full rounded-btn border border-border bg-surface px-3 py-2.5 text-base font-semibold text-text outline-none focus:border-primary"
+      />
+    </label>
   );
 }
 

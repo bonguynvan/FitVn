@@ -28,6 +28,7 @@ import { newId } from "@/lib/store/local-store";
 import {
   addSession,
   removeSession,
+  updateSession,
   useSessions,
 } from "@/lib/store/workout-store";
 import {
@@ -93,17 +94,30 @@ export function WorkoutsScreen() {
   const [adding, setAdding] = useState(false);
   // The template to prefill the form with (null = blank manual session).
   const [formInitial, setFormInitial] = useState<TemplateInitial | null>(null);
+  // The session being edited (null = creating a new one).
+  const [editingSession, setEditingSession] = useState<WorkoutSession | null>(
+    null,
+  );
   // Bumped whenever the form should re-seed, so AddSessionForm remounts.
   const [formKey, setFormKey] = useState(0);
 
   function openBlank() {
     setFormInitial(null);
+    setEditingSession(null);
     setFormKey((k) => k + 1);
     setAdding(true);
   }
 
   function openFromTemplate(initial: TemplateInitial) {
     setFormInitial(initial);
+    setEditingSession(null);
+    setFormKey((k) => k + 1);
+    setAdding(true);
+  }
+
+  function openEdit(session: WorkoutSession) {
+    setEditingSession(session);
+    setFormInitial(null);
     setFormKey((k) => k + 1);
     setAdding(true);
   }
@@ -202,7 +216,7 @@ export function WorkoutsScreen() {
             <ul className="flex flex-col gap-3">
               {sessions.map((session) => (
                 <li key={session.id}>
-                  <SessionCard session={session} />
+                  <SessionCard session={session} onEdit={openEdit} />
                 </li>
               ))}
             </ul>
@@ -234,11 +248,16 @@ export function WorkoutsScreen() {
         </section>
       )}
 
-      <Sheet open={adding} onClose={() => setAdding(false)} title="Ghi buổi tập">
+      <Sheet
+        open={adding}
+        onClose={() => setAdding(false)}
+        title={editingSession ? "Sửa buổi tập" : "Ghi buổi tập"}
+      >
         <AddSessionForm
           key={formKey}
           today={today}
           initial={formInitial ?? undefined}
+          editing={editingSession ?? undefined}
           onSaved={() => setAdding(false)}
         />
       </Sheet>
@@ -340,41 +359,56 @@ function TemplateCard({
   );
 }
 
-function SessionCard({ session }: { session: WorkoutSession }) {
+function SessionCard({
+  session,
+  onEdit,
+}: {
+  session: WorkoutSession;
+  onEdit: (session: WorkoutSession) => void;
+}) {
   const volume = sessionVolume(session);
   const exerciseCount = session.exercises.length;
 
   return (
-    <Card padding="md" className="flex items-start gap-3">
-      <IconBadge tone="primary" size="md">
-        <Dumbbell size={22} aria-hidden />
-      </IconBadge>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-baseline gap-2">
-          <p className="truncate text-sm font-bold text-text">{session.name}</p>
-          <span className="shrink-0 text-[11px] font-medium text-muted">
-            {shortDateVi(session.performedOn)}
-          </span>
-        </div>
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-semibold text-muted">
-          {session.durationMin != null ? (
+    <Card padding="md" className="flex items-start gap-2">
+      <button
+        type="button"
+        onClick={() => onEdit(session)}
+        aria-label={`Sửa ${session.name}`}
+        className="flex min-w-0 flex-1 items-start gap-3 rounded-btn px-1 py-1 text-left transition-colors hover:bg-surface-raised"
+      >
+        <IconBadge tone="primary" size="md">
+          <Dumbbell size={22} aria-hidden />
+        </IconBadge>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline gap-2">
+            <p className="truncate text-sm font-bold text-text">
+              {session.name}
+            </p>
+            <span className="shrink-0 text-[11px] font-medium text-muted">
+              {shortDateVi(session.performedOn)}
+            </span>
+          </div>
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-semibold text-muted">
+            {session.durationMin != null ? (
+              <span className="inline-flex items-center gap-1">
+                <Clock size={12} aria-hidden />
+                {fmt(session.durationMin)} phút
+              </span>
+            ) : null}
             <span className="inline-flex items-center gap-1">
-              <Clock size={12} aria-hidden />
-              {fmt(session.durationMin)} phút
+              <Hash size={12} aria-hidden />
+              {exerciseCount} bài
             </span>
-          ) : null}
-          <span className="inline-flex items-center gap-1">
-            <Hash size={12} aria-hidden />
-            {exerciseCount} bài
-          </span>
-          {volume > 0 ? (
-            <span className="inline-flex items-center gap-1 tabular-nums">
-              <Weight size={12} aria-hidden />
-              {fmt(volume)} kg
-            </span>
-          ) : null}
+            {volume > 0 ? (
+              <span className="inline-flex items-center gap-1 tabular-nums">
+                <Weight size={12} aria-hidden />
+                {fmt(volume)} kg
+              </span>
+            ) : null}
+          </div>
         </div>
-      </div>
+      </button>
       <button
         type="button"
         onClick={() => removeSession(session.id)}
@@ -413,20 +447,43 @@ function draftsFromInitial(initial: TemplateInitial): DraftExercise[] {
   }));
 }
 
+/** Build editable drafts from an existing session, preserving each set's values. */
+function draftsFromSession(session: WorkoutSession): DraftExercise[] {
+  if (session.exercises.length === 0) return [newDraftExercise()];
+  return session.exercises.map((ex) => ({
+    id: newId(),
+    name: ex.name,
+    sets:
+      ex.sets.length > 0
+        ? ex.sets.map((st) => ({ reps: st.reps, weightKg: st.weightKg }))
+        : [emptySet()],
+  }));
+}
+
 function AddSessionForm({
   today,
   initial,
+  editing,
   onSaved,
 }: {
   today: string;
   initial?: TemplateInitial;
+  editing?: WorkoutSession;
   onSaved: () => void;
 }) {
-  // Seeded once at mount; the parent remounts via `key` when `initial` changes.
-  const [name, setName] = useState(initial?.name ?? DEFAULT_SESSION_NAME);
-  const [duration, setDuration] = useState("");
+  // Seeded once at mount; the parent remounts via `key` when the source changes.
+  const [name, setName] = useState(
+    editing?.name ?? initial?.name ?? DEFAULT_SESSION_NAME,
+  );
+  const [duration, setDuration] = useState(
+    editing?.durationMin != null ? String(editing.durationMin) : "",
+  );
   const [exercises, setExercises] = useState<DraftExercise[]>(() =>
-    initial ? draftsFromInitial(initial) : [newDraftExercise()],
+    editing
+      ? draftsFromSession(editing)
+      : initial
+        ? draftsFromInitial(initial)
+        : [newDraftExercise()],
   );
   const [saveAsTemplate, setSaveAsTemplate] = useState(false);
 
@@ -502,12 +559,21 @@ function AddSessionForm({
         ? parsedDuration
         : null;
 
-    addSession({
-      name: name.trim(),
-      performedOn: today,
-      durationMin,
-      exercises: builtExercises,
-    });
+    if (editing) {
+      updateSession(editing.id, {
+        name: name.trim(),
+        performedOn: editing.performedOn,
+        durationMin,
+        exercises: builtExercises,
+      });
+    } else {
+      addSession({
+        name: name.trim(),
+        performedOn: today,
+        durationMin,
+        exercises: builtExercises,
+      });
+    }
 
     if (saveAsTemplate) {
       addTemplate({
@@ -672,7 +738,7 @@ function AddSessionForm({
         disabled={!canSave}
         className="inline-flex h-12 items-center justify-center rounded-btn bg-primary text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-[0.98] disabled:opacity-50"
       >
-        Lưu buổi tập
+        {editing ? "Lưu thay đổi" : "Lưu buổi tập"}
       </button>
     </div>
   );

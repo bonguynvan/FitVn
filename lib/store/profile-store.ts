@@ -27,8 +27,10 @@ export function clearProfile(): void {
   writeLocal<UserProfile | null>(KEY, null);
 }
 
-/** Personalized daily targets when a profile exists, else sensible defaults. */
+/** Personalized daily targets: a manual override if set, else computed from the
+ *  profile, else sensible defaults. */
 export function useDailyTargets(): DailyTargets {
   const profile = useProfile();
-  return profile ? computeTargets(profile) : DEFAULT_TARGETS;
+  if (!profile) return DEFAULT_TARGETS;
+  return profile.customTargets ?? computeTargets(profile);
 }
