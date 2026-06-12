@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import {
   Check,
+  ChevronLeft,
+  ChevronRight,
   Coffee,
   Cookie,
   Droplet,
@@ -22,7 +24,7 @@ import { type SeedFood } from "@/lib/data/foods-seed";
 import { addCustomFood, useAllFoods, useRecentFoods } from "@/lib/store/food-store";
 import { useDailyTargets } from "@/lib/store/profile-store";
 import { setWaterGoal, useWaterGoal } from "@/lib/store/preferences-store";
-import { todayIso } from "@/lib/date";
+import { addDaysIso, longDateVi, shortDateVi, todayIso } from "@/lib/date";
 import { fmtNum } from "@/lib/format";
 import {
   addFood,
@@ -59,8 +61,15 @@ function defaultMealByHour(): MealType {
 
 export function NutritionScreen() {
   const today = todayIso();
-  const foods = useDayFoods(today);
-  const water = useWater(today);
+  const [dateIso, setDateIso] = useState(today);
+  const isToday = dateIso === today;
+  const dateLabel = isToday
+    ? "Hôm nay"
+    : dateIso === addDaysIso(today, -1)
+      ? "Hôm qua"
+      : longDateVi(dateIso);
+  const foods = useDayFoods(dateIso);
+  const water = useWater(dateIso);
   const targets = useDailyTargets();
   const waterGoal = useWaterGoal();
   const [adding, setAdding] = useState(false);
@@ -94,7 +103,7 @@ export function NutritionScreen() {
         title="Hôm nay ăn gì"
         subtitle={
           foods.length > 0
-            ? `Còn lại ${fmt(remaining)} kcal cho hôm nay`
+            ? `Còn lại ${fmt(remaining)} kcal`
             : "Ghi món để theo dõi calo và macro"
         }
         action={
@@ -108,6 +117,41 @@ export function NutritionScreen() {
           </button>
         }
       />
+
+      {/* Date switcher — log/view any day (no future) */}
+      <div className="flex items-center justify-between gap-2 rounded-card border border-border bg-surface p-2">
+        <button
+          type="button"
+          aria-label="Ngày trước"
+          onClick={() => setDateIso((d) => addDaysIso(d, -1))}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-btn text-muted transition-colors hover:bg-surface-raised hover:text-text active:scale-95"
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <div className="flex flex-col items-center leading-tight">
+          <span className="text-sm font-semibold text-text">{dateLabel}</span>
+          {isToday ? (
+            <span className="text-xs text-muted">{shortDateVi(dateIso)}</span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setDateIso(today)}
+              className="text-xs font-semibold text-primary"
+            >
+              Về hôm nay
+            </button>
+          )}
+        </div>
+        <button
+          type="button"
+          aria-label="Ngày sau"
+          onClick={() => setDateIso((d) => addDaysIso(d, 1))}
+          disabled={isToday}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-btn text-muted transition-colors hover:bg-surface-raised hover:text-text active:scale-95 disabled:opacity-30"
+        >
+          <ChevronRight size={18} />
+        </button>
+      </div>
 
       {/* Day summary */}
       <Card raised padding="lg" className="flex flex-col gap-5">
@@ -182,7 +226,7 @@ export function NutritionScreen() {
                   key={i}
                   type="button"
                   aria-label={`Đặt ${i + 1} ly`}
-                  onClick={() => setWater(today, filled && water === i + 1 ? i : i + 1)}
+                  onClick={() => setWater(dateIso, filled && water === i + 1 ? i : i + 1)}
                   className={`flex h-9 min-w-[2.25rem] flex-1 items-center justify-center rounded-btn transition-colors ${
                     filled ? "bg-primary/15 text-primary" : "bg-surface-raised text-muted"
                   }`}
@@ -221,7 +265,7 @@ export function NutritionScreen() {
 
       {/* Meals */}
       <section aria-labelledby="meals-heading" className="flex flex-col gap-3">
-        <SectionHeader id="meals-heading">Bữa ăn hôm nay</SectionHeader>
+        <SectionHeader id="meals-heading">Bữa ăn</SectionHeader>
         {MEAL_TYPES.map((mealType) => {
           const items = foods.filter((f) => f.mealType === mealType);
           if (items.length === 0) return null;
@@ -230,7 +274,7 @@ export function NutritionScreen() {
               key={mealType}
               mealType={mealType}
               items={items}
-              dateIso={today}
+              dateIso={dateIso}
               onEdit={setEditing}
             />
           );
@@ -240,7 +284,7 @@ export function NutritionScreen() {
             <IconBadge tone="primary" size="lg">
               <UtensilsCrossed size={24} aria-hidden />
             </IconBadge>
-            <p className="text-sm text-muted">Chưa ghi món nào hôm nay.</p>
+            <p className="text-sm text-muted">Chưa ghi món nào.</p>
             <button
               type="button"
               onClick={() => setAdding(true)}
@@ -255,7 +299,7 @@ export function NutritionScreen() {
       <Sheet open={adding} onClose={() => setAdding(false)} title="Ghi bữa ăn">
         <AddFoodForm
           onAdd={(food) => {
-            addFood(today, food);
+            addFood(dateIso, food);
             setAdding(false);
           }}
         />
@@ -267,7 +311,7 @@ export function NutritionScreen() {
             key={editing.id}
             food={editing}
             onSave={(patch) => {
-              updateFood(today, editing.id, patch);
+              updateFood(dateIso, editing.id, patch);
               setEditing(null);
             }}
           />
