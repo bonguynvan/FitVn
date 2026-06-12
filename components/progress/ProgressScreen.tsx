@@ -4,12 +4,17 @@ import { useMemo, useState } from "react";
 import {
   ArrowDownRight,
   ArrowUpRight,
+  Check,
+  Droplet,
+  Dumbbell,
+  Flame,
   HeartPulse,
   LineChart,
   Minus,
   Plus,
   Ruler,
   Scale,
+  Target,
   Trash2,
   TrendingUp,
 } from "lucide-react";
@@ -17,11 +22,13 @@ import {
 import { PageHeader } from "@/components/nav/PageHeader";
 import { Card, IconBadge, Pill, SectionHeader, Sparkline, StatTile, Sheet } from "@/components/ui";
 import { shortDateVi, todayIso } from "@/lib/date";
+import type { Achievement } from "@/lib/fitness/achievements";
 import {
   addMeasurement,
   removeMeasurement,
   useMeasurements,
 } from "@/lib/store/progress-store";
+import { useStats } from "@/lib/store/stats-store";
 import type { Measurement } from "@/lib/store/types";
 
 /** "70,5" — one decimal, comma separator (vi-VN). */
@@ -40,8 +47,10 @@ const fmtOptional = (n: number | null) =>
 
 export function ProgressScreen() {
   const measurements = useMeasurements();
+  const { stats, achievements } = useStats();
   const [adding, setAdding] = useState(false);
 
+  const earnedCount = achievements.filter((a) => a.earned).length;
   const hasData = measurements.length > 0;
   const latest = hasData ? measurements[measurements.length - 1] : null;
   const first = hasData ? measurements[0] : null;
@@ -79,6 +88,73 @@ export function ProgressScreen() {
           }
         />
       </div>
+
+      {/* Streak highlight + key stats */}
+      <section aria-labelledby="streak-heading" className="flex flex-col gap-3">
+        <SectionHeader id="streak-heading">Chuỗi tập luyện</SectionHeader>
+        <div className="relative overflow-hidden rounded-card bg-hero px-5 py-5 text-primary-fg shadow-glow">
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/15 blur-2xl"
+          />
+          <div className="flex items-center gap-4">
+            <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-card bg-white/15">
+              <Flame size={28} aria-hidden />
+            </span>
+            <div className="min-w-0">
+              <p className="text-3xl font-semibold leading-none">
+                {stats.workoutStreak} ngày
+              </p>
+              <p className="mt-1.5 text-sm leading-snug opacity-90">
+                {stats.workoutStreak > 0
+                  ? "Chuỗi ngày tập liên tiếp — giữ vững nhé!"
+                  : "Tập hôm nay để bắt đầu chuỗi của bạn."}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <StatTile
+            label="Tổng buổi"
+            value={stats.totalWorkouts}
+            unit="buổi"
+            icon={<Dumbbell size={16} aria-hidden />}
+          />
+          <StatTile
+            label="Ngày đủ đạm"
+            value={stats.proteinGoalDays}
+            unit="ngày"
+            icon={<Target size={16} aria-hidden />}
+          />
+          <StatTile
+            label="Ngày đủ nước"
+            value={stats.waterGoalDays}
+            unit="ngày"
+            icon={<Droplet size={16} aria-hidden />}
+          />
+        </div>
+      </section>
+
+      {/* Achievements */}
+      <section aria-labelledby="ach-heading" className="flex flex-col gap-3">
+        <SectionHeader
+          id="ach-heading"
+          action={
+            <Pill tone="muted">
+              {earnedCount}/{achievements.length}
+            </Pill>
+          }
+        >
+          Thành tích
+        </SectionHeader>
+        <Card padding="md">
+          <ul className="flex flex-col divide-y divide-border">
+            {achievements.map((a) => (
+              <AchievementRow key={a.id} achievement={a} />
+            ))}
+          </ul>
+        </Card>
+      </section>
 
       {!hasData ? (
         <Card
@@ -215,6 +291,36 @@ export function ProgressScreen() {
         />
       </Sheet>
     </main>
+  );
+}
+
+function AchievementRow({ achievement }: { achievement: Achievement }) {
+  const { icon: Icon, title, description, earned, current, target, unit } =
+    achievement;
+  const progress = `${Math.round(current * 10) / 10}/${target}${unit ?? ""}`;
+  return (
+    <li className="flex items-center gap-3 py-3">
+      <IconBadge tone={earned ? "primary" : "muted"} size="md">
+        <Icon size={18} aria-hidden />
+      </IconBadge>
+      <div className="min-w-0 flex-1">
+        <p
+          className={`text-sm font-semibold ${earned ? "text-text" : "text-muted"}`}
+        >
+          {title}
+        </p>
+        <p className="text-xs text-muted">{description}</p>
+      </div>
+      {earned ? (
+        <Pill tone="success" icon={<Check size={14} aria-hidden />}>
+          Đạt
+        </Pill>
+      ) : (
+        <span className="shrink-0 text-xs font-semibold tabular-nums text-muted">
+          {progress}
+        </span>
+      )}
+    </li>
   );
 }
 

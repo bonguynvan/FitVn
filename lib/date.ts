@@ -22,3 +22,11 @@ export function longDateVi(iso: string): string {
   const weekday = new Intl.DateTimeFormat("vi-VN", { weekday: "long" }).format(date);
   return `${weekday}, ${shortDateVi(iso)}`;
 }
+
+/** Shift a yyyy-mm-dd string by `delta` days (local calendar), returns yyyy-mm-dd. */
+export function addDaysIso(iso: string, delta: number): string {
+  const d = new Date(`${iso}T00:00:00`);
+  d.setDate(d.getDate() + delta);
+  const p = (x: number) => String(x).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}

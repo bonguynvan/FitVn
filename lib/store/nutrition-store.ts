@@ -41,3 +41,13 @@ export function setWater(dateIso: string, cups: number): void {
     [dateIso]: Math.max(0, cups),
   }));
 }
+
+/** Full per-day food history (for stats, streaks, recent foods). */
+export function useNutritionHistory(): DayFoods {
+  return useLocalValue<DayFoods>(FOODS_KEY, {});
+}
+
+/** Full per-day water history (for stats / achievements). */
+export function useWaterHistory(): DayWater {
+  return useLocalValue<DayWater>(WATER_KEY, {});
+}
