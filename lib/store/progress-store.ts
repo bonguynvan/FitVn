@@ -26,3 +26,12 @@ export function removeMeasurement(id: string): void {
     list.filter((m) => m.id !== id),
   );
 }
+
+export function updateMeasurement(
+  id: string,
+  patch: Partial<Omit<Measurement, "id" | "createdAt">>,
+): void {
+  updateLocal<Measurement[]>(KEY, [], (list) =>
+    list.map((m) => (m.id === id ? { ...m, ...patch } : m)),
+  );
+}

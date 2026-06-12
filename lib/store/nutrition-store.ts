@@ -29,6 +29,19 @@ export function removeFood(dateIso: string, id: string): void {
   }));
 }
 
+export function updateFood(
+  dateIso: string,
+  id: string,
+  patch: Partial<Omit<LoggedFood, "id">>,
+): void {
+  updateLocal<DayFoods>(FOODS_KEY, {}, (m) => ({
+    ...m,
+    [dateIso]: (m[dateIso] ?? []).map((f) =>
+      f.id === id ? { ...f, ...patch } : f,
+    ),
+  }));
+}
+
 /** Reactive water intake (cups) for a given day. */
 export function useWater(dateIso: string): number {
   const map = useLocalValue<DayWater>(WATER_KEY, {});

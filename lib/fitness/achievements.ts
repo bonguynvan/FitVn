@@ -9,7 +9,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { WATER_GOAL_CUPS } from "@/lib/config/targets";
 import type { DailyTargets } from "@/lib/fitness/targets";
 import { addDaysIso } from "@/lib/date";
 import type { LoggedFood, Measurement, WorkoutSession } from "@/lib/store/types";
@@ -46,6 +45,8 @@ export interface StatsInput {
   measurements: Measurement[];
   nutritionByDay: Record<string, LoggedFood[]>;
   waterByDay: Record<string, number>;
+  /** Daily water goal in cups (configurable in preferences). */
+  waterGoal: number;
   targets: DailyTargets;
 }
 
@@ -67,8 +68,15 @@ function streakFrom(days: Set<string>, today: string): number {
 }
 
 export function computeStats(input: StatsInput): FitnessStats {
-  const { today, sessions, measurements, nutritionByDay, waterByDay, targets } =
-    input;
+  const {
+    today,
+    sessions,
+    measurements,
+    nutritionByDay,
+    waterByDay,
+    waterGoal,
+    targets,
+  } = input;
 
   const workoutDays = new Set(sessions.map((s) => s.performedOn));
   const workoutStreak = streakFrom(workoutDays, today);
@@ -85,7 +93,7 @@ export function computeStats(input: StatsInput): FitnessStats {
 
   let waterGoalDays = 0;
   for (const cups of Object.values(waterByDay)) {
-    if (cups >= WATER_GOAL_CUPS) waterGoalDays += 1;
+    if (cups >= waterGoal) waterGoalDays += 1;
   }
 
   const weightLostKg =

@@ -20,13 +20,14 @@ import { PageHeader } from "@/components/nav/PageHeader";
 import { Card, IconBadge, Pill, ProgressRing, SectionHeader, Sheet } from "@/components/ui";
 import { type SeedFood } from "@/lib/data/foods-seed";
 import { addCustomFood, useAllFoods, useRecentFoods } from "@/lib/store/food-store";
-import { WATER_GOAL_CUPS } from "@/lib/config/targets";
 import { useDailyTargets } from "@/lib/store/profile-store";
+import { setWaterGoal, useWaterGoal } from "@/lib/store/preferences-store";
 import { todayIso } from "@/lib/date";
 import {
   addFood,
   removeFood,
   setWater,
+  updateFood,
   useDayFoods,
   useWater,
 } from "@/lib/store/nutrition-store";
@@ -60,7 +61,9 @@ export function NutritionScreen() {
   const foods = useDayFoods(today);
   const water = useWater(today);
   const targets = useDailyTargets();
+  const waterGoal = useWaterGoal();
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<LoggedFood | null>(null);
 
   const totals = useMemo(
     () =>
@@ -166,12 +169,12 @@ export function NutritionScreen() {
         <Card padding="md" className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-text">Uống nước</span>
-            <Pill tone={water >= WATER_GOAL_CUPS ? "success" : "accent"}>
-              {water}/{WATER_GOAL_CUPS} ly
+            <Pill tone={water >= waterGoal ? "success" : "accent"}>
+              {water}/{waterGoal} ly
             </Pill>
           </div>
-          <div className="flex items-center gap-2">
-            {Array.from({ length: WATER_GOAL_CUPS }).map((_, i) => {
+          <div className="flex flex-wrap items-center gap-2">
+            {Array.from({ length: waterGoal }).map((_, i) => {
               const filled = i < water;
               return (
                 <button
@@ -179,7 +182,7 @@ export function NutritionScreen() {
                   type="button"
                   aria-label={`Đặt ${i + 1} ly`}
                   onClick={() => setWater(today, filled && water === i + 1 ? i : i + 1)}
-                  className={`flex h-9 flex-1 items-center justify-center rounded-btn transition-colors ${
+                  className={`flex h-9 min-w-[2.25rem] flex-1 items-center justify-center rounded-btn transition-colors ${
                     filled ? "bg-primary/15 text-primary" : "bg-surface-raised text-muted"
                   }`}
                 >
@@ -187,6 +190,30 @@ export function NutritionScreen() {
                 </button>
               );
             })}
+          </div>
+          <div className="flex items-center justify-between border-t border-border pt-3">
+            <span className="text-xs font-medium text-muted">Mục tiêu mỗi ngày</span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                aria-label="Giảm mục tiêu nước"
+                onClick={() => setWaterGoal(waterGoal - 1)}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
+              >
+                <Minus size={16} />
+              </button>
+              <span className="w-12 text-center text-sm font-semibold tabular-nums text-text">
+                {waterGoal} ly
+              </span>
+              <button
+                type="button"
+                aria-label="Tăng mục tiêu nước"
+                onClick={() => setWaterGoal(waterGoal + 1)}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
+              >
+                <Plus size={16} />
+              </button>
+            </div>
           </div>
         </Card>
       </section>
@@ -198,7 +225,13 @@ export function NutritionScreen() {
           const items = foods.filter((f) => f.mealType === mealType);
           if (items.length === 0) return null;
           return (
-            <MealGroup key={mealType} mealType={mealType} items={items} dateIso={today} />
+            <MealGroup
+              key={mealType}
+              mealType={mealType}
+              items={items}
+              dateIso={today}
+              onEdit={setEditing}
+            />
           );
         })}
         {foods.length === 0 ? (
@@ -226,6 +259,19 @@ export function NutritionScreen() {
           }}
         />
       </Sheet>
+
+      <Sheet open={!!editing} onClose={() => setEditing(null)} title="Sửa món">
+        {editing ? (
+          <EditFoodForm
+            key={editing.id}
+            food={editing}
+            onSave={(patch) => {
+              updateFood(today, editing.id, patch);
+              setEditing(null);
+            }}
+          />
+        ) : null}
+      </Sheet>
     </main>
   );
 }
@@ -234,10 +280,12 @@ function MealGroup({
   mealType,
   items,
   dateIso,
+  onEdit,
 }: {
   mealType: MealType;
   items: LoggedFood[];
   dateIso: string;
+  onEdit: (food: LoggedFood) => void;
 }) {
   const Icon = MEAL_ICON[mealType];
   const subtotal = items.reduce((a, f) => a + f.calories, 0);
@@ -256,13 +304,18 @@ function MealGroup({
       </div>
       <ul className="flex flex-col divide-y divide-border">
         {items.map((f) => (
-          <li key={f.id} className="flex items-center justify-between gap-3 py-2">
-            <div className="min-w-0">
+          <li key={f.id} className="flex items-center justify-between gap-2 py-2">
+            <button
+              type="button"
+              onClick={() => onEdit(f)}
+              aria-label={`Sửa ${f.name}`}
+              className="min-w-0 flex-1 rounded-btn px-1 py-1 text-left transition-colors hover:bg-surface-raised"
+            >
               <p className="truncate text-sm font-medium text-text">{f.name}</p>
               <p className="text-xs text-muted">
                 {round1(f.quantity)} {f.unit} · {fmt(f.calories)} kcal
               </p>
-            </div>
+            </button>
             <button
               type="button"
               onClick={() => removeFood(dateIso, f.id)}
@@ -275,6 +328,106 @@ function MealGroup({
         ))}
       </ul>
     </Card>
+  );
+}
+
+function EditFoodForm({
+  food,
+  onSave,
+}: {
+  food: LoggedFood;
+  onSave: (
+    patch: Pick<
+      LoggedFood,
+      "mealType" | "quantity" | "calories" | "protein" | "carbs" | "fat"
+    >,
+  ) => void;
+}) {
+  const [mealType, setMealType] = useState<MealType>(food.mealType);
+  const [qty, setQty] = useState(food.quantity > 0 ? food.quantity : 1);
+
+  const base = food.quantity > 0 ? food.quantity : 1;
+  const preview = {
+    calories: Math.round((food.calories / base) * qty),
+    protein: round1((food.protein / base) * qty),
+    carbs: round1((food.carbs / base) * qty),
+    fat: round1((food.fat / base) * qty),
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="rounded-card bg-surface-raised p-3">
+        <p className="text-sm font-semibold text-text">{food.name}</p>
+        <p className="text-xs text-muted">Đơn vị: {food.unit}</p>
+      </div>
+
+      <div className="grid grid-cols-4 gap-1.5">
+        {MEAL_TYPES.map((m) => (
+          <button
+            key={m}
+            type="button"
+            onClick={() => setMealType(m)}
+            className={`rounded-btn py-2 text-xs font-semibold transition-colors ${
+              mealType === m
+                ? "bg-primary text-primary-fg"
+                : "bg-surface-raised text-muted"
+            }`}
+          >
+            {MEAL_LABEL_VI[m]}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-col gap-3 rounded-card bg-surface-raised p-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-semibold text-text">
+            Số lượng ({food.unit})
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-label="Giảm"
+              onClick={() => setQty((q) => Math.max(0.5, round1(q - 0.5)))}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
+            >
+              <Minus size={16} />
+            </button>
+            <span className="w-10 text-center text-base font-semibold text-text">
+              {round1(qty)}
+            </span>
+            <button
+              type="button"
+              aria-label="Tăng"
+              onClick={() => setQty((q) => round1(q + 0.5))}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+        </div>
+        <p className="text-xs text-muted">
+          {fmt(preview.calories)} kcal · Đạm {preview.protein}g · Tinh bột{" "}
+          {preview.carbs}g · Béo {preview.fat}g
+        </p>
+      </div>
+
+      <button
+        type="button"
+        onClick={() =>
+          onSave({
+            mealType,
+            quantity: qty,
+            calories: preview.calories,
+            protein: preview.protein,
+            carbs: preview.carbs,
+            fat: preview.fat,
+          })
+        }
+        className="inline-flex h-12 items-center justify-center rounded-btn bg-primary text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-[0.98]"
+      >
+        Lưu thay đổi
+      </button>
+    </div>
   );
 }
 

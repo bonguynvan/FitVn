@@ -26,6 +26,7 @@ import type { Achievement } from "@/lib/fitness/achievements";
 import {
   addMeasurement,
   removeMeasurement,
+  updateMeasurement,
   useMeasurements,
 } from "@/lib/store/progress-store";
 import { useStats } from "@/lib/store/stats-store";
@@ -49,6 +50,7 @@ export function ProgressScreen() {
   const measurements = useMeasurements();
   const { stats, achievements } = useStats();
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<Measurement | null>(null);
 
   const earnedCount = achievements.filter((a) => a.earned).length;
   const hasData = measurements.length > 0;
@@ -274,7 +276,7 @@ export function ProgressScreen() {
             <Card padding="md">
               <ul className="flex flex-col divide-y divide-border">
                 {[...measurements].reverse().map((m) => (
-                  <HistoryRow key={m.id} measurement={m} />
+                  <HistoryRow key={m.id} measurement={m} onEdit={setEditing} />
                 ))}
               </ul>
             </Card>
@@ -282,11 +284,22 @@ export function ProgressScreen() {
         </>
       )}
 
-      <Sheet open={adding} onClose={() => setAdding(false)} title="Ghi số đo">
+      <Sheet
+        open={adding || editing != null}
+        onClose={() => {
+          setAdding(false);
+          setEditing(null);
+        }}
+        title={editing ? "Sửa số đo" : "Ghi số đo"}
+      >
         <AddMeasurementForm
-          onAdd={(payload) => {
-            addMeasurement(payload);
+          key={editing?.id ?? "new"}
+          editing={editing}
+          onSubmit={(payload) => {
+            if (editing) updateMeasurement(editing.id, payload);
+            else addMeasurement(payload);
             setAdding(false);
+            setEditing(null);
           }}
         />
       </Sheet>
@@ -324,7 +337,13 @@ function AchievementRow({ achievement }: { achievement: Achievement }) {
   );
 }
 
-function HistoryRow({ measurement }: { measurement: Measurement }) {
+function HistoryRow({
+  measurement,
+  onEdit,
+}: {
+  measurement: Measurement;
+  onEdit: (measurement: Measurement) => void;
+}) {
   const { id, measuredOn, weightKg, bodyFatPct, waistCm } = measurement;
   const extras = [
     bodyFatPct != null ? `Mỡ ${fmtOptional(bodyFatPct)}%` : null,
@@ -332,8 +351,13 @@ function HistoryRow({ measurement }: { measurement: Measurement }) {
   ].filter(Boolean);
 
   return (
-    <li className="flex items-center justify-between gap-3 py-2.5">
-      <div className="min-w-0">
+    <li className="flex items-center justify-between gap-2 py-2.5">
+      <button
+        type="button"
+        onClick={() => onEdit(measurement)}
+        aria-label={`Sửa số đo ngày ${shortDateVi(measuredOn)}`}
+        className="min-w-0 flex-1 rounded-btn px-1 py-1 text-left transition-colors hover:bg-surface-raised"
+      >
         <p className="text-sm font-semibold text-text">
           {fmtKg(weightKg)} kg
         </p>
@@ -341,7 +365,7 @@ function HistoryRow({ measurement }: { measurement: Measurement }) {
           {shortDateVi(measuredOn)}
           {extras.length > 0 ? ` · ${extras.join(" · ")}` : ""}
         </p>
-      </div>
+      </button>
       <button
         type="button"
         onClick={() => removeMeasurement(id)}
@@ -428,14 +452,21 @@ function StepperField({
 }
 
 function AddMeasurementForm({
-  onAdd,
+  editing,
+  onSubmit,
 }: {
-  onAdd: (payload: Omit<Measurement, "id" | "createdAt">) => void;
+  editing?: Measurement | null;
+  onSubmit: (payload: Omit<Measurement, "id" | "createdAt">) => void;
 }) {
   const today = todayIso();
-  const [weight, setWeight] = useState("");
-  const [bodyFat, setBodyFat] = useState("");
-  const [waist, setWaist] = useState("");
+  const dateIso = editing?.measuredOn ?? today;
+  const [weight, setWeight] = useState(editing ? String(editing.weightKg) : "");
+  const [bodyFat, setBodyFat] = useState(
+    editing?.bodyFatPct != null ? String(editing.bodyFatPct) : "",
+  );
+  const [waist, setWaist] = useState(
+    editing?.waistCm != null ? String(editing.waistCm) : "",
+  );
 
   const weightNum = Number.parseFloat(weight);
   const isWeightValid = Number.isFinite(weightNum) && weightNum > 0;
@@ -447,8 +478,8 @@ function AddMeasurementForm({
 
   function submit() {
     if (!isWeightValid) return;
-    onAdd({
-      measuredOn: today,
+    onSubmit({
+      measuredOn: dateIso,
       weightKg: Math.round(weightNum * 10) / 10,
       bodyFatPct: parseOptional(bodyFat),
       waistCm: parseOptional(waist),
@@ -460,7 +491,7 @@ function AddMeasurementForm({
       <div className="flex items-center justify-between rounded-card bg-surface-raised px-3 py-2.5">
         <span className="text-sm font-medium text-muted">Ngày đo</span>
         <span className="text-sm font-semibold text-text">
-          Hôm nay · {shortDateVi(today)}
+          {editing ? shortDateVi(dateIso) : `Hôm nay · ${shortDateVi(today)}`}
         </span>
       </div>
 
@@ -499,7 +530,7 @@ function AddMeasurementForm({
         disabled={!isWeightValid}
         className="inline-flex h-12 items-center justify-center rounded-btn bg-primary text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-[0.98] disabled:opacity-50"
       >
-        Lưu
+        {editing ? "Lưu thay đổi" : "Lưu"}
       </button>
     </div>
   );
