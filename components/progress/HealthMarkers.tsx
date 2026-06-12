@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Activity, HeartPulse, Plus, Trash2 } from "lucide-react";
+import { Activity, ChevronRight, HeartPulse, Plus } from "lucide-react";
 
 import { Card, EmptyState, Pill, SectionHeader, Sheet, Sparkline } from "@/components/ui";
 import { todayIso, shortDateVi } from "@/lib/date";
@@ -9,10 +9,10 @@ import { MARKERS, MARKER_ORDER, type MarkerKey } from "@/lib/health/markers";
 import {
   addReading,
   latestByMarker,
-  removeReading,
   useHealthReadings,
   type HealthReading,
 } from "@/lib/store/health-store";
+import { MarkerHistory } from "@/components/progress/MarkerHistory";
 import { useProfile } from "@/lib/store/profile-store";
 
 const fmtNum = (n: number) => (Math.round(n * 10) / 10).toLocaleString("vi-VN");
@@ -23,6 +23,7 @@ export function HealthMarkers() {
   const profile = useProfile();
   const sex = profile?.sex ?? "male";
   const [adding, setAdding] = useState(false);
+  const [historyKey, setHistoryKey] = useState<MarkerKey | null>(null);
 
   const latest = useMemo(() => latestByMarker(readings), [readings]);
   const seriesByMarker = useMemo(() => {
@@ -72,7 +73,15 @@ export function HealthMarkers() {
               ? `${fmtNum(r.value)}/${r.value2 != null ? fmtNum(r.value2) : "—"}`
               : fmtNum(r.value);
             return (
-              <Card key={key} padding="md" className="flex flex-col gap-2">
+              <Card
+                key={key}
+                as="button"
+                padding="md"
+                interactive
+                onClick={() => setHistoryKey(key)}
+                className="flex w-full flex-col gap-2 text-left"
+                aria-label={`Lịch sử ${def.name}`}
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-text">{def.name}</p>
@@ -80,19 +89,12 @@ export function HealthMarkers() {
                       {shortDateVi(r.measuredOn)} · {def.rangeText}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <div className="text-right">
                       <span className="text-lg font-bold tabular-nums text-text">{valueText}</span>{" "}
                       <span className="text-xs text-muted">{def.unit}</span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => removeReading(r.id)}
-                      aria-label={`Xóa ${def.name}`}
-                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-btn text-muted transition hover:bg-surface-raised hover:text-danger"
-                    >
-                      <Trash2 size={15} />
-                    </button>
+                    <ChevronRight size={16} className="shrink-0 text-muted" aria-hidden />
                   </div>
                 </div>
 
@@ -125,6 +127,16 @@ export function HealthMarkers() {
             setAdding(false);
           }}
         />
+      </Sheet>
+
+      <Sheet
+        open={historyKey != null}
+        onClose={() => setHistoryKey(null)}
+        title={historyKey ? `Lịch sử · ${MARKERS[historyKey].name}` : "Lịch sử"}
+      >
+        {historyKey ? (
+          <MarkerHistory marker={historyKey} readings={readings} sex={sex} />
+        ) : null}
       </Sheet>
     </section>
   );
