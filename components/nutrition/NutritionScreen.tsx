@@ -22,6 +22,9 @@ import {
 import { PageHeader } from "@/components/nav/PageHeader";
 import { Card, IconBadge, Pill, ProgressRing, SectionHeader, Sheet } from "@/components/ui";
 import { FOOD_GROUPS, type FoodItem } from "@/lib/data/foods-db";
+import { round1, scaleFood } from "@/lib/nutrition/scale";
+import { defaultMealByHour } from "@/lib/nutrition/meal-time";
+import { SavedMeals } from "@/components/nutrition/SavedMeals";
 import { addCustomFood, useAllFoods, useRecentFoods } from "@/lib/store/food-store";
 import {
   CALCIUM_TARGET_MG,
@@ -57,38 +60,11 @@ const MEAL_ICON: Record<MealType, LucideIcon> = {
   snack: Cookie,
 };
 
-const round1 = (n: number) => Math.round(n * 10) / 10;
 const fmt = (n: number) => Math.round(n).toLocaleString("vi-VN");
 
 /** A food rich enough in purine to warn gout users about (per 100 g edible). */
 const isHighPurine = (food: FoodItem) =>
   (food.per100g.purineMg ?? 0) >= HIGH_PURINE_PER_100G;
-
-function defaultMealByHour(): MealType {
-  const h = new Date().getHours();
-  if (h < 10) return "breakfast";
-  if (h < 15) return "lunch";
-  if (h < 21) return "dinner";
-  return "snack";
-}
-
-/** Nutrients of a food scaled to `edibleGrams` (per 100 g × g/100). null stays null. */
-function scaleFood(food: FoodItem, edibleGrams: number) {
-  const k = edibleGrams / 100;
-  const p = food.per100g;
-  const opt = (v: number | null) => (v == null ? null : round1(v * k));
-  return {
-    calories: Math.round(p.calories * k),
-    protein: round1(p.protein * k),
-    carbs: round1(p.carbs * k),
-    fat: round1(p.fat * k),
-    fiber: opt(p.fiber),
-    sodiumMg: opt(p.sodiumMg),
-    calciumMg: opt(p.calciumMg),
-    ironMg: opt(p.ironMg),
-    purineMg: opt(p.purineMg),
-  };
-}
 
 export function NutritionScreen() {
   const today = todayIso();
@@ -352,6 +328,9 @@ export function NutritionScreen() {
           </div>
         </Card>
       </section>
+
+      {/* Saved meals — one-tap logging + builder */}
+      <SavedMeals dateIso={dateIso} />
 
       {/* Meals */}
       <section aria-labelledby="meals-heading" className="flex flex-col gap-3">

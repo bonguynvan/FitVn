@@ -22,6 +22,21 @@ export function addFood(dateIso: string, food: Omit<LoggedFood, "id">): void {
   }));
 }
 
+/** Append several foods to a day in a single write (e.g. logging a saved meal). */
+export function addManyFoods(
+  dateIso: string,
+  foods: ReadonlyArray<Omit<LoggedFood, "id">>,
+): void {
+  if (foods.length === 0) return;
+  updateLocal<DayFoods>(FOODS_KEY, {}, (m) => ({
+    ...m,
+    [dateIso]: [
+      ...(m[dateIso] ?? []),
+      ...foods.map((f) => ({ ...f, id: newId() })),
+    ],
+  }));
+}
+
 export function removeFood(dateIso: string, id: string): void {
   updateLocal<DayFoods>(FOODS_KEY, {}, (m) => ({
     ...m,
