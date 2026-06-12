@@ -5,7 +5,7 @@ The food library has three layers (priority order):
 1. **Supabase `public.foods`** — source of truth when configured. Lets the
    dataset grow past the bundle toward the full FCT-2007 (526 foods).
 2. **Dexie `libraryFoods`** — offline cache of the last successful remote fetch.
-3. **Bundled `lib/data/foods-db.ts`** — ~250 curated foods, always available,
+3. **Bundled `lib/data/foods-db.ts`** — ~360 curated foods, always available,
    zero-latency, works fully offline.
 
 `useAllFoods()` (custom foods + `useLibraryFoods()`) starts with the bundle and
