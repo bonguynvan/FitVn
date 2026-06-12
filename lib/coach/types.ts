@@ -113,6 +113,23 @@ export interface CoachDaySummary {
 }
 
 // -----------------------------------------------------------------------------
+// Health slice — today's fiber/sodium/micronutrients + gout-aware purine.
+// -----------------------------------------------------------------------------
+export interface CoachHealth {
+  readonly goutMode: boolean;
+  readonly purineMg: number;
+  readonly purineLimitMg: number;
+  readonly fiberG: number;
+  readonly fiberTargetG: number;
+  readonly sodiumMg: number;
+  readonly sodiumLimitMg: number;
+  readonly calciumMg: number;
+  readonly calciumTargetMg: number;
+  readonly ironMg: number;
+  readonly ironTargetMg: number;
+}
+
+// -----------------------------------------------------------------------------
 // The full context object handed to the prompt builder.
 // -----------------------------------------------------------------------------
 export interface CoachContext {
@@ -121,4 +138,6 @@ export interface CoachContext {
   readonly todayWorkout: CoachTodayWorkout | null;
   /** Last 7 days (may include today), newest first. */
   readonly history7d: readonly CoachDaySummary[];
+  /** Today's health/micronutrient snapshot (optional; client-built). */
+  readonly health?: CoachHealth | null;
 }

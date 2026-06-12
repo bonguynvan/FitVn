@@ -18,6 +18,7 @@ import { SendHorizontal, Sparkles, Square } from 'lucide-react';
 
 import { MessageBubble } from './MessageBubble';
 import { QuickActions } from './QuickActions';
+import { buildLocalCoachContext } from '@/lib/coach/build-context';
 
 /** Empty-state copy shown before the first message. */
 const EMPTY_TITLE = 'Chào bạn!';
@@ -43,17 +44,23 @@ export function CoachChat() {
     });
   }, [messages, status]);
 
+  function send(text: string) {
+    // Attach a fresh snapshot of the user's local data so the coach answers
+    // with real numbers (the server is stateless / local-first).
+    sendMessage({ text }, { body: { context: buildLocalCoachContext() } });
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const text = input.trim();
     if (!text || isBusy) return;
-    sendMessage({ text });
+    send(text);
     setInput('');
   }
 
   function handleQuickAction(text: string) {
     if (isBusy) return;
-    sendMessage({ text });
+    send(text);
   }
 
   return (

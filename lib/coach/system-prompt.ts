@@ -12,6 +12,7 @@
 
 import type {
   CoachContext,
+  CoachHealth,
   CoachProfile,
   CoachToday,
   CoachTodayWorkout,
@@ -162,15 +163,39 @@ function renderHistory(history: readonly CoachDaySummary[]): string {
   return `${header}\n${rows}`;
 }
 
+function renderHealth(h: CoachHealth | null | undefined): string | null {
+  if (!h) return null;
+  const cmp = (label: string, value: number, ref: number, unit: string, overBad: boolean) => {
+    const state = overBad
+      ? value > ref
+        ? 'vượt ngưỡng'
+        : 'trong ngưỡng'
+      : value >= ref
+        ? 'đã đủ'
+        : 'còn thiếu';
+    return `- ${label}: ${value}/${ref} ${unit} (${state})`;
+  };
+  return [
+    `VI CHẤT & SỨC KHOẺ HÔM NAY${h.goutMode ? ' (chế độ gout đang BẬT)' : ''}:`,
+    cmp('Chất xơ', h.fiberG, h.fiberTargetG, 'g', false),
+    cmp('Natri', h.sodiumMg, h.sodiumLimitMg, 'mg', true),
+    cmp('Canxi', h.calciumMg, h.calciumTargetMg, 'mg', false),
+    cmp('Sắt', h.ironMg, h.ironTargetMg, 'mg', false),
+    cmp('Purin (gout)', h.purineMg, h.purineLimitMg, 'mg', true),
+  ].join('\n');
+}
+
 // -----------------------------------------------------------------------------
 // Public entry point
 // -----------------------------------------------------------------------------
 export function buildSystemPrompt(ctx: CoachContext): string {
+  const health = renderHealth(ctx.health);
   const dataBlock = [
     '=== DỮ LIỆU NGƯỜI DÙNG (dùng để trả lời, không lặp lại nguyên văn) ===',
     renderProfile(ctx.profile),
     '',
     renderToday(ctx.today),
+    ...(health ? ['', health] : []),
     '',
     renderWorkout(ctx.todayWorkout),
     '',
