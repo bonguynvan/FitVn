@@ -21,7 +21,7 @@ import {
 
 import { PageHeader } from "@/components/nav/PageHeader";
 import { Card, IconBadge, Pill, ProgressRing, SectionHeader, Sheet } from "@/components/ui";
-import type { FoodItem } from "@/lib/data/foods-db";
+import { FOOD_GROUPS, type FoodItem } from "@/lib/data/foods-db";
 import { addCustomFood, useAllFoods, useRecentFoods } from "@/lib/store/food-store";
 import {
   CALCIUM_TARGET_MG,
@@ -437,6 +437,30 @@ function HealthStat({ label, value, limit, ratio, tone }: HealthStatData) {
   );
 }
 
+function GroupChip({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`shrink-0 rounded-pill border px-3 py-1.5 text-xs font-semibold transition-colors ${
+        active
+          ? "border-primary bg-primary/10 text-primary"
+          : "border-border bg-surface text-muted hover:border-primary/40"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
 function MealGroup({
   mealType,
   items,
@@ -503,6 +527,7 @@ function AddFoodForm({
   const recentFoods = useRecentFoods();
   const [mealType, setMealType] = useState<MealType>(defaultMealByHour());
   const [query, setQuery] = useState("");
+  const [group, setGroup] = useState<string | null>(null);
   const [selected, setSelected] = useState<FoodItem | null>(null);
   const [mode, setMode] = useState<"serving" | "gram">("serving");
   const [qty, setQty] = useState(1);
@@ -512,15 +537,18 @@ function AddFoodForm({
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();
+    // Search spans all groups; otherwise browse the picked group (or all).
     const list = q
       ? allFoods.filter(
           (f) =>
             f.name.toLowerCase().includes(q) ||
             f.nameEn.toLowerCase().includes(q),
         )
-      : allFoods;
-    return list.slice(0, 8);
-  }, [query, allFoods]);
+      : group
+        ? allFoods.filter((f) => f.group === group)
+        : allFoods;
+    return q || group ? list.slice(0, 30) : list.slice(0, 8);
+  }, [query, group, allFoods]);
 
   function pickFood(food: FoodItem) {
     setSelected(food);
@@ -606,6 +634,16 @@ function AddFoodForm({
         placeholder="Tìm món ăn (VN / EN)…"
         className="w-full rounded-btn border border-border bg-surface px-4 py-3 text-base text-text outline-none placeholder:text-muted focus:border-primary"
       />
+
+      {/* Group browser (hidden while searching) */}
+      {query.trim() === "" ? (
+        <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+          <GroupChip label="Tất cả" active={group === null} onClick={() => setGroup(null)} />
+          {FOOD_GROUPS.map((g) => (
+            <GroupChip key={g} label={g} active={group === g} onClick={() => setGroup(g)} />
+          ))}
+        </div>
+      ) : null}
 
       {/* Food list */}
       <ul className="flex max-h-48 flex-col gap-1 overflow-y-auto">
