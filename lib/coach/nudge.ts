@@ -38,6 +38,28 @@ export function coachNudge(ctx: CoachContext): CoachNudge | null {
   const h = ctx.health;
   const today = ctx.today;
 
+  // 0) High acid uric — strongest health signal; nudge gout management.
+  const uric = ctx.markers?.find((m) => m.name === "Acid uric");
+  if (uric && uric.status === "high") {
+    return {
+      tone: "danger",
+      title: `Acid uric cao (${uric.valueText} ${uric.unit})`,
+      text: ctx.goutMode
+        ? "Hỏi HLV cách giảm purin và acid uric trong tuần này."
+        : "Cân nhắc bật chế độ gout trong Hồ sơ. Hỏi HLV để được tư vấn.",
+    };
+  }
+
+  // 0b) Any other out-of-range biomarker.
+  const abnormal = ctx.markers?.find((m) => m.status !== "normal");
+  if (abnormal) {
+    return {
+      tone: "danger",
+      title: `${abnormal.name}: ${abnormal.statusLabel}`,
+      text: `${abnormal.valueText} ${abnormal.unit}. Hỏi HLV cách cải thiện qua ăn uống & vận động.`,
+    };
+  }
+
   // 1) Purine over the (gout-aware) ceiling — highest priority health signal.
   if (h && h.purineMg > h.purineLimitMg) {
     return {

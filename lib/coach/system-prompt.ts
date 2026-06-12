@@ -18,6 +18,7 @@ import type {
   CoachTodayWorkout,
   CoachDaySummary,
   CoachWeekly,
+  CoachMarker,
   MacroRemaining,
 } from './types';
 
@@ -198,12 +199,21 @@ function renderWeekly(w: CoachWeekly | null | undefined): string | null {
   ].join('\n');
 }
 
+function renderMarkers(markers: readonly CoachMarker[] | undefined): string | null {
+  if (!markers || markers.length === 0) return null;
+  const lines = markers.map(
+    (m) => `- ${m.name}: ${m.valueText} ${m.unit} (${m.statusLabel})`,
+  );
+  return ['CHỈ SỐ SỨC KHOẺ GẦN NHẤT:', ...lines].join('\n');
+}
+
 // -----------------------------------------------------------------------------
 // Public entry point
 // -----------------------------------------------------------------------------
 export function buildSystemPrompt(ctx: CoachContext): string {
   const health = renderHealth(ctx.health);
   const weekly = renderWeekly(ctx.weekly);
+  const markers = renderMarkers(ctx.markers);
   const dataBlock = [
     '=== DỮ LIỆU NGƯỜI DÙNG (dùng để trả lời, không lặp lại nguyên văn) ===',
     renderProfile(ctx.profile),
@@ -215,6 +225,7 @@ export function buildSystemPrompt(ctx: CoachContext): string {
     '',
     renderHistory(ctx.history7d),
     ...(weekly ? ['', weekly] : []),
+    ...(markers ? ['', markers] : []),
     '=== HẾT DỮ LIỆU ===',
   ].join('\n');
 

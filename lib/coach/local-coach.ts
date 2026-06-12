@@ -102,15 +102,46 @@ function proteinAdvice(ctx: CoachContext): string {
 
 function goutAdvice(ctx: CoachContext): string {
   const h = ctx.health;
-  if (!h) return "Mình chưa có dữ liệu purin hôm nay.";
-  const over = h.purineMg > h.purineLimitMg;
-  const lines = [
-    `Purin hôm nay: ${h.purineMg} / ${h.purineLimitMg} mg${h.goutMode ? " (chế độ gout)" : ""}.`,
-    over
-      ? "Bạn đã vượt ngưỡng — nên hạn chế nội tạng, hải sản, thịt đỏ và nước hầm xương phần còn lại của ngày."
-      : "Vẫn trong ngưỡng an toàn. Ưu tiên đạm ít purin: trứng, sữa, đậu phụ, ức gà nạc.",
-    "Uống đủ nước giúp đào thải acid uric. Đây là gợi ý dinh dưỡng, không thay thế tư vấn bác sĩ.",
-  ];
+  const lines: string[] = [];
+  // Surface the latest acid-uric reading if logged.
+  const uric = ctx.markers?.find((m) => m.name === "Acid uric");
+  if (uric) {
+    lines.push(
+      `Acid uric gần nhất: ${uric.valueText} ${uric.unit} (${uric.statusLabel}).`,
+    );
+  }
+  if (h) {
+    const over = h.purineMg > h.purineLimitMg;
+    lines.push(
+      `Purin hôm nay: ${h.purineMg} / ${h.purineLimitMg} mg${h.goutMode ? " (chế độ gout)" : ""}.`,
+      over
+        ? "Đã vượt ngưỡng — hạn chế nội tạng, hải sản, thịt đỏ và nước hầm xương phần còn lại của ngày."
+        : "Vẫn trong ngưỡng an toàn. Ưu tiên đạm ít purin: trứng, sữa, đậu phụ, ức gà nạc.",
+    );
+  }
+  lines.push("Uống đủ nước giúp đào thải acid uric. Đây là gợi ý dinh dưỡng, không thay thế tư vấn bác sĩ.");
+  return lines.join("\n");
+}
+
+/** Report out-of-range health markers + advice. */
+function markersAdvice(ctx: CoachContext): string {
+  const markers = ctx.markers ?? [];
+  if (markers.length === 0)
+    return "Bạn chưa ghi chỉ số sức khỏe nào. Vào tab Tiến độ → Chỉ số sức khỏe để ghi acid uric, huyết áp, đường huyết, mỡ máu…";
+  const abnormal = markers.filter((m) => m.status !== "normal");
+  const lines = ["Chỉ số sức khỏe gần nhất:"];
+  for (const m of markers) {
+    lines.push(`• ${m.name}: ${m.valueText} ${m.unit} — ${m.statusLabel}`);
+  }
+  if (abnormal.length === 0) {
+    lines.push("Tất cả đều trong ngưỡng bình thường. Giữ vững nhé!");
+  } else {
+    lines.push(
+      "",
+      `Cần chú ý: ${abnormal.map((m) => m.name).join(", ")}. Điều chỉnh ăn uống/vận động và đi khám nếu kéo dài.`,
+    );
+  }
+  lines.push("Đây là tham khảo, không thay thế chẩn đoán của bác sĩ.");
   return lines.join("\n");
 }
 
@@ -201,7 +232,12 @@ export function generateLocalReply(ctx: CoachContext, userText: string): string 
   const has = (...keys: string[]) => keys.some((k) => q.includes(k));
 
   let body: string;
-  if (has("gout", "gút", "purin", "purine", "acid uric")) body = goutAdvice(ctx);
+  if (has("gout", "gút", "purin", "purine", "acid uric", "uric")) body = goutAdvice(ctx);
+  else if (
+    has("chỉ số", "huyết áp", "đường huyết", "tiểu đường", "cholesterol", "mỡ máu",
+      "triglyceride", "ldl", "hdl", "xét nghiệm", "máu", "nhịp tim")
+  )
+    body = markersAdvice(ctx);
   else if ((has("trước", "sau", "before", "after") && has("tập", "buổi tập")) )
     body = periWorkoutAdvice();
   else if (has("nhận xét", "tuần", "tổng kết", "review", "đánh giá"))

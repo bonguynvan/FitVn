@@ -151,6 +151,17 @@ export interface CoachWeekly {
 }
 
 // -----------------------------------------------------------------------------
+// Health markers — latest biomarker readings with status.
+// -----------------------------------------------------------------------------
+export interface CoachMarker {
+  readonly name: string;
+  readonly valueText: string;
+  readonly unit: string;
+  readonly status: "low" | "normal" | "high";
+  readonly statusLabel: string;
+}
+
+// -----------------------------------------------------------------------------
 // The full context object handed to the prompt builder.
 // -----------------------------------------------------------------------------
 export interface CoachContext {
@@ -163,4 +174,8 @@ export interface CoachContext {
   readonly health?: CoachHealth | null;
   /** 7-day nutrition + training rollup (optional; client-built). */
   readonly weekly?: CoachWeekly | null;
+  /** Latest health/biomarker readings (optional; client-built). */
+  readonly markers?: readonly CoachMarker[];
+  /** Whether the user has gout mode on (for marker-aware advice). */
+  readonly goutMode?: boolean;
 }

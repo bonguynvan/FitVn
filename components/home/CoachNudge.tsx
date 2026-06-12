@@ -11,6 +11,7 @@ import { useLocalValue } from "@/lib/store/local-store";
 
 const NUTRITION_KEY = "fitvn:nutrition:v1";
 const PROFILE_KEY = "fitvn:profile:v1";
+const HEALTH_KEY = "fitvn:health:v1";
 
 const TONE_BADGE: Record<NudgeTone, "accent" | "success" | "danger"> = {
   primary: "accent",
@@ -26,6 +27,7 @@ export function CoachNudge() {
   // Subscribe to the keys that drive the nudge so it recomputes on change.
   const foodsRaw = useLocalValue<Record<string, unknown>>(NUTRITION_KEY, {});
   const profileRaw = useLocalValue<unknown>(PROFILE_KEY, null);
+  const healthRaw = useLocalValue<unknown>(HEALTH_KEY, null);
 
   // Avoid hydration mismatch: buildLocalCoachContext reads localStorage, which
   // is empty on the server. Only render after mount so SSR + first client render
@@ -36,7 +38,7 @@ export function CoachNudge() {
   const nudge = useMemo(
     () => (mounted ? coachNudge(buildLocalCoachContext()) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [mounted, foodsRaw, profileRaw],
+    [mounted, foodsRaw, profileRaw, healthRaw],
   );
 
   if (!nudge) return null;

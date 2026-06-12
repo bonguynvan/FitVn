@@ -22,6 +22,7 @@ import {
 import { PageHeader } from "@/components/nav/PageHeader";
 import { WeeklyNutrition } from "@/components/progress/WeeklyNutrition";
 import { WeeklyWorkouts } from "@/components/progress/WeeklyWorkouts";
+import { HealthMarkers } from "@/components/progress/HealthMarkers";
 import { Card, IconBadge, Pill, SectionHeader, Sparkline, StatTile, Sheet } from "@/components/ui";
 import { shortDateVi, todayIso } from "@/lib/date";
 import type { Achievement } from "@/lib/fitness/achievements";
@@ -144,6 +145,9 @@ export function ProgressScreen() {
 
       {/* Weekly workout rollup */}
       <WeeklyWorkouts />
+
+      {/* Health markers (blood / biomarkers) */}
+      <HealthMarkers />
 
       {/* Achievements */}
       <section aria-labelledby="ach-heading" className="flex flex-col gap-3">

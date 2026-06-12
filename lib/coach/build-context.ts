@@ -20,6 +20,9 @@ import {
 } from "@/lib/config/targets";
 import { computeWeeklyNutrition } from "@/lib/fitness/nutrition-insights";
 import { computeWeeklyWorkouts } from "@/lib/fitness/workout-insights";
+import { MARKERS, MARKER_ORDER } from "@/lib/health/markers";
+import type { HealthReading } from "@/lib/store/health-store";
+import { latestByMarker } from "@/lib/store/health-store";
 import { addDaysIso, todayIso } from "@/lib/date";
 import type { LoggedFood, Measurement, WorkoutSession } from "@/lib/store/types";
 import type {
@@ -35,6 +38,7 @@ const NUTRITION_KEY = "fitvn:nutrition:v1";
 const WORKOUTS_KEY = "fitvn:workouts:v1";
 const MEASUREMENTS_KEY = "fitvn:measurements:v1";
 const PROFILE_KEY = "fitvn:profile:v1";
+const HEALTH_KEY = "fitvn:health:v1";
 
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
 const round = (n: number) => Math.round(n);
@@ -145,6 +149,26 @@ export function buildLocalCoachContext(): CoachContext {
   });
   const ww = computeWeeklyWorkouts(today, workouts);
 
+  // Latest health markers with evaluated status.
+  const sex = profile?.sex ?? "male";
+  const healthReadings = readLocal<HealthReading[]>(HEALTH_KEY, []);
+  const latest = latestByMarker(healthReadings);
+  const markers = MARKER_ORDER.filter((k) => latest[k]).map((k) => {
+    const def = MARKERS[k];
+    const r = latest[k]!;
+    const ev = def.evaluate(r.value, r.value2, sex);
+    const valueText = def.hasSecond
+      ? `${r.value}/${r.value2 ?? "-"}`
+      : String(r.value);
+    return {
+      name: def.name,
+      valueText,
+      unit: def.unit,
+      status: ev.status,
+      statusLabel: ev.label,
+    };
+  });
+
   return {
     profile: {
       fullName: profile?.name ?? null,
@@ -191,5 +215,7 @@ export function buildLocalCoachContext(): CoachContext {
       totalDurationMin: ww.totalDurationMin,
       topExercise: ww.topExercise,
     },
+    markers,
+    goutMode,
   };
 }
