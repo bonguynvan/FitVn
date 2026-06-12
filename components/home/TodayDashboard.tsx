@@ -13,6 +13,7 @@ import {
 } from "@/components/ui";
 import { useDailyTargets } from "@/lib/store/profile-store";
 import { todayIso } from "@/lib/date";
+import { fmtNum } from "@/lib/format";
 import { useDayFoods } from "@/lib/store/nutrition-store";
 import { useSessions } from "@/lib/store/workout-store";
 import { useMeasurements } from "@/lib/store/progress-store";
@@ -143,7 +144,7 @@ export function TodayDashboard() {
                 <div className="flex items-baseline justify-between text-sm">
                   <span className="font-semibold text-text">{m.label}</span>
                   <span className="text-muted">
-                    <span className="font-semibold text-text">{round1(m.value)}</span>
+                    <span className="font-semibold text-text">{fmtNum(m.value)}</span>
                     {" / "}
                     {m.target}g
                   </span>

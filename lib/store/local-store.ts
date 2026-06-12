@@ -55,6 +55,16 @@ export function writeLocal<T>(key: string, value: T): void {
   }
 }
 
+export function removeLocal(key: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(key);
+    notify(key);
+  } catch {
+    // ignore
+  }
+}
+
 export function updateLocal<T>(
   key: string,
   fallback: T,

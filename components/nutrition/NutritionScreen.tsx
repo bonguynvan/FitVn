@@ -23,6 +23,7 @@ import { addCustomFood, useAllFoods, useRecentFoods } from "@/lib/store/food-sto
 import { useDailyTargets } from "@/lib/store/profile-store";
 import { setWaterGoal, useWaterGoal } from "@/lib/store/preferences-store";
 import { todayIso } from "@/lib/date";
+import { fmtNum } from "@/lib/format";
 import {
   addFood,
   removeFood,
@@ -146,7 +147,7 @@ export function NutritionScreen() {
                 <div className="flex items-baseline justify-between text-sm">
                   <span className="font-semibold text-text">{m.label}</span>
                   <span className="text-muted">
-                    <span className="font-semibold text-text">{round1(m.value)}</span>
+                    <span className="font-semibold text-text">{fmtNum(m.value)}</span>
                     {" / "}
                     {m.target}g
                   </span>
@@ -313,7 +314,7 @@ function MealGroup({
             >
               <p className="truncate text-sm font-medium text-text">{f.name}</p>
               <p className="text-xs text-muted">
-                {round1(f.quantity)} {f.unit} · {fmt(f.calories)} kcal
+                {fmtNum(f.quantity)} {f.unit} · {fmt(f.calories)} kcal
               </p>
             </button>
             <button
@@ -393,7 +394,7 @@ function EditFoodForm({
               <Minus size={16} />
             </button>
             <span className="w-10 text-center text-base font-semibold text-text">
-              {round1(qty)}
+              {fmtNum(qty)}
             </span>
             <button
               type="button"
@@ -406,8 +407,8 @@ function EditFoodForm({
           </div>
         </div>
         <p className="text-xs text-muted">
-          {fmt(preview.calories)} kcal · Đạm {preview.protein}g · Tinh bột{" "}
-          {preview.carbs}g · Béo {preview.fat}g
+          {fmt(preview.calories)} kcal · Đạm {fmtNum(preview.protein)}g · Tinh bột{" "}
+          {fmtNum(preview.carbs)}g · Béo {fmtNum(preview.fat)}g
         </p>
       </div>
 
@@ -592,7 +593,7 @@ function AddFoodForm({ onAdd }: { onAdd: (food: Omit<LoggedFood, "id">) => void 
                 <Minus size={16} />
               </button>
               <span className="w-10 text-center text-base font-semibold text-text">
-                {round1(qty)}
+                {fmtNum(qty)}
               </span>
               <button
                 type="button"
@@ -606,8 +607,8 @@ function AddFoodForm({ onAdd }: { onAdd: (food: Omit<LoggedFood, "id">) => void 
           </div>
           {preview ? (
             <p className="text-xs text-muted">
-              {fmt(preview.calories)} kcal · Đạm {preview.protein}g · Tinh bột{" "}
-              {preview.carbs}g · Béo {preview.fat}g
+              {fmt(preview.calories)} kcal · Đạm {fmtNum(preview.protein)}g · Tinh bột{" "}
+              {fmtNum(preview.carbs)}g · Béo {fmtNum(preview.fat)}g
             </p>
           ) : null}
         </div>

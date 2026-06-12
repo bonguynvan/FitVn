@@ -15,6 +15,7 @@ import {
   type UserProfile,
 } from "@/lib/fitness/targets";
 import { getProfile, saveProfile } from "@/lib/store/profile-store";
+import { DataSection } from "@/components/profile/DataSection";
 
 const DEFAULTS: UserProfile = {
   name: "",
@@ -269,6 +270,9 @@ export function ProfileScreen() {
           )}
         </button>
       </section>
+
+      {/* Data backup */}
+      <DataSection />
 
       {/* Account */}
       <section className="flex flex-col gap-3">
