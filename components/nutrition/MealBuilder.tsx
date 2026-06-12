@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, Minus, Plus, Trash2 } from "lucide-react";
+import { Check, Plus, Trash2 } from "lucide-react";
 
+import { Stepper } from "@/components/ui";
 import type { FoodItem } from "@/lib/data/foods-db";
 import { useAllFoods } from "@/lib/store/food-store";
 import { addSavedMeal, type SavedMealItem } from "@/lib/store/meal-store";
@@ -146,30 +147,20 @@ export function MealBuilder({ onDone }: { onDone: () => void }) {
                   </p>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    aria-label={`Giảm ${food.name}`}
-                    onClick={() => setQty(food.id, qty - 0.5)}
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
-                  >
-                    <Minus size={14} />
-                  </button>
-                  <span className="w-8 text-center text-sm font-semibold text-text">
-                    {fmtNum(qty)}
-                  </span>
-                  <button
-                    type="button"
-                    aria-label={`Tăng ${food.name}`}
-                    onClick={() => setQty(food.id, qty + 0.5)}
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
-                  >
-                    <Plus size={14} />
-                  </button>
+                  <Stepper
+                    value={qty}
+                    onChange={(v) => setQty(food.id, v)}
+                    step={0.5}
+                    min={0.5}
+                    ariaLabel={food.name}
+                    format={fmtNum}
+                    valueClassName="w-8"
+                  />
                   <button
                     type="button"
                     aria-label={`Xóa ${food.name}`}
                     onClick={() => remove(food.id)}
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-btn text-muted transition hover:text-danger"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-btn text-muted transition hover:text-danger"
                   >
                     <Trash2 size={14} />
                   </button>

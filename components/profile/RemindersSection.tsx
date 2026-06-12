@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Bell, Droplet, HeartPulse, UtensilsCrossed } from "lucide-react";
 
-import { Card, IconBadge, SectionHeader } from "@/components/ui";
+import { Card, IconBadge, SectionHeader, Toggle } from "@/components/ui";
 import { setReminder, useReminderSettings } from "@/lib/store/reminders-store";
 
 /** Reminder preferences + device-notification opt-in (Profile screen). */
@@ -135,8 +135,6 @@ function Row({
     <div className="flex items-center justify-between gap-3 py-3 first:pt-1 last:pb-1">
       <button
         type="button"
-        role="switch"
-        aria-checked={enabled}
         onClick={onToggle}
         className="flex min-w-0 flex-1 items-center gap-3 text-left"
       >
@@ -147,18 +145,11 @@ function Row({
           <span className="block text-sm font-semibold text-text">{title}</span>
           <span className="block text-[11px] leading-tight text-muted">{hint}</span>
         </span>
-        <span
-          className={`relative ml-1 inline-block h-6 w-10 shrink-0 rounded-pill transition-colors ${
-            enabled ? "bg-primary" : "bg-surface-raised"
-          }`}
-        >
-          <span
-            className="absolute top-0.5 h-5 w-5 rounded-pill bg-surface shadow-card transition-all"
-            style={{ left: enabled ? "1.125rem" : "0.125rem" }}
-          />
-        </span>
       </button>
-      {enabled ? <div className="shrink-0">{children}</div> : null}
+      <div className="flex shrink-0 items-center gap-3">
+        {enabled ? children : null}
+        <Toggle checked={enabled} onChange={onToggle} ariaLabel={title} />
+      </div>
     </div>
   );
 }

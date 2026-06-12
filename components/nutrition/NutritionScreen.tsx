@@ -10,7 +10,6 @@ import {
   Cookie,
   Droplet,
   Flame,
-  Minus,
   Moon,
   Plus,
   Trash2,
@@ -20,7 +19,18 @@ import {
 } from "lucide-react";
 
 import { BrandHero } from "@/components/nav/BrandHero";
-import { Card, IconBadge, Pill, ProgressRing, SectionHeader, Sheet } from "@/components/ui";
+import {
+  Card,
+  IconBadge,
+  Pill,
+  ProgressRing,
+  SectionHeader,
+  SegmentedControl,
+  Sheet,
+  Stepper,
+  Toggle,
+  type SegmentOption,
+} from "@/components/ui";
 import { FOOD_GROUPS, type FoodItem } from "@/lib/data/foods-db";
 import { round1, scaleFood } from "@/lib/nutrition/scale";
 import { defaultMealByHour } from "@/lib/nutrition/meal-time";
@@ -61,6 +71,12 @@ const MEAL_ICON: Record<MealType, LucideIcon> = {
 };
 
 const fmt = (n: number) => Math.round(n).toLocaleString("vi-VN");
+
+/** Meal-type options for the SegmentedControl (shared by add + edit forms). */
+const MEAL_OPTIONS: ReadonlyArray<SegmentOption<MealType>> = MEAL_TYPES.map((m) => ({
+  value: m,
+  label: MEAL_LABEL_VI[m],
+}));
 
 /** A food rich enough in purine to warn gout users about (per 100 g edible). */
 const isHighPurine = (food: FoodItem) =>
@@ -305,27 +321,15 @@ export function NutritionScreen() {
           </div>
           <div className="flex items-center justify-between border-t border-border pt-3">
             <span className="text-xs font-medium text-muted">Mục tiêu mỗi ngày</span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                aria-label="Giảm mục tiêu nước"
-                onClick={() => setWaterGoal(waterGoal - 1)}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
-              >
-                <Minus size={16} />
-              </button>
-              <span className="w-12 text-center text-sm font-semibold tabular-nums text-text">
-                {waterGoal} ly
-              </span>
-              <button
-                type="button"
-                aria-label="Tăng mục tiêu nước"
-                onClick={() => setWaterGoal(waterGoal + 1)}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
-              >
-                <Plus size={16} />
-              </button>
-            </div>
+            <Stepper
+              value={waterGoal}
+              onChange={setWaterGoal}
+              step={1}
+              min={1}
+              ariaLabel="mục tiêu nước"
+              format={(n) => `${n} ly`}
+              valueClassName="w-12"
+            />
           </div>
         </Card>
       </section>
@@ -565,20 +569,13 @@ function AddFoodForm({
   return (
     <div className="flex flex-col gap-4">
       {/* Meal type */}
-      <div className="grid grid-cols-4 gap-1.5">
-        {MEAL_TYPES.map((m) => (
-          <button
-            key={m}
-            type="button"
-            onClick={() => setMealType(m)}
-            className={`rounded-btn py-2 text-xs font-semibold transition-colors ${
-              mealType === m ? "bg-primary text-primary-fg" : "bg-surface-raised text-muted"
-            }`}
-          >
-            {MEAL_LABEL_VI[m]}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        options={MEAL_OPTIONS}
+        value={mealType}
+        onChange={setMealType}
+        columns={4}
+        ariaLabel="Bữa"
+      />
 
       {/* Recently logged */}
       {recentFoods.length > 0 ? (
@@ -705,27 +702,15 @@ function AddFoodForm({
               <span className="text-sm font-semibold text-text">
                 Số lượng ({selected.serving.unit})
               </span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  aria-label="Giảm"
-                  onClick={() => setQty((q) => Math.max(0.5, round1(q - 0.5)))}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
-                >
-                  <Minus size={16} />
-                </button>
-                <span className="w-10 text-center text-base font-semibold text-text">
-                  {fmtNum(qty)}
-                </span>
-                <button
-                  type="button"
-                  aria-label="Tăng"
-                  onClick={() => setQty((q) => round1(q + 0.5))}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
-                >
-                  <Plus size={16} />
-                </button>
-              </div>
+              <Stepper
+                value={qty}
+                onChange={setQty}
+                step={0.5}
+                min={0.5}
+                ariaLabel="số lượng"
+                format={fmtNum}
+                valueClassName="w-10"
+              />
             </div>
           ) : (
             <div className="flex flex-col gap-2">
@@ -742,27 +727,12 @@ function AddFoodForm({
                 />
               </label>
               {selected.refusePct > 0 ? (
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={fresh}
-                  onClick={() => setFresh((v) => !v)}
-                  className="flex items-center justify-between text-left"
-                >
+                <div className="flex items-center justify-between gap-2">
                   <span className="text-xs leading-snug text-muted">
                     Khối lượng tươi (cả phần bỏ {selected.refusePct}%)
                   </span>
-                  <span
-                    className={`relative ml-2 inline-block h-5 w-9 shrink-0 rounded-pill transition-colors ${
-                      fresh ? "bg-primary" : "bg-surface"
-                    }`}
-                  >
-                    <span
-                      className="absolute top-0.5 h-4 w-4 rounded-pill bg-surface-raised shadow-card transition-all"
-                      style={{ left: fresh ? "1.125rem" : "0.125rem" }}
-                    />
-                  </span>
-                </button>
+                  <Toggle checked={fresh} onChange={setFresh} ariaLabel="Khối lượng tươi" />
+                </div>
               ) : null}
             </div>
           )}
@@ -830,45 +800,26 @@ function EditFoodForm({
         <p className="text-xs text-muted">Đơn vị: {food.unit}</p>
       </div>
 
-      <div className="grid grid-cols-4 gap-1.5">
-        {MEAL_TYPES.map((m) => (
-          <button
-            key={m}
-            type="button"
-            onClick={() => setMealType(m)}
-            className={`rounded-btn py-2 text-xs font-semibold transition-colors ${
-              mealType === m ? "bg-primary text-primary-fg" : "bg-surface-raised text-muted"
-            }`}
-          >
-            {MEAL_LABEL_VI[m]}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        options={MEAL_OPTIONS}
+        value={mealType}
+        onChange={setMealType}
+        columns={4}
+        ariaLabel="Bữa"
+      />
 
       <div className="flex flex-col gap-3 rounded-card bg-surface-raised p-3">
         <div className="flex items-center justify-between">
           <span className="text-sm font-semibold text-text">Số lượng ({food.unit})</span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              aria-label="Giảm"
-              onClick={() => setQty((q) => Math.max(0.5, round1(q - 0.5)))}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
-            >
-              <Minus size={16} />
-            </button>
-            <span className="w-10 text-center text-base font-semibold text-text">
-              {fmtNum(qty)}
-            </span>
-            <button
-              type="button"
-              aria-label="Tăng"
-              onClick={() => setQty((q) => round1(q + 0.5))}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
-            >
-              <Plus size={16} />
-            </button>
-          </div>
+          <Stepper
+            value={qty}
+            onChange={setQty}
+            step={0.5}
+            min={0.5}
+            ariaLabel="số lượng"
+            format={fmtNum}
+            valueClassName="w-10"
+          />
         </div>
         <p className="text-xs text-muted">
           {fmt(preview.calories)} kcal · Đạm {fmtNum(preview.protein)}g · Tinh bột{" "}
