@@ -1,10 +1,12 @@
 "use client";
 
 import { useRef, useState, type ChangeEvent } from "react";
-import { AlertTriangle, Download, Trash2, Upload } from "lucide-react";
+import { AlertTriangle, CloudDownload, CloudUpload, Download, Trash2, Upload } from "lucide-react";
 
 import { SectionHeader } from "@/components/ui";
 import { clearAllData, downloadBackup, importBackup } from "@/lib/store/backup";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { pullFromCloud, pushToCloud } from "@/lib/sync/cloud";
 
 type Message = { tone: "success" | "danger"; text: string };
 
@@ -12,6 +14,37 @@ export function DataSection() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<Message | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [cloudBusy, setCloudBusy] = useState<"push" | "pull" | null>(null);
+  const cloud = isSupabaseConfigured();
+
+  async function onCloudPush() {
+    setCloudBusy("push");
+    setMessage(null);
+    const res = await pushToCloud();
+    setCloudBusy(null);
+    setMessage(
+      res.ok
+        ? { tone: "success", text: "Đã sao lưu lên đám mây." }
+        : { tone: "danger", text: res.error ?? "Sao lưu thất bại." },
+    );
+  }
+
+  async function onCloudPull() {
+    setCloudBusy("pull");
+    setMessage(null);
+    const res = await pullFromCloud();
+    setCloudBusy(null);
+    if (!res.ok) {
+      setMessage({ tone: "danger", text: res.error ?? "Khôi phục thất bại." });
+      return;
+    }
+    if (res.empty) {
+      setMessage({ tone: "danger", text: "Chưa có bản sao lưu trên đám mây." });
+      return;
+    }
+    setMessage({ tone: "success", text: "Đã khôi phục từ đám mây. Đang tải lại…" });
+    setTimeout(() => window.location.reload(), 800);
+  }
 
   async function onFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -66,6 +99,29 @@ export function DataSection() {
         onChange={onFile}
       />
 
+      {cloud ? (
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={onCloudPush}
+            disabled={cloudBusy !== null}
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-btn border border-primary/30 bg-primary/5 text-sm font-semibold text-primary transition-colors hover:border-primary/60 active:scale-[0.98] disabled:opacity-60"
+          >
+            <CloudUpload size={16} aria-hidden />{" "}
+            {cloudBusy === "push" ? "Đang sao lưu…" : "Sao lưu đám mây"}
+          </button>
+          <button
+            type="button"
+            onClick={onCloudPull}
+            disabled={cloudBusy !== null}
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-btn border border-primary/30 bg-primary/5 text-sm font-semibold text-primary transition-colors hover:border-primary/60 active:scale-[0.98] disabled:opacity-60"
+          >
+            <CloudDownload size={16} aria-hidden />{" "}
+            {cloudBusy === "pull" ? "Đang khôi phục…" : "Khôi phục đám mây"}
+          </button>
+        </div>
+      ) : null}
+
       <button
         type="button"
         onClick={onClear}
@@ -101,8 +157,9 @@ export function DataSection() {
       ) : null}
 
       <p className="text-xs leading-relaxed text-muted">
-        Dữ liệu được lưu trên thiết bị này. Hãy xuất tệp sao lưu định kỳ để tránh
-        mất dữ liệu.
+        {cloud
+          ? "Dữ liệu được lưu trên thiết bị này. Sao lưu lên đám mây để đồng bộ giữa các thiết bị, hoặc xuất tệp để giữ bản dự phòng."
+          : "Dữ liệu được lưu trên thiết bị này. Hãy xuất tệp sao lưu định kỳ để tránh mất dữ liệu."}
       </p>
     </section>
   );

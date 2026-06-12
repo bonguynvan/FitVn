@@ -3,16 +3,42 @@
 import { readLocal, removeLocal, writeLocal } from "./local-store";
 
 /** Every localStorage key that holds user data (auth cookie is separate). */
-const DATA_KEYS = [
+export const DATA_KEYS = [
   "fitvn:profile:v1",
   "fitvn:nutrition:v1",
   "fitvn:water:v1",
   "fitvn:workouts:v1",
   "fitvn:measurements:v1",
-  "fitvn:custom-foods:v1",
+  "fitvn:custom-foods:v2",
   "fitvn:templates:v1",
   "fitvn:prefs:water-goal:v1",
+  "fitvn:health:v1",
+  "fitvn:checkin:v1",
+  "fitvn:meals:v1",
+  "fitvn:reminders:v1",
 ] as const;
+
+/** Snapshot all local user data into a plain object (skips unset keys). */
+export function gatherData(): Record<string, unknown> {
+  const data: Record<string, unknown> = {};
+  for (const key of DATA_KEYS) {
+    const value = readLocal<unknown>(key, null);
+    if (value !== null) data[key] = value;
+  }
+  return data;
+}
+
+/** Write known keys from a data object into localStorage. Returns count applied. */
+export function applyData(data: Record<string, unknown>): number {
+  let applied = 0;
+  for (const key of DATA_KEYS) {
+    if (key in data) {
+      writeLocal(key, data[key]);
+      applied += 1;
+    }
+  }
+  return applied;
+}
 
 interface BackupFile {
   app: "fitvn";
@@ -22,16 +48,11 @@ interface BackupFile {
 }
 
 function buildBackup(): BackupFile {
-  const data: Record<string, unknown> = {};
-  for (const key of DATA_KEYS) {
-    const value = readLocal<unknown>(key, null);
-    if (value !== null) data[key] = value;
-  }
   return {
     app: "fitvn",
     version: 1,
     exportedAt: new Date().toISOString(),
-    data,
+    data: gatherData(),
   };
 }
 
@@ -72,14 +93,7 @@ export function importBackup(json: string): ImportResult {
     return { ok: false, error: "Đây không phải tệp sao lưu FitVN." };
   }
 
-  let imported = 0;
-  const data = file.data as Record<string, unknown>;
-  for (const key of DATA_KEYS) {
-    if (key in data) {
-      writeLocal(key, data[key]);
-      imported += 1;
-    }
-  }
+  const imported = applyData(file.data as Record<string, unknown>);
   if (imported === 0) {
     return { ok: false, error: "Không tìm thấy dữ liệu để nhập." };
   }
