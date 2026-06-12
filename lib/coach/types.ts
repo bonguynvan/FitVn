@@ -130,6 +130,27 @@ export interface CoachHealth {
 }
 
 // -----------------------------------------------------------------------------
+// Weekly rollup — compact 7-day summary for trend-aware coaching.
+// -----------------------------------------------------------------------------
+export interface CoachWeekly {
+  // Nutrition (over logged days)
+  readonly daysLogged: number;
+  readonly avgCalories: number;
+  readonly avgProteinG: number;
+  readonly avgFiberG: number;
+  readonly proteinGoalDays: number;
+  readonly sodiumOverDays: number;
+  readonly purineOverDays: number;
+  // Training
+  readonly daysTrained: number;
+  readonly totalSessions: number;
+  readonly totalSets: number;
+  readonly totalVolumeKg: number;
+  readonly totalDurationMin: number;
+  readonly topExercise: string | null;
+}
+
+// -----------------------------------------------------------------------------
 // The full context object handed to the prompt builder.
 // -----------------------------------------------------------------------------
 export interface CoachContext {
@@ -140,4 +161,6 @@ export interface CoachContext {
   readonly history7d: readonly CoachDaySummary[];
   /** Today's health/micronutrient snapshot (optional; client-built). */
   readonly health?: CoachHealth | null;
+  /** 7-day nutrition + training rollup (optional; client-built). */
+  readonly weekly?: CoachWeekly | null;
 }

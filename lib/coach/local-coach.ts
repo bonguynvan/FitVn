@@ -129,19 +129,69 @@ function waterAdvice(): string {
 
 function workoutAdvice(ctx: CoachContext): string {
   const w = ctx.todayWorkout;
-  const daysTrained = ctx.history7d.filter((d) => d.didWorkout).length;
+  const daysTrained =
+    ctx.weekly?.daysTrained ?? ctx.history7d.filter((d) => d.didWorkout).length;
   const lines: string[] = [];
   if (w && w.exercises.length > 0) {
     lines.push(`Buổi tập hôm nay: ${w.exercises.length} bài, ${w.durationMin ?? "?"} phút. Tốt lắm!`);
   } else {
     lines.push("Hôm nay bạn chưa ghi buổi tập nào.");
   }
-  lines.push(`Tuần qua bạn tập ${daysTrained}/7 ngày.`);
+  if (ctx.weekly && ctx.weekly.totalSessions > 0) {
+    const wk = ctx.weekly;
+    lines.push(
+      `Tuần qua: ${daysTrained}/7 ngày, ${wk.totalSessions} buổi, ${wk.totalSets} set, khối lượng ${wk.totalVolumeKg} kg.`,
+    );
+    if (wk.topExercise) lines.push(`Bài tập nhiều nhất: ${wk.topExercise}.`);
+  } else {
+    lines.push(`Tuần qua bạn tập ${daysTrained}/7 ngày.`);
+  }
   lines.push(
     daysTrained >= 3
       ? "Tần suất ổn — giữ đều và tăng tải từ từ (progressive overload)."
       : "Cố gắng đạt 3–4 buổi/tuần để tiến bộ đều đặn.",
   );
+  return lines.join("\n");
+}
+
+/** A data-backed weekly review across nutrition + training. */
+function weeklyReview(ctx: CoachContext): string {
+  const wk = ctx.weekly;
+  if (!wk || (wk.daysLogged === 0 && wk.totalSessions === 0)) {
+    return "Chưa đủ dữ liệu tuần này. Ghi bữa ăn và buổi tập vài ngày để mình nhận xét xu hướng nhé.";
+  }
+  const lines: string[] = ["Nhận xét 7 ngày qua:"];
+
+  // Nutrition
+  if (wk.daysLogged > 0) {
+    lines.push(
+      `• Dinh dưỡng: ghi ${wk.daysLogged}/7 ngày, calo TB ${wk.avgCalories} kcal, đạm TB ${wk.avgProteinG} g (đủ đạm ${wk.proteinGoalDays} ngày).`,
+    );
+    if (wk.purineOverDays > 0)
+      lines.push(`• ⚠️ Vượt purin ${wk.purineOverDays} ngày — chú ý nếu bạn quản lý gout.`);
+    if (wk.sodiumOverDays > 0)
+      lines.push(`• ⚠️ Vượt natri ${wk.sodiumOverDays} ngày — giảm muối/đồ chế biến sẵn.`);
+    if (wk.avgFiberG < 20)
+      lines.push(`• Chất xơ TB ${wk.avgFiberG} g hơi thấp — thêm rau, đậu, trái cây.`);
+  } else {
+    lines.push("• Dinh dưỡng: chưa ghi ngày nào — bắt đầu ghi để theo dõi nhé.");
+  }
+
+  // Training
+  if (wk.totalSessions > 0) {
+    lines.push(
+      `• Tập luyện: ${wk.daysTrained}/7 ngày, ${wk.totalSessions} buổi, khối lượng ${wk.totalVolumeKg} kg.`,
+    );
+  } else {
+    lines.push("• Tập luyện: chưa ghi buổi nào tuần này.");
+  }
+
+  // One actionable suggestion
+  if (wk.daysTrained < 3) lines.push("→ Mục tiêu tuần tới: tập ít nhất 3 buổi.");
+  else if (wk.proteinGoalDays < wk.daysLogged)
+    lines.push("→ Mục tiêu tuần tới: đủ đạm nhiều ngày hơn để hỗ trợ phục hồi.");
+  else lines.push("→ Bạn đang rất đều đặn — giữ vững và tăng tải từ từ!");
+
   return lines.join("\n");
 }
 
@@ -154,9 +204,11 @@ export function generateLocalReply(ctx: CoachContext, userText: string): string 
   if (has("gout", "gút", "purin", "purine", "acid uric")) body = goutAdvice(ctx);
   else if ((has("trước", "sau", "before", "after") && has("tập", "buổi tập")) )
     body = periWorkoutAdvice();
+  else if (has("nhận xét", "tuần", "tổng kết", "review", "đánh giá"))
+    body = weeklyReview(ctx);
   else if (has("đạm", "protein")) body = proteinAdvice(ctx);
   else if (has("nước", "water", "uống")) body = waterAdvice();
-  else if (has("nhận xét", "tuần tập", "workout", "gym", "exercise", "buổi tập", "tập"))
+  else if (has("workout", "gym", "exercise", "buổi tập", "tập"))
     body = workoutAdvice(ctx);
   else if (has("món", "ăn gì", "gợi ý", "suggest", "eat", "macro", "calo", "calories", "còn lại"))
     body = macroAdvice(ctx);

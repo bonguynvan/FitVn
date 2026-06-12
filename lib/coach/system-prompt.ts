@@ -17,6 +17,7 @@ import type {
   CoachToday,
   CoachTodayWorkout,
   CoachDaySummary,
+  CoachWeekly,
   MacroRemaining,
 } from './types';
 
@@ -185,11 +186,24 @@ function renderHealth(h: CoachHealth | null | undefined): string | null {
   ].join('\n');
 }
 
+function renderWeekly(w: CoachWeekly | null | undefined): string | null {
+  if (!w) return null;
+  return [
+    'TỔNG KẾT 7 NGÀY:',
+    `- Dinh dưỡng: ${w.daysLogged}/7 ngày có ghi; calo TB ${w.avgCalories} kcal/ngày; đạm TB ${w.avgProteinG} g; xơ TB ${w.avgFiberG} g.`,
+    `- Đủ đạm ${w.proteinGoalDays} ngày; vượt natri ${w.sodiumOverDays} ngày; vượt purin ${w.purineOverDays} ngày.`,
+    `- Tập: ${w.daysTrained}/7 ngày, ${w.totalSessions} buổi, ${w.totalSets} set, khối lượng ${w.totalVolumeKg} kg, ${w.totalDurationMin} phút${
+      w.topExercise ? `; bài nhiều nhất: ${w.topExercise}` : ''
+    }.`,
+  ].join('\n');
+}
+
 // -----------------------------------------------------------------------------
 // Public entry point
 // -----------------------------------------------------------------------------
 export function buildSystemPrompt(ctx: CoachContext): string {
   const health = renderHealth(ctx.health);
+  const weekly = renderWeekly(ctx.weekly);
   const dataBlock = [
     '=== DỮ LIỆU NGƯỜI DÙNG (dùng để trả lời, không lặp lại nguyên văn) ===',
     renderProfile(ctx.profile),
@@ -200,6 +214,7 @@ export function buildSystemPrompt(ctx: CoachContext): string {
     renderWorkout(ctx.todayWorkout),
     '',
     renderHistory(ctx.history7d),
+    ...(weekly ? ['', weekly] : []),
     '=== HẾT DỮ LIỆU ===',
   ].join('\n');
 

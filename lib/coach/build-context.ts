@@ -18,6 +18,8 @@ import {
   purineLimit,
   SODIUM_LIMIT_MG,
 } from "@/lib/config/targets";
+import { computeWeeklyNutrition } from "@/lib/fitness/nutrition-insights";
+import { computeWeeklyWorkouts } from "@/lib/fitness/workout-insights";
 import { addDaysIso, todayIso } from "@/lib/date";
 import type { LoggedFood, Measurement, WorkoutSession } from "@/lib/store/types";
 import type {
@@ -133,6 +135,16 @@ export function buildLocalCoachContext(): CoachContext {
   const optSum = (key: keyof LoggedFood) =>
     round(sum(todayFoods.map((f) => (f[key] as number | null | undefined) ?? 0)));
 
+  // 7-day rollups (reuse the Progress-screen compute functions).
+  const wn = computeWeeklyNutrition({
+    today,
+    nutritionByDay: history,
+    proteinTargetG: targets.proteinG,
+    sodiumLimitMg: SODIUM_LIMIT_MG,
+    goutMode,
+  });
+  const ww = computeWeeklyWorkouts(today, workouts);
+
   return {
     profile: {
       fullName: profile?.name ?? null,
@@ -163,6 +175,21 @@ export function buildLocalCoachContext(): CoachContext {
       calciumTargetMg: CALCIUM_TARGET_MG,
       ironMg: optSum("ironMg"),
       ironTargetMg: IRON_TARGET_MG[profile?.sex ?? "male"],
+    },
+    weekly: {
+      daysLogged: wn.daysLogged,
+      avgCalories: wn.avgCalories,
+      avgProteinG: wn.avgProtein,
+      avgFiberG: wn.avgFiber,
+      proteinGoalDays: wn.proteinGoalDays,
+      sodiumOverDays: wn.sodiumOverDays,
+      purineOverDays: wn.purineOverDays,
+      daysTrained: ww.daysTrained,
+      totalSessions: ww.totalSessions,
+      totalSets: ww.totalSets,
+      totalVolumeKg: ww.totalVolumeKg,
+      totalDurationMin: ww.totalDurationMin,
+      topExercise: ww.topExercise,
     },
   };
 }
