@@ -43,8 +43,8 @@ function isActive(pathname: string, href: string): boolean {
 export function BottomNav() {
   const pathname = usePathname() ?? "/";
 
-  // No app chrome on the auth screen.
-  if (pathname === "/login") return null;
+  // No app chrome on the auth / onboarding screens.
+  if (pathname === "/login" || pathname === "/welcome") return null;
 
   return (
     <nav
