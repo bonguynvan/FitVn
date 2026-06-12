@@ -52,8 +52,24 @@ npm run import:fct     # data/fct-2007.csv → lib/data/fct-foods.json
 npm run build          # verify it compiles
 ```
 
-Once `lib/data/fct-foods.json` is non-empty, `FOODS` uses it instead of the
-curated bundle automatically (same `FoodItem` shape, slug ids derived from the
-Vietnamese name). Commit the generated JSON.
+Once `lib/data/fct-foods.json` is non-empty, it is **merged over** the curated
+bundle (see `mergeFoods` in `lib/data/foods-db.ts`):
 
-To push the imported library to Supabase too: `npm run seed:foods`.
+- **matching id** → official energy/macro/mineral values win; curated purine,
+  serving, refuse %, English name and group are kept (FCT has no purine and only
+  default servings).
+- **official-only** → added. **curated-only** (e.g. composite dishes) → kept.
+
+So you get full breadth with authoritative values where they exist. Commit the
+generated JSON. To push the merged library to Supabase too: `npm run seed:foods`.
+
+## Current data source
+
+`lib/data/fct-foods.json` is currently populated from a digitized extract of the
+official **Vietnamese Food Composition Table (FCT-2007, Bộ Y tế – Viện Dinh
+dưỡng)** — 162 common foods, via the MIT-licensed dataset at
+`github.com/nguyenkhangme/Vietnamese-Food-Nutrition-Analysis` (extracted by
+thehinh.com). It supplies energy, protein, fat, carbs, fiber, calcium, iron and
+sodium per 100 g edible. Purine is not part of FCT-2007, so it stays from the
+curated values. To use the full 526-food table, export the official PDF to CSV
+and re-run the importer.

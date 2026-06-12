@@ -71,15 +71,15 @@ function parseCsv(text: string): string[][] {
   return rows.filter((r) => r.some((c) => c.trim() !== ""));
 }
 
-/** Canonical column → accepted header aliases (ascii, lowercased). */
+/** Canonical column → accepted header aliases (ascii, lowercased, unit-stripped). */
 const ALIASES: Record<string, string[]> = {
-  name_vi: ["name_vi", "ten thuc pham", "ten", "ten mon", "food name", "ten tieng viet"],
+  name_vi: ["name_vi", "ten thuc pham", "ten thuc an", "ten mon", "ten", "food name", "ten tieng viet"],
   name_en: ["name_en", "english", "ten tieng anh", "english name"],
-  group: ["group", "nhom", "food group", "nhom thuc pham"],
+  group: ["group", "nhom", "food group", "nhom thuc pham", "loai"],
   refuse_pct: ["refuse_pct", "ty le thai bo", "refuse", "thai bo"],
-  kcal: ["kcal", "nang luong", "energy", "calories", "calo", "nang luong kcal"],
+  kcal: ["kcal", "nang luong", "energy", "calories", "calo", "calories kcal"],
   protein_g: ["protein_g", "protein", "dam", "chat dam"],
-  carb_g: ["carb_g", "glucid", "carbohydrate", "carb", "carbs", "tinh bot"],
+  carb_g: ["carb_g", "glucid", "carbohydrate", "carbohydrates", "carbonhydrates", "carb", "carbs", "tinh bot"],
   fat_g: ["fat_g", "lipid", "fat", "chat beo", "beo"],
   fiber_g: ["fiber_g", "chat xo", "fiber", "xo", "celluloza", "cellulose"],
   sodium_mg: ["sodium_mg", "natri", "sodium", "na"],
@@ -90,14 +90,44 @@ const ALIASES: Record<string, string[]> = {
   serving_grams: ["serving_grams", "gram", "grams", "khoi luong", "serving_g"],
 };
 
+/** Normalize a header cell: deaccent, drop "(unit)" suffixes, collapse spaces. */
+function normHeader(h: string): string {
+  return deaccent(h)
+    .toLowerCase()
+    .replace(/\(.*?\)/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
 function buildHeaderIndex(header: string[]): Record<string, number> {
-  const norm = header.map((h) => deaccent(h).trim().toLowerCase());
+  const norm = header.map(normHeader);
   const idx: Record<string, number> = {};
   for (const [canon, aliases] of Object.entries(ALIASES)) {
     const found = norm.findIndex((h) => aliases.includes(h));
     if (found !== -1) idx[canon] = found;
   }
   return idx;
+}
+
+/** Map a raw FCT group label to one of the app's 14 FOOD_GROUPS. */
+function normalizeGroup(raw: string): string {
+  const g = deaccent(raw).toLowerCase();
+  if (g.includes("ngu coc")) return "Ngũ cốc";
+  if (g.includes("khoai")) return "Khoai củ";
+  if (g.includes("dau") && g.includes("mo")) return "Dầu mỡ";
+  if (g.includes("hat")) return "Đậu & hạt";
+  if (g.includes("rau")) return "Rau";
+  if (g.includes("qua chin") || g.includes("trai cay")) return "Trái cây";
+  if (g.includes("thit")) return "Thịt";
+  if (g.includes("thuy san")) return "Thủy sản";
+  if (g.includes("trung")) return "Trứng";
+  if (g.includes("sua")) return "Sữa";
+  if (g.includes("do hop")) return "Món ăn";
+  if (g.includes("ngot") || g.includes("duong") || g.includes("banh") || g.includes("keo"))
+    return "Đường & bánh kẹo";
+  if (g.includes("gia vi") || g.includes("nuoc cham")) return "Gia vị";
+  if (g.includes("nuoc giai khat") || g.includes("nuoc uong")) return "Đồ uống";
+  return raw.trim() || "Khác";
 }
 
 const numOrNull = (raw: string | undefined): number | null => {
@@ -160,7 +190,7 @@ function main(): void {
       id,
       name: nameVi,
       nameEn,
-      group: (get(row, "group") ?? "").trim() || "Khác",
+      group: normalizeGroup(get(row, "group") ?? ""),
       refusePct: numOr(get(row, "refuse_pct"), 0),
       serving: {
         unit: (get(row, "serving_unit") ?? "").trim() || "phần",
