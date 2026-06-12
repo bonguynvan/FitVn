@@ -26,10 +26,10 @@ alter table public.foods add column if not exists iron_mg       numeric(7, 2)
 alter table public.foods add column if not exists purine_mg     numeric(7, 2)
   check (purine_mg is null or purine_mg >= 0);
 
--- Stable slug is the app-facing id for seeded library foods. Unique so seeding
--- with on-conflict(slug) is idempotent across re-runs.
-create unique index if not exists idx_foods_slug on public.foods (slug)
-  where slug is not null;
+-- Stable slug is the app-facing id for seeded library foods. A plain (non-partial)
+-- unique index so PostgREST `on conflict (slug)` upserts work; Postgres treats
+-- NULLs as distinct, so custom foods (slug IS NULL) are unaffected.
+create unique index if not exists idx_foods_slug on public.foods (slug);
 
 -- Browse-by-group lookups.
 create index if not exists idx_foods_food_group on public.foods (food_group);
