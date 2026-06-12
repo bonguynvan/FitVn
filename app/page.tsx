@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Bot, Dumbbell, LineChart, Salad, User, type LucideIcon } from "lucide-react";
 
 import { getCurrentUser } from "@/lib/auth/session";
+import { CoachNudge } from "@/components/home/CoachNudge";
 import { ProfileNudge } from "@/components/home/ProfileNudge";
 import { TodayDashboard } from "@/components/home/TodayDashboard";
 import { PushManager } from "@/components/pwa/PushManager";
@@ -60,6 +61,9 @@ export default async function HomePage() {
 
       {/* Personalize-goal nudge (hidden once a profile exists) */}
       <ProfileNudge />
+
+      {/* Personalized coach insight (shown once a profile exists) */}
+      <CoachNudge />
 
       {/* Today — reactive to locally-logged data */}
       <TodayDashboard />
