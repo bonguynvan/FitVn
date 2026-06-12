@@ -158,7 +158,7 @@ export function DataSection() {
 
       <p className="text-xs leading-relaxed text-muted">
         {cloud
-          ? "Dữ liệu được lưu trên thiết bị này. Sao lưu lên đám mây để đồng bộ giữa các thiết bị, hoặc xuất tệp để giữ bản dự phòng."
+          ? "Dữ liệu tự động đồng bộ lên đám mây khi bạn đăng nhập. Dùng nút trên để sao lưu hoặc khôi phục thủ công, hoặc xuất tệp để giữ bản dự phòng."
           : "Dữ liệu được lưu trên thiết bị này. Hãy xuất tệp sao lưu định kỳ để tránh mất dữ liệu."}
       </p>
     </section>

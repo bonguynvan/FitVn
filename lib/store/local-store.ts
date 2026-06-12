@@ -13,9 +13,33 @@ import { useCallback, useSyncExternalStore } from "react";
  */
 
 const listeners = new Map<string, Set<() => void>>();
+/** Global listeners notified (with the key) on any local write/remove. */
+const globalListeners = new Set<(key: string) => void>();
 
 function notify(key: string): void {
   listeners.get(key)?.forEach((l) => l());
+  globalListeners.forEach((l) => l(key));
+}
+
+/**
+ * Subscribe to every local data change in this tab (and cross-tab via the
+ * `storage` event). The callback receives the changed key. Used by the cloud
+ * sync manager to debounce-push after edits.
+ */
+export function subscribeChanges(cb: (key: string) => void): () => void {
+  globalListeners.add(cb);
+  const onStorage = (e: StorageEvent) => {
+    if (e.key) cb(e.key);
+  };
+  if (typeof window !== "undefined") {
+    window.addEventListener("storage", onStorage);
+  }
+  return () => {
+    globalListeners.delete(cb);
+    if (typeof window !== "undefined") {
+      window.removeEventListener("storage", onStorage);
+    }
+  };
 }
 
 function subscribe(key: string, cb: () => void): () => void {

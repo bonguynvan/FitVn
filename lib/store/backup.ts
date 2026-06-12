@@ -28,6 +28,14 @@ export function gatherData(): Record<string, unknown> {
   return data;
 }
 
+/** True when at least one local data key holds a value. */
+export function hasLocalData(): boolean {
+  for (const key of DATA_KEYS) {
+    if (readLocal<unknown>(key, null) !== null) return true;
+  }
+  return false;
+}
+
 /** Write known keys from a data object into localStorage. Returns count applied. */
 export function applyData(data: Record<string, unknown>): number {
   let applied = 0;

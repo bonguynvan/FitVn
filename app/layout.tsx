@@ -3,6 +3,7 @@ import { Be_Vietnam_Pro } from "next/font/google";
 import "./globals.css";
 import { BottomNav } from "@/components/nav/BottomNav";
 import { PwaShell } from "@/components/pwa/PwaShell";
+import { SyncManager } from "@/components/sync/SyncManager";
 
 /**
  * Be Vietnam Pro — a warm humanist sans designed for Vietnamese, used app-wide
@@ -70,6 +71,8 @@ export default function RootLayout({
         <BottomNav />
         {/* App-wide PWA behavior: install prompt + offline sync lifecycle. */}
         <PwaShell />
+        {/* App-wide cloud auto-sync: pull on a fresh device, debounce-push edits. */}
+        <SyncManager />
       </body>
     </html>
   );

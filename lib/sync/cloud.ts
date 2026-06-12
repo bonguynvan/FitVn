@@ -28,6 +28,64 @@ async function currentUserId(): Promise<string | null> {
   return user?.id ?? null;
 }
 
+/** True when there is an authenticated Supabase session. */
+export async function isCloudAuthed(): Promise<boolean> {
+  return (await currentUserId()) !== null;
+}
+
+/** Bounded poll for the initial session: ~12s, covering the post-login race. */
+const SESSION_POLL_MS = 800;
+const SESSION_POLL_TRIES = 15;
+
+/**
+ * Run `cb` once with the user id as soon as an authenticated session is
+ * available, and again on later sign-ins.
+ *
+ * Right after a server-action login + redirect there is a brief window where
+ * the auth cookie isn't yet visible to the freshly-mounted browser client, so
+ * onAuthStateChange emits INITIAL_SESSION=null and never re-fires. getSession()
+ * re-reads the cookie each call, so we also poll briefly until it appears.
+ * Returns an unsubscribe function.
+ */
+export function onAuthedUser(cb: (userId: string) => void): () => void {
+  const supabase = createClient();
+  let fired = false;
+  let stopped = false;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  const fire = (userId: string) => {
+    if (fired || stopped) return;
+    fired = true;
+    cb(userId);
+  };
+
+  let tries = 0;
+  const poll = async () => {
+    if (stopped || fired) return;
+    const { data } = await supabase.auth.getSession();
+    if (data.session?.user) {
+      fire(data.session.user.id);
+      return;
+    }
+    if (++tries < SESSION_POLL_TRIES && !stopped) {
+      timer = setTimeout(() => void poll(), SESSION_POLL_MS);
+    }
+  };
+  void poll();
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    if (session?.user) fire(session.user.id);
+  });
+
+  return () => {
+    stopped = true;
+    if (timer) clearTimeout(timer);
+    subscription.unsubscribe();
+  };
+}
+
 /** Upload the current local snapshot to the cloud. */
 export async function pushToCloud(): Promise<SyncResult> {
   try {
