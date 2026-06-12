@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 import { PageHeader } from "@/components/nav/PageHeader";
+import { WeeklyNutrition } from "@/components/progress/WeeklyNutrition";
 import { Card, IconBadge, Pill, SectionHeader, Sparkline, StatTile, Sheet } from "@/components/ui";
 import { shortDateVi, todayIso } from "@/lib/date";
 import type { Achievement } from "@/lib/fitness/achievements";
@@ -136,6 +137,9 @@ export function ProgressScreen() {
           />
         </div>
       </section>
+
+      {/* Weekly nutrition rollup */}
+      <WeeklyNutrition />
 
       {/* Achievements */}
       <section aria-labelledby="ach-heading" className="flex flex-col gap-3">
