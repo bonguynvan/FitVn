@@ -14,7 +14,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-import { SendHorizontal, Sparkles, Square } from 'lucide-react';
+import { SendHorizontal, Sparkles, Square, Zap } from 'lucide-react';
 
 import { MessageBubble } from './MessageBubble';
 import { QuickActions } from './QuickActions';
@@ -31,6 +31,7 @@ export function CoachChat() {
   });
 
   const [input, setInput] = useState('');
+  const [quick, setQuick] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const isBusy = status === 'submitted' || status === 'streaming';
@@ -46,8 +47,17 @@ export function CoachChat() {
 
   function send(text: string) {
     // Attach a fresh snapshot of the user's local data so the coach answers
-    // with real numbers (the server is stateless / local-first).
-    sendMessage({ text }, { body: { context: buildLocalCoachContext() } });
+    // with real numbers (the server is stateless / local-first). `preset`
+    // selects the model: quick → Haiku (cheap/fast), default → Sonnet.
+    sendMessage(
+      { text },
+      {
+        body: {
+          context: buildLocalCoachContext(),
+          preset: quick ? 'quick' : 'default',
+        },
+      },
+    );
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -114,6 +124,24 @@ export function CoachChat() {
       {!hasMessages && (
         <QuickActions onSend={handleQuickAction} disabled={isBusy} />
       )}
+
+      {/* Quick-analysis (Haiku) toggle */}
+      <div className="flex items-center justify-end">
+        <button
+          type="button"
+          role="switch"
+          aria-checked={quick}
+          onClick={() => setQuick((v) => !v)}
+          className={`inline-flex items-center gap-1.5 rounded-pill border px-3 py-1.5 text-xs font-semibold transition-colors ${
+            quick
+              ? 'border-primary bg-primary/10 text-primary'
+              : 'border-border bg-surface text-muted hover:border-primary/40'
+          }`}
+        >
+          <Zap size={14} aria-hidden fill={quick ? 'currentColor' : 'none'} />
+          Phân tích nhanh
+        </button>
+      </div>
 
       {/* Composer */}
       <form

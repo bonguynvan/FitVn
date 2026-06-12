@@ -14,6 +14,7 @@
 
 import {
   BarChart3,
+  CalendarCheck,
   Dumbbell,
   Timer,
   UtensilsCrossed,
@@ -27,6 +28,11 @@ interface QuickAction {
 }
 
 const QUICK_ACTIONS: ReadonlyArray<QuickAction> = [
+  {
+    icon: CalendarCheck,
+    label: 'Tổng kết tuần',
+    prompt: 'Tổng kết tuần của tôi: dinh dưỡng và tập luyện, kèm đề xuất.',
+  },
   {
     icon: Dumbbell,
     label: 'Còn thiếu protein?',
