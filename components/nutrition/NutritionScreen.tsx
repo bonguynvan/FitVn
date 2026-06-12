@@ -853,10 +853,27 @@ function EditFoodForm({
             valueClassName="w-10"
           />
         </div>
-        <p className="text-xs text-muted">
-          {fmt(preview.calories)} kcal · Đạm {fmtNum(preview.protein)}g · Tinh bột{" "}
-          {fmtNum(preview.carbs)}g · Béo {fmtNum(preview.fat)}g
-        </p>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1 border-t border-border pt-3">
+          <NutrientRow label="Calo" value={`${fmt(preview.calories)} kcal`} />
+          <NutrientRow label="Đạm" value={`${fmtNum(preview.protein)} g`} />
+          <NutrientRow label="Tinh bột" value={`${fmtNum(preview.carbs)} g`} />
+          <NutrientRow label="Chất béo" value={`${fmtNum(preview.fat)} g`} />
+          {opt(food.fiber) != null ? (
+            <NutrientRow label="Chất xơ" value={`${fmtNum(opt(food.fiber)!)} g`} />
+          ) : null}
+          {opt(food.sodiumMg) != null ? (
+            <NutrientRow label="Natri" value={`${fmt(opt(food.sodiumMg)!)} mg`} />
+          ) : null}
+          {opt(food.calciumMg) != null ? (
+            <NutrientRow label="Canxi" value={`${fmt(opt(food.calciumMg)!)} mg`} />
+          ) : null}
+          {opt(food.ironMg) != null ? (
+            <NutrientRow label="Sắt" value={`${fmtNum(opt(food.ironMg)!)} mg`} />
+          ) : null}
+          {opt(food.purineMg) != null ? (
+            <NutrientRow label="Purin" value={`${fmt(opt(food.purineMg)!)} mg`} />
+          ) : null}
+        </div>
       </div>
 
       <button
