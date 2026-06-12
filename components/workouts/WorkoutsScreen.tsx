@@ -37,6 +37,7 @@ import {
   useTemplates,
 } from "@/lib/store/template-store";
 import { PRESET_TEMPLATES } from "@/lib/data/workout-templates";
+import { SessionDetail } from "@/components/workouts/SessionDetail";
 import type {
   LoggedExercise,
   LoggedSet,
@@ -100,6 +101,8 @@ export function WorkoutsScreen() {
   );
   // Bumped whenever the form should re-seed, so AddSessionForm remounts.
   const [formKey, setFormKey] = useState(0);
+  // The session whose read-only detail is open (null = none).
+  const [detailSession, setDetailSession] = useState<WorkoutSession | null>(null);
 
   function openBlank() {
     setFormInitial(null);
@@ -216,7 +219,7 @@ export function WorkoutsScreen() {
             <ul className="flex flex-col gap-3">
               {sessions.map((session) => (
                 <li key={session.id}>
-                  <SessionCard session={session} onEdit={openEdit} />
+                  <SessionCard session={session} onOpen={setDetailSession} />
                 </li>
               ))}
             </ul>
@@ -260,6 +263,23 @@ export function WorkoutsScreen() {
           editing={editingSession ?? undefined}
           onSaved={() => setAdding(false)}
         />
+      </Sheet>
+
+      <Sheet
+        open={detailSession != null}
+        onClose={() => setDetailSession(null)}
+        title={detailSession?.name ?? "Buổi tập"}
+      >
+        {detailSession ? (
+          <SessionDetail
+            session={detailSession}
+            onEdit={() => {
+              const s = detailSession;
+              setDetailSession(null);
+              openEdit(s);
+            }}
+          />
+        ) : null}
       </Sheet>
     </main>
   );
@@ -361,10 +381,10 @@ function TemplateCard({
 
 function SessionCard({
   session,
-  onEdit,
+  onOpen,
 }: {
   session: WorkoutSession;
-  onEdit: (session: WorkoutSession) => void;
+  onOpen: (session: WorkoutSession) => void;
 }) {
   const volume = sessionVolume(session);
   const exerciseCount = session.exercises.length;
@@ -373,8 +393,8 @@ function SessionCard({
     <Card padding="md" className="flex items-start gap-2">
       <button
         type="button"
-        onClick={() => onEdit(session)}
-        aria-label={`Sửa ${session.name}`}
+        onClick={() => onOpen(session)}
+        aria-label={`Xem ${session.name}`}
         className="flex min-w-0 flex-1 items-start gap-3 rounded-btn px-1 py-1 text-left transition-colors hover:bg-surface-raised"
       >
         <IconBadge tone="primary" size="md">
