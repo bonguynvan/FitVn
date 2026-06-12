@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Bot } from 'lucide-react';
 
 import { CoachChat } from '@/components/coach/CoachChat';
+import { BrandHero } from '@/components/nav/BrandHero';
 import { IconBadge } from '@/components/ui';
 
 export const metadata: Metadata = {
@@ -20,29 +21,16 @@ export const metadata: Metadata = {
 export default function CoachPage() {
   return (
     <main className="flex flex-1 flex-col gap-4 pb-safe pt-safe">
-      <header className="relative overflow-hidden rounded-card bg-primary px-5 pb-5 pt-6 text-primary-fg shadow-glow">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -right-6 -top-8 h-24 w-24 rounded-full bg-accent/40 blur-2xl"
-        />
-        <div className="flex items-start gap-3">
-          <IconBadge tone="accent" size="lg" className="shadow-card">
+      <BrandHero
+        eyebrow="Huấn luyện viên AI"
+        title="HLV FitVN"
+        subtitle="Hỏi đáp dinh dưỡng & tập luyện, cá nhân hoá theo macro và buổi tập của bạn hôm nay."
+        icon={
+          <IconBadge tone="accent" size="lg" className="bg-white/20 text-primary-fg shadow-card">
             <Bot size={26} aria-hidden />
           </IconBadge>
-          <div className="min-w-0">
-            <p className="text-xs font-medium tracking-wide opacity-90">
-              Huấn luyện viên AI
-            </p>
-            <h1 className="mt-1 text-2xl font-extrabold leading-tight">
-              HLV FitVN
-            </h1>
-            <p className="mt-2 max-w-[40ch] text-sm leading-relaxed opacity-95">
-              Hỏi đáp dinh dưỡng &amp; tập luyện, cá nhân hoá theo macro và buổi
-              tập của bạn hôm nay.
-            </p>
-          </div>
-        </div>
-      </header>
+        }
+      />
 
       <CoachChat />
     </main>

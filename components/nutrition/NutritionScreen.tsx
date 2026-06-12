@@ -19,7 +19,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { PageHeader } from "@/components/nav/PageHeader";
+import { BrandHero } from "@/components/nav/BrandHero";
 import { Card, IconBadge, Pill, ProgressRing, SectionHeader, Sheet } from "@/components/ui";
 import { FOOD_GROUPS, type FoodItem } from "@/lib/data/foods-db";
 import { round1, scaleFood } from "@/lib/nutrition/scale";
@@ -154,7 +154,7 @@ export function NutritionScreen() {
 
   return (
     <main className="flex flex-1 flex-col gap-6 pt-safe">
-      <PageHeader
+      <BrandHero
         eyebrow="Dinh dưỡng"
         title="Nhật ký ăn uống"
         subtitle={
@@ -167,7 +167,7 @@ export function NutritionScreen() {
             type="button"
             onClick={() => setAdding(true)}
             aria-label="Ghi bữa ăn"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-btn bg-primary text-primary-fg shadow-glow transition-transform active:scale-95"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-btn bg-white/20 text-primary-fg active:scale-95"
           >
             <Plus size={22} />
           </button>

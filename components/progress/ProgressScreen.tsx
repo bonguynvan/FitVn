@@ -19,7 +19,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-import { PageHeader } from "@/components/nav/PageHeader";
+import { BrandHero } from "@/components/nav/BrandHero";
 import { WeeklyNutrition } from "@/components/progress/WeeklyNutrition";
 import { WeeklyWorkouts } from "@/components/progress/WeeklyWorkouts";
 import { HealthMarkers } from "@/components/progress/HealthMarkers";
@@ -72,52 +72,47 @@ export function ProgressScreen() {
 
   return (
     <main className="flex flex-1 flex-col gap-6 pt-safe">
-      <div className="pt-6">
-        <PageHeader
-          eyebrow="Tiến độ"
-          title="Hành trình của bạn"
-          subtitle={
-            hasData
-              ? "Theo dõi cân nặng và số đo cơ thể theo thời gian."
-              : "Ghi số đo đầu tiên để bắt đầu theo dõi tiến độ."
-          }
-          action={
-            <button
-              type="button"
-              onClick={() => setAdding(true)}
-              aria-label="Ghi số đo"
-              className="inline-flex h-11 w-11 items-center justify-center rounded-btn bg-primary text-primary-fg shadow-glow transition-transform active:scale-95"
-            >
-              <Plus size={22} />
-            </button>
-          }
-        />
-      </div>
+      <BrandHero
+        eyebrow="Tiến độ"
+        title="Hành trình của bạn"
+        subtitle={
+          hasData
+            ? "Theo dõi cân nặng và số đo cơ thể theo thời gian."
+            : "Ghi số đo đầu tiên để bắt đầu theo dõi tiến độ."
+        }
+        action={
+          <button
+            type="button"
+            onClick={() => setAdding(true)}
+            aria-label="Ghi số đo"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-btn bg-white/20 text-primary-fg active:scale-95"
+          >
+            <Plus size={22} />
+          </button>
+        }
+      />
 
       {/* Streak highlight + key stats */}
       <section aria-labelledby="streak-heading" className="flex flex-col gap-3">
         <SectionHeader id="streak-heading">Chuỗi tập luyện</SectionHeader>
-        <div className="relative overflow-hidden rounded-card bg-hero px-5 py-5 text-primary-fg shadow-glow">
-          <span
-            aria-hidden
-            className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/15 blur-2xl"
-          />
+        <Card raised padding="lg">
           <div className="flex items-center gap-4">
-            <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-card bg-white/15">
-              <Flame size={28} aria-hidden />
-            </span>
+            <IconBadge tone="primary" size="lg">
+              <Flame size={26} aria-hidden />
+            </IconBadge>
             <div className="min-w-0">
-              <p className="text-3xl font-semibold leading-none">
-                {stats.workoutStreak} ngày
+              <p className="text-3xl font-extrabold leading-none text-text">
+                {stats.workoutStreak}{" "}
+                <span className="text-base font-semibold text-muted">ngày</span>
               </p>
-              <p className="mt-1.5 text-sm leading-snug opacity-90">
+              <p className="mt-1.5 text-sm leading-snug text-muted">
                 {stats.workoutStreak > 0
                   ? "Chuỗi ngày tập liên tiếp — giữ vững nhé!"
                   : "Tập hôm nay để bắt đầu chuỗi của bạn."}
               </p>
             </div>
           </div>
-        </div>
+        </Card>
         <div className="grid grid-cols-3 gap-3">
           <StatTile
             label="Tổng buổi"

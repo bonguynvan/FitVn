@@ -13,7 +13,7 @@ import {
   Weight,
 } from "lucide-react";
 
-import { PageHeader } from "@/components/nav/PageHeader";
+import { BrandHero } from "@/components/nav/BrandHero";
 import {
   Card,
   IconBadge,
@@ -147,7 +147,7 @@ export function WorkoutsScreen() {
 
   return (
     <main className="flex flex-1 flex-col gap-6 pt-safe">
-      <PageHeader
+      <BrandHero
         eyebrow="Lịch tập"
         title="Nhật ký tập luyện"
         subtitle={
@@ -160,7 +160,7 @@ export function WorkoutsScreen() {
             type="button"
             onClick={openBlank}
             aria-label="Ghi buổi tập"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-btn bg-primary text-primary-fg shadow-glow transition-transform active:scale-95"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-btn bg-white/20 text-primary-fg active:scale-95"
           >
             <Plus size={22} />
           </button>

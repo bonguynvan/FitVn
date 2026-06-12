@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Bot, Dumbbell, LineChart, Salad, User, type LucideIcon } from "lucide-react";
 
 import { getCurrentUser } from "@/lib/auth/session";
+import { BrandHero } from "@/components/nav/BrandHero";
 import { CoachNudge } from "@/components/home/CoachNudge";
 import { DailyCheckIn } from "@/components/home/DailyCheckIn";
 import { ProfileNudge } from "@/components/home/ProfileNudge";
@@ -39,26 +40,20 @@ export default async function HomePage() {
   return (
     <main className="flex flex-1 flex-col gap-6 pt-safe">
       {/* Greeting */}
-      <header className="relative overflow-hidden rounded-card bg-primary px-5 pb-7 pt-8 text-primary-fg shadow-glow">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-white/15 blur-2xl"
-        />
-        <div className="flex items-start justify-between gap-3">
-          <p className="text-xs font-semibold tracking-wide opacity-90">{todayLabel()}</p>
+      <BrandHero
+        eyebrow={todayLabel()}
+        title={`Chào ${name}!`}
+        subtitle="Sẵn sàng cho một ngày khỏe mạnh chứ?"
+        action={
           <Link
             href="/profile"
             aria-label="Hồ sơ"
-            className="-mr-1 -mt-1 inline-flex h-9 w-9 items-center justify-center rounded-btn bg-white/15 text-primary-fg transition active:scale-95"
+            className="-mr-1 -mt-1 inline-flex h-9 w-9 items-center justify-center rounded-btn bg-white/15 text-primary-fg active:scale-95"
           >
             <User size={17} aria-hidden />
           </Link>
-        </div>
-        <h1 className="mt-1 text-3xl leading-tight">Chào {name}!</h1>
-        <p className="mt-2 max-w-[32ch] text-sm leading-relaxed opacity-95">
-          Sẵn sàng cho một ngày khỏe mạnh chứ?
-        </p>
-      </header>
+        }
+      />
 
       {/* Personalize-goal nudge (hidden once a profile exists) */}
       <ProfileNudge />
