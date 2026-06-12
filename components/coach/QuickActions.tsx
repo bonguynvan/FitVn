@@ -13,8 +13,8 @@
  */
 
 import {
-  BarChart3,
   CalendarCheck,
+  Compass,
   Dumbbell,
   Timer,
   UtensilsCrossed,
@@ -44,9 +44,9 @@ const QUICK_ACTIONS: ReadonlyArray<QuickAction> = [
     prompt: 'Gợi ý món ăn cho lượng macro còn lại của tôi hôm nay.',
   },
   {
-    icon: BarChart3,
-    label: 'Nhận xét tuần tập',
-    prompt: 'Nhận xét tuần tập vừa rồi của tôi và đề xuất điều chỉnh.',
+    icon: Compass,
+    label: 'Hôm nay nên làm gì?',
+    prompt: 'Hôm nay tôi nên ưu tiên làm gì?',
   },
   {
     icon: Timer,

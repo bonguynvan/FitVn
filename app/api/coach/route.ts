@@ -115,8 +115,12 @@ export async function POST(req: Request): Promise<Response> {
 
   const context = body.context ?? EMPTY_CONTEXT;
 
-  // --- Local fallback when no model key is configured. ----------------------
-  if (!process.env.ANTHROPIC_API_KEY) {
+  // --- Local fallback when no valid model key is configured. ----------------
+  // Treat empty OR the .env.example placeholder ("sk-ant-your-...") as absent so
+  // an unfilled key doesn't break the coach.
+  const key = process.env.ANTHROPIC_API_KEY ?? '';
+  const hasValidKey = key.startsWith('sk-ant-') && !key.includes('your-');
+  if (!hasValidKey) {
     const reply = generateLocalReply(context, lastUserText(messages));
     return streamLocalReply(reply);
   }

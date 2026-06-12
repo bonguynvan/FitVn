@@ -235,6 +235,70 @@ function weeklyReview(ctx: CoachContext): string {
   return lines.join("\n");
 }
 
+/** Prioritized "what matters most today" synthesis across all signals. */
+function focusToday(ctx: CoachContext): string {
+  const h = ctx.health;
+  const t = ctx.today;
+  const ci = ctx.checkin;
+  const items: string[] = [];
+
+  const abnormal = ctx.markers?.find((m) => m.status !== "normal");
+  if (h && h.purineMg > h.purineLimitMg) {
+    items.push(
+      `Purin đã ${h.purineMg}/${h.purineLimitMg} mg — hạn chế nội tạng, hải sản, thịt đỏ, bia phần còn lại của ngày.`,
+    );
+  } else if (abnormal) {
+    items.push(
+      `${abnormal.name} đang ${abnormal.statusLabel} (${abnormal.valueText} ${abnormal.unit}) — điều chỉnh ăn uống và đi khám nếu kéo dài.`,
+    );
+  }
+  if (ci && ((ci.sleepHours != null && ci.sleepHours < 6) || (ci.energy != null && ci.energy <= 2))) {
+    items.push("Bạn thiếu ngủ/ít năng lượng — ưu tiên nghỉ ngơi, giảm cường độ tập, uống đủ nước.");
+  }
+  if (!t.hasLog) {
+    items.push("Chưa ghi bữa nào hôm nay — ghi để theo dõi calo & macro.");
+  } else if (t.remaining.proteinG != null && t.remaining.proteinG > 25) {
+    items.push(`Còn thiếu ${round(t.remaining.proteinG)}g đạm — thêm món giàu đạm (ức gà, trứng, cá…).`);
+  }
+  if (t.remaining.calories != null && t.remaining.calories < -100) {
+    items.push(`Đã vượt ${round(-t.remaining.calories)} kcal — cân đối bữa sau hoặc vận động thêm.`);
+  }
+  if (items.length === 0) {
+    items.push("Bạn đang đi đúng hướng — giữ vững thói quen hôm nay!");
+  }
+  return ["Ưu tiên hôm nay:", ...items.slice(0, 3).map((s) => `• ${s}`)].join("\n");
+}
+
+/** Goal-aware (lose fat / maintain / gain muscle) guidance. */
+function goalAdvice(ctx: CoachContext): string {
+  const goal = ctx.profile.goal;
+  const r = ctx.today.remaining.calories;
+  if (!goal) {
+    return "Bạn chưa đặt mục tiêu. Vào Hồ sơ để chọn giảm mỡ / duy trì / tăng cơ — mình sẽ tư vấn sát hơn.";
+  }
+  const lines: string[] = [];
+  if (goal === "lose_fat") {
+    lines.push(
+      "Mục tiêu giảm mỡ:",
+      "• Thâm hụt nhẹ ~300–500 kcal/ngày, đừng cắt quá sâu.",
+      "• Đủ đạm + nhiều rau/chất xơ để no lâu; hạn chế đồ chiên, đường, bia rượu.",
+    );
+  } else if (goal === "gain_muscle") {
+    lines.push(
+      "Mục tiêu tăng cơ:",
+      "• Thặng dư nhẹ ~200–300 kcal/ngày + đủ đạm (~1.6–2.2 g/kg cân nặng).",
+      "• Tập tạ đều, tăng tải từ từ; ngủ đủ 7–8 giờ để phục hồi.",
+    );
+  } else {
+    lines.push(
+      "Mục tiêu duy trì:",
+      "• Ăn quanh mức duy trì, cân đối macro; vận động đều 3–4 buổi/tuần.",
+    );
+  }
+  if (r != null) lines.push(r >= 0 ? `Hôm nay còn ${r} kcal.` : `Hôm nay đã vượt ${-r} kcal.`);
+  return lines.join("\n");
+}
+
 /** Detect intent from the user's message and craft a personalized reply. */
 export function generateLocalReply(ctx: CoachContext, userText: string): string {
   const q = userText.toLowerCase();
@@ -251,6 +315,10 @@ export function generateLocalReply(ctx: CoachContext, userText: string): string 
     body = periWorkoutAdvice();
   else if (has("nhận xét", "tuần", "tổng kết", "review", "đánh giá"))
     body = weeklyReview(ctx);
+  else if (has("giảm cân", "giảm mỡ", "tăng cân", "tăng cơ", "lên cân", "xuống cân"))
+    body = goalAdvice(ctx);
+  else if (has("nên làm gì", "ưu tiên", "lời khuyên", "khuyên", "focus", "tập trung", "hôm nay nên"))
+    body = focusToday(ctx);
   else if (has("đạm", "protein")) body = proteinAdvice(ctx);
   else if (has("nước", "water", "uống")) body = waterAdvice();
   else if (has("workout", "gym", "exercise", "buổi tập", "tập"))
@@ -259,7 +327,8 @@ export function generateLocalReply(ctx: CoachContext, userText: string): string 
     body = macroAdvice(ctx);
   else if (q.trim() === "" || has("chào", "hi", "hello", "tóm tắt", "summary", "tình hình"))
     body = summary(ctx);
-  else body = `${summary(ctx)}\n\nBạn có thể hỏi mình về: macro còn lại, gợi ý món ăn, đạm, purin/gout, nước, hoặc buổi tập.`;
+  else
+    body = `${focusToday(ctx)}\n\nBạn có thể hỏi: macro còn lại, gợi ý món ăn, đạm, gout/purin, chỉ số sức khỏe, nước, buổi tập, hay mục tiêu giảm/tăng cân.`;
 
   return body;
 }
