@@ -12,6 +12,8 @@ export interface UserProfile {
   activityLevel: ActivityLevel;
   /** When set, overrides the auto-computed targets. */
   customTargets?: DailyTargets | null;
+  /** Gout management: tightens the purine ceiling and flags high-purine foods. */
+  goutMode?: boolean;
 }
 
 export interface DailyTargets {

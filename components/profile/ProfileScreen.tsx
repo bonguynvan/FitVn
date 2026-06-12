@@ -256,6 +256,33 @@ export function ProfileScreen() {
           )}
         </Field>
 
+        <Field label="Sức khỏe">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={form.goutMode ?? false}
+            onClick={() => set("goutMode", !form.goutMode)}
+            className="flex items-center justify-between rounded-btn border border-border bg-surface px-4 py-3 text-left"
+          >
+            <span className="flex flex-col">
+              <span className="text-sm font-medium text-text">Chế độ gout</span>
+              <span className="text-[11px] leading-tight text-muted">
+                Siết giới hạn purin còn 200mg và cảnh báo món nhiều purin
+              </span>
+            </span>
+            <span
+              className={`relative ml-2 inline-block h-6 w-10 shrink-0 rounded-pill transition-colors ${
+                form.goutMode ? "bg-primary" : "bg-surface-raised"
+              }`}
+            >
+              <span
+                className="absolute top-0.5 h-5 w-5 rounded-pill bg-surface shadow-card transition-all"
+                style={{ left: form.goutMode ? "1.125rem" : "0.125rem" }}
+              />
+            </span>
+          </button>
+        </Field>
+
         <button
           type="button"
           onClick={onSave}

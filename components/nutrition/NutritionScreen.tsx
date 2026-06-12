@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import {
+  AlertTriangle,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -25,8 +26,9 @@ import { addCustomFood, useAllFoods, useRecentFoods } from "@/lib/store/food-sto
 import {
   CALCIUM_TARGET_MG,
   FIBER_TARGET_G,
+  HIGH_PURINE_PER_100G,
   IRON_TARGET_MG,
-  PURINE_LIMIT_MG,
+  purineLimit,
   SODIUM_LIMIT_MG,
 } from "@/lib/config/targets";
 import { useDailyTargets, useProfile } from "@/lib/store/profile-store";
@@ -57,6 +59,10 @@ const MEAL_ICON: Record<MealType, LucideIcon> = {
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 const fmt = (n: number) => Math.round(n).toLocaleString("vi-VN");
+
+/** A food rich enough in purine to warn gout users about (per 100 g edible). */
+const isHighPurine = (food: FoodItem) =>
+  (food.per100g.purineMg ?? 0) >= HIGH_PURINE_PER_100G;
 
 function defaultMealByHour(): MealType {
   const h = new Date().getHours();
@@ -102,6 +108,8 @@ export function NutritionScreen() {
   const [editing, setEditing] = useState<LoggedFood | null>(null);
 
   const ironTarget = IRON_TARGET_MG[profile?.sex ?? "male"];
+  const goutMode = profile?.goutMode ?? false;
+  const purineCeiling = purineLimit(goutMode);
 
   const totals = useMemo(
     () =>
@@ -152,11 +160,11 @@ export function NutritionScreen() {
       tone: totals.iron >= ironTarget ? "success" : "primary",
     },
     {
-      label: "Purin (gout)",
+      label: goutMode ? "Purin (chế độ gout)" : "Purin (gout)",
       value: fmt(totals.purine),
-      limit: `/ ${fmt(PURINE_LIMIT_MG)} mg`,
-      ratio: Math.min(totals.purine / PURINE_LIMIT_MG, 1),
-      tone: totals.purine > PURINE_LIMIT_MG ? "danger" : "primary",
+      limit: `/ ${fmt(purineCeiling)} mg`,
+      ratio: Math.min(totals.purine / purineCeiling, 1),
+      tone: totals.purine > purineCeiling ? "danger" : "primary",
     },
   ];
 
@@ -380,6 +388,7 @@ export function NutritionScreen() {
 
       <Sheet open={adding} onClose={() => setAdding(false)} title="Ghi bữa ăn">
         <AddFoodForm
+          goutMode={goutMode}
           onAdd={(food) => {
             addFood(dateIso, food);
             setAdding(false);
@@ -483,7 +492,13 @@ function MealGroup({
   );
 }
 
-function AddFoodForm({ onAdd }: { onAdd: (food: Omit<LoggedFood, "id">) => void }) {
+function AddFoodForm({
+  onAdd,
+  goutMode,
+}: {
+  onAdd: (food: Omit<LoggedFood, "id">) => void;
+  goutMode: boolean;
+}) {
   const allFoods = useAllFoods();
   const recentFoods = useRecentFoods();
   const [mealType, setMealType] = useState<MealType>(defaultMealByHour());
@@ -606,7 +621,14 @@ function AddFoodForm({ onAdd }: { onAdd: (food: Omit<LoggedFood, "id">) => void 
                 }`}
               >
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-medium text-text">{f.name}</span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="truncate text-sm font-medium text-text">{f.name}</span>
+                    {goutMode && isHighPurine(f) ? (
+                      <span className="inline-flex shrink-0 items-center gap-0.5 rounded-pill bg-danger/10 px-1.5 py-0.5 text-[10px] font-semibold text-danger">
+                        <AlertTriangle size={10} /> purin cao
+                      </span>
+                    ) : null}
+                  </span>
                   <span className="block truncate text-[11px] text-muted">{f.nameEn}</span>
                 </span>
                 <span className="shrink-0 text-xs text-muted">
@@ -733,6 +755,19 @@ function AddFoodForm({ onAdd }: { onAdd: (food: Omit<LoggedFood, "id">) => void 
               {fmtNum(preview.carbs)}g · Béo {fmtNum(preview.fat)}g
               {preview.fiber != null ? ` · Xơ ${fmtNum(preview.fiber)}g` : ""}
             </p>
+          ) : null}
+
+          {goutMode && selected && isHighPurine(selected) ? (
+            <div className="flex items-start gap-2 rounded-btn bg-danger/10 px-3 py-2 text-danger">
+              <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+              <span className="text-xs leading-snug">
+                Món nhiều purin
+                {preview?.purineMg != null
+                  ? ` (${fmt(preview.purineMg)} mg cho phần này)`
+                  : ""}
+                . Cân nhắc hạn chế khi đang kiểm soát gout.
+              </span>
+            </div>
           ) : null}
         </div>
       ) : null}
