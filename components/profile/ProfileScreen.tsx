@@ -16,6 +16,12 @@ import {
 } from "@/lib/fitness/targets";
 import { getProfile, saveProfile } from "@/lib/store/profile-store";
 import { DataSection } from "@/components/profile/DataSection";
+import {
+  CONDITION_ORDER,
+  CONDITIONS,
+  hasCondition,
+  type ConditionKey,
+} from "@/lib/health/conditions";
 
 const DEFAULTS: UserProfile = {
   name: "",
@@ -54,7 +60,12 @@ export function ProfileScreen() {
   useEffect(() => {
     const stored = getProfile();
     const base = stored ?? DEFAULTS;
-    if (stored) setForm({ ...DEFAULTS, ...stored });
+    if (stored) {
+      // Migrate legacy goutMode → conditions.
+      const conditions =
+        stored.conditions ?? (stored.goutMode ? (["gout"] as ConditionKey[]) : []);
+      setForm({ ...DEFAULTS, ...stored, conditions });
+    }
     if (stored?.customTargets) {
       setManual(true);
       setCustom(toStrings(stored.customTargets));
@@ -70,6 +81,15 @@ export function ProfileScreen() {
 
   function setCustomField(key: keyof typeof custom, value: string) {
     setCustom((c) => ({ ...c, [key]: value }));
+    setSaved(false);
+  }
+
+  function toggleCondition(key: ConditionKey) {
+    setForm((f) => {
+      const cur = f.conditions ?? [];
+      const next = cur.includes(key) ? cur.filter((k) => k !== key) : [...cur, key];
+      return { ...f, conditions: next, goutMode: next.includes("gout") };
+    });
     setSaved(false);
   }
 
@@ -92,9 +112,12 @@ export function ProfileScreen() {
   }
 
   function onSave() {
+    const conditions = form.conditions ?? [];
     saveProfile({
       ...form,
       name: form.name.trim(),
+      conditions,
+      goutMode: conditions.includes("gout"),
       customTargets: manual ? customTargets : null,
     });
     setSaved(true);
@@ -256,31 +279,40 @@ export function ProfileScreen() {
           )}
         </Field>
 
-        <Field label="Sức khỏe">
-          <button
-            type="button"
-            role="switch"
-            aria-checked={form.goutMode ?? false}
-            onClick={() => set("goutMode", !form.goutMode)}
-            className="flex items-center justify-between rounded-btn border border-border bg-surface px-4 py-3 text-left"
-          >
-            <span className="flex flex-col">
-              <span className="text-sm font-medium text-text">Chế độ gout</span>
-              <span className="text-[11px] leading-tight text-muted">
-                Siết giới hạn purin còn 200mg và cảnh báo món nhiều purin
-              </span>
-            </span>
-            <span
-              className={`relative ml-2 inline-block h-6 w-10 shrink-0 rounded-pill transition-colors ${
-                form.goutMode ? "bg-primary" : "bg-surface-raised"
-              }`}
-            >
-              <span
-                className="absolute top-0.5 h-5 w-5 rounded-pill bg-surface shadow-card transition-all"
-                style={{ left: form.goutMode ? "1.125rem" : "0.125rem" }}
-              />
-            </span>
-          </button>
+        <Field label="Tình trạng sức khỏe">
+          <div className="flex flex-col gap-2">
+            {CONDITION_ORDER.map((key) => {
+              const def = CONDITIONS[key];
+              const on = hasCondition(form.conditions, key);
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  role="switch"
+                  aria-checked={on}
+                  onClick={() => toggleCondition(key)}
+                  className={`flex items-center justify-between rounded-btn border px-4 py-3 text-left transition-colors ${
+                    on ? "border-primary bg-primary/10" : "border-border bg-surface"
+                  }`}
+                >
+                  <span className="flex flex-col">
+                    <span className="text-sm font-medium text-text">{def.label}</span>
+                    <span className="text-[11px] leading-tight text-muted">{def.hint}</span>
+                  </span>
+                  <span
+                    className={`relative ml-2 inline-block h-6 w-10 shrink-0 rounded-pill transition-colors ${
+                      on ? "bg-primary" : "bg-surface-raised"
+                    }`}
+                  >
+                    <span
+                      className="absolute top-0.5 h-5 w-5 rounded-pill bg-surface shadow-card transition-all"
+                      style={{ left: on ? "1.125rem" : "0.125rem" }}
+                    />
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </Field>
 
         <button

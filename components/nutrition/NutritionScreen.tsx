@@ -32,8 +32,8 @@ import {
   HIGH_PURINE_PER_100G,
   IRON_TARGET_MG,
   purineLimit,
-  SODIUM_LIMIT_MG,
 } from "@/lib/config/targets";
+import { sodiumLimitFor } from "@/lib/health/conditions";
 import { useDailyTargets, useProfile } from "@/lib/store/profile-store";
 import { setWaterGoal, useWaterGoal } from "@/lib/store/preferences-store";
 import { addDaysIso, longDateVi, shortDateVi, todayIso } from "@/lib/date";
@@ -86,6 +86,7 @@ export function NutritionScreen() {
   const ironTarget = IRON_TARGET_MG[profile?.sex ?? "male"];
   const goutMode = profile?.goutMode ?? false;
   const purineCeiling = purineLimit(goutMode);
+  const sodiumLimit = sodiumLimitFor(profile?.conditions);
 
   const totals = useMemo(
     () =>
@@ -117,9 +118,9 @@ export function NutritionScreen() {
     {
       label: "Natri",
       value: fmt(totals.sodium),
-      limit: `/ ${fmt(SODIUM_LIMIT_MG)} mg`,
-      ratio: Math.min(totals.sodium / SODIUM_LIMIT_MG, 1),
-      tone: totals.sodium > SODIUM_LIMIT_MG ? "danger" : "primary",
+      limit: `/ ${fmt(sodiumLimit)} mg`,
+      ratio: Math.min(totals.sodium / sodiumLimit, 1),
+      tone: totals.sodium > sodiumLimit ? "danger" : "primary",
     },
     {
       label: "Canxi",

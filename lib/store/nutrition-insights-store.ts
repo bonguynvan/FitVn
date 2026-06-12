@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 
 import { todayIso } from "@/lib/date";
-import { SODIUM_LIMIT_MG } from "@/lib/config/targets";
+import { sodiumLimitFor } from "@/lib/health/conditions";
 import {
   computeWeeklyNutrition,
   type WeeklyNutrition,
@@ -24,9 +24,9 @@ export function useWeeklyNutrition(): WeeklyNutrition {
         today,
         nutritionByDay,
         proteinTargetG: targets.proteinG ?? null,
-        sodiumLimitMg: SODIUM_LIMIT_MG,
+        sodiumLimitMg: sodiumLimitFor(profile?.conditions),
         goutMode: profile?.goutMode ?? false,
       }),
-    [today, nutritionByDay, targets.proteinG, profile?.goutMode],
+    [today, nutritionByDay, targets.proteinG, profile?.goutMode, profile?.conditions],
   );
 }

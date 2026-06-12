@@ -61,6 +61,9 @@ function summary(ctx: CoachContext): string {
   } else {
     lines.push("• Bạn chưa đặt mục tiêu calo — vào Hồ sơ để thiết lập nhé.");
   }
+  if (ctx.conditions && ctx.conditions.length > 0) {
+    lines.push(`• Lưu ý sức khỏe: ${ctx.conditions.join(" · ")}`);
+  }
   const ci = ctx.checkin;
   if (ci && ((ci.sleepHours != null && ci.sleepHours < 6) || (ci.energy != null && ci.energy <= 2))) {
     lines.push(

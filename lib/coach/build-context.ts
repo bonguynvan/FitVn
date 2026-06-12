@@ -16,8 +16,8 @@ import {
   FIBER_TARGET_G,
   IRON_TARGET_MG,
   purineLimit,
-  SODIUM_LIMIT_MG,
 } from "@/lib/config/targets";
+import { conditionFocuses, sodiumLimitFor } from "@/lib/health/conditions";
 import { computeWeeklyNutrition } from "@/lib/fitness/nutrition-insights";
 import { computeWeeklyWorkouts } from "@/lib/fitness/workout-insights";
 import { MARKERS, MARKER_ORDER } from "@/lib/health/markers";
@@ -145,7 +145,7 @@ export function buildLocalCoachContext(): CoachContext {
     today,
     nutritionByDay: history,
     proteinTargetG: targets.proteinG,
-    sodiumLimitMg: SODIUM_LIMIT_MG,
+    sodiumLimitMg: sodiumLimitFor(profile?.conditions),
     goutMode,
   });
   const ww = computeWeeklyWorkouts(today, workouts);
@@ -195,7 +195,7 @@ export function buildLocalCoachContext(): CoachContext {
       fiberG: optSum("fiber"),
       fiberTargetG: FIBER_TARGET_G,
       sodiumMg: optSum("sodiumMg"),
-      sodiumLimitMg: SODIUM_LIMIT_MG,
+      sodiumLimitMg: sodiumLimitFor(profile?.conditions),
       calciumMg: optSum("calciumMg"),
       calciumTargetMg: CALCIUM_TARGET_MG,
       ironMg: optSum("ironMg"),
@@ -218,6 +218,7 @@ export function buildLocalCoachContext(): CoachContext {
     },
     markers,
     goutMode,
+    conditions: conditionFocuses(profile?.conditions),
     checkin:
       readLocal<Record<string, { mood: number | null; energy: number | null; sleepHours: number | null }>>(
         CHECKIN_KEY,

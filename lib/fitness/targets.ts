@@ -1,5 +1,6 @@
 import type { ActivityLevel, GoalType, SexType } from "@/types/database.types";
 import { DAILY_TARGETS } from "@/lib/config/targets";
+import type { ConditionKey } from "@/lib/health/conditions";
 
 /** Personal profile used to compute daily nutrition targets. */
 export interface UserProfile {
@@ -12,8 +13,11 @@ export interface UserProfile {
   activityLevel: ActivityLevel;
   /** When set, overrides the auto-computed targets. */
   customTargets?: DailyTargets | null;
-  /** Gout management: tightens the purine ceiling and flags high-purine foods. */
+  /** Gout management: tightens the purine ceiling and flags high-purine foods.
+   *  Kept in sync with `conditions` containing "gout" for backward compat. */
   goutMode?: boolean;
+  /** Opt-in health conditions that re-tune limits + advice (see lib/health/conditions). */
+  conditions?: ConditionKey[];
 }
 
 export interface DailyTargets {

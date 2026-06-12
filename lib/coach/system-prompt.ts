@@ -217,6 +217,9 @@ export function buildSystemPrompt(ctx: CoachContext): string {
   const dataBlock = [
     '=== DỮ LIỆU NGƯỜI DÙNG (dùng để trả lời, không lặp lại nguyên văn) ===',
     renderProfile(ctx.profile),
+    ...(ctx.conditions && ctx.conditions.length > 0
+      ? ['', `TÌNH TRẠNG SỨC KHOẺ (ưu tiên khi tư vấn):\n${ctx.conditions.map((c) => `- ${c}`).join('\n')}`]
+      : []),
     '',
     renderToday(ctx.today),
     ...(health ? ['', health] : []),

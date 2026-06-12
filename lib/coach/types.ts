@@ -178,6 +178,8 @@ export interface CoachContext {
   readonly markers?: readonly CoachMarker[];
   /** Whether the user has gout mode on (for marker-aware advice). */
   readonly goutMode?: boolean;
+  /** Active health-condition focus lines (e.g. "Huyết áp cao: ăn nhạt…"). */
+  readonly conditions?: readonly string[];
   /** Today's wellbeing check-in (optional; client-built). */
   readonly checkin?: {
     readonly mood: number | null;
