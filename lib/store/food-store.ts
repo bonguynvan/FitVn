@@ -1,69 +1,57 @@
 "use client";
 
-import { SEED_FOODS, type SeedFood } from "@/lib/data/foods-seed";
 import { newId, updateLocal, useLocalValue } from "./local-store";
+import { FOODS, type FoodItem } from "@/lib/data/foods-db";
 import type { LoggedFood } from "./types";
 
-const CUSTOM_FOODS_KEY = "fitvn:custom-foods:v1";
-const FOODS_KEY = "fitvn:nutrition:v1";
+const CUSTOM_KEY = "fitvn:custom-foods:v2";
+const NUTRITION_KEY = "fitvn:nutrition:v1";
 
 type DayFoods = Record<string, LoggedFood[]>;
 
-/** Reactive list of user-created custom foods. */
-export function useCustomFoods(): SeedFood[] {
-  return useLocalValue<SeedFood[]>(CUSTOM_FOODS_KEY, []);
+/** Reactive list of user-created foods (FCT FoodItem shape). */
+export function useCustomFoods(): FoodItem[] {
+  return useLocalValue<FoodItem[]>(CUSTOM_KEY, []);
 }
 
-/** Create a custom food and return the persisted record (with generated id). */
-export function addCustomFood(food: Omit<SeedFood, "id">): SeedFood {
-  const created: SeedFood = { ...food, id: newId() };
-  updateLocal<SeedFood[]>(CUSTOM_FOODS_KEY, [], (list) => [created, ...list]);
+export function addCustomFood(food: Omit<FoodItem, "id" | "custom">): FoodItem {
+  const created: FoodItem = { ...food, id: `custom-${newId()}`, custom: true };
+  updateLocal<FoodItem[]>(CUSTOM_KEY, [], (list) => [created, ...list]);
   return created;
 }
 
 export function removeCustomFood(id: string): void {
-  updateLocal<SeedFood[]>(CUSTOM_FOODS_KEY, [], (list) =>
+  updateLocal<FoodItem[]>(CUSTOM_KEY, [], (list) =>
     list.filter((f) => f.id !== id),
   );
 }
 
-/** Combined picker list: custom foods first, then the built-in seeds. */
-export function useAllFoods(): SeedFood[] {
+/** Custom foods first, then the built-in FCT database. */
+export function useAllFoods(): FoodItem[] {
   const custom = useCustomFoods();
-  return [...custom, ...SEED_FOODS];
+  return [...custom, ...FOODS];
 }
 
-/**
- * Recently logged foods for one-tap re-selection.
- *
- * Ordering: walk day keys newest-first; within a day walk entries in reverse
- * (last-logged first), so the result is strictly most-recent-first. Dedupe by
- * `foodId` (null = ad-hoc, skipped), resolve each id against the combined
- * custom+seed list, drop anything unresolved, and cap at `limit`.
- */
-export function useRecentFoods(limit = 6): SeedFood[] {
-  const custom = useCustomFoods();
-  const dayMap = useLocalValue<DayFoods>(FOODS_KEY, {});
+/** Recently-logged foods (most recent first), resolved to FoodItem. */
+export function useRecentFoods(limit = 6): FoodItem[] {
+  const all = useAllFoods();
+  const history = useLocalValue<DayFoods>(NUTRITION_KEY, {});
 
-  const byId = new Map<string, SeedFood>();
-  for (const f of custom) byId.set(f.id, f);
-  for (const f of SEED_FOODS) if (!byId.has(f.id)) byId.set(f.id, f);
-
-  const dates = Object.keys(dayMap).sort((a, b) => (a < b ? 1 : a > b ? -1 : 0));
-
+  const byId = new Map(all.map((f) => [f.id, f]));
   const seen = new Set<string>();
-  const result: SeedFood[] = [];
+  const recent: FoodItem[] = [];
+
+  const dates = Object.keys(history).sort((a, b) => b.localeCompare(a));
   for (const date of dates) {
-    const entries = dayMap[date] ?? [];
-    for (let i = entries.length - 1; i >= 0; i -= 1) {
-      const foodId = entries[i].foodId;
-      if (!foodId || seen.has(foodId)) continue;
-      const resolved = byId.get(foodId);
-      if (!resolved) continue;
-      seen.add(foodId);
-      result.push(resolved);
-      if (result.length >= limit) return result;
+    const items = history[date] ?? [];
+    for (let i = items.length - 1; i >= 0; i -= 1) {
+      const fid = items[i].foodId;
+      if (!fid || seen.has(fid)) continue;
+      seen.add(fid);
+      const food = byId.get(fid);
+      if (food) recent.push(food);
+      if (recent.length >= limit) return recent;
     }
   }
-  return result;
+  return recent;
 }

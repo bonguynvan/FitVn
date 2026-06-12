@@ -11,10 +11,19 @@ export interface LoggedFood {
   mealType: MealType;
   quantity: number;
   unit: string;
+  /** Edible grams logged (source of truth for nutrient scaling). Optional for
+   *  legacy entries created before the FCT model. */
+  grams?: number;
   calories: number;
   protein: number;
   carbs: number;
   fat: number;
+  /** Micronutrients (absolute for this entry); null = unknown, undefined = legacy. */
+  fiber?: number | null;
+  sodiumMg?: number | null;
+  calciumMg?: number | null;
+  ironMg?: number | null;
+  purineMg?: number | null;
 }
 
 export interface LoggedSet {

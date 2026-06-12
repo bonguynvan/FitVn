@@ -20,8 +20,9 @@ import {
 
 import { PageHeader } from "@/components/nav/PageHeader";
 import { Card, IconBadge, Pill, ProgressRing, SectionHeader, Sheet } from "@/components/ui";
-import { type SeedFood } from "@/lib/data/foods-seed";
+import type { FoodItem } from "@/lib/data/foods-db";
 import { addCustomFood, useAllFoods, useRecentFoods } from "@/lib/store/food-store";
+import { FIBER_TARGET_G, SODIUM_LIMIT_MG } from "@/lib/config/targets";
 import { useDailyTargets } from "@/lib/store/profile-store";
 import { setWaterGoal, useWaterGoal } from "@/lib/store/preferences-store";
 import { addDaysIso, longDateVi, shortDateVi, todayIso } from "@/lib/date";
@@ -59,6 +60,24 @@ function defaultMealByHour(): MealType {
   return "snack";
 }
 
+/** Nutrients of a food scaled to `edibleGrams` (per 100 g × g/100). null stays null. */
+function scaleFood(food: FoodItem, edibleGrams: number) {
+  const k = edibleGrams / 100;
+  const p = food.per100g;
+  const opt = (v: number | null) => (v == null ? null : round1(v * k));
+  return {
+    calories: Math.round(p.calories * k),
+    protein: round1(p.protein * k),
+    carbs: round1(p.carbs * k),
+    fat: round1(p.fat * k),
+    fiber: opt(p.fiber),
+    sodiumMg: opt(p.sodiumMg),
+    calciumMg: opt(p.calciumMg),
+    ironMg: opt(p.ironMg),
+    purineMg: opt(p.purineMg),
+  };
+}
+
 export function NutritionScreen() {
   const today = todayIso();
   const [dateIso, setDateIso] = useState(today);
@@ -83,8 +102,10 @@ export function NutritionScreen() {
           protein: a.protein + f.protein,
           carbs: a.carbs + f.carbs,
           fat: a.fat + f.fat,
+          fiber: a.fiber + (f.fiber ?? 0),
+          sodium: a.sodium + (f.sodiumMg ?? 0),
         }),
-        { cal: 0, protein: 0, carbs: 0, fat: 0 },
+        { cal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sodium: 0 },
       ),
     [foods],
   );
@@ -100,11 +121,11 @@ export function NutritionScreen() {
     <main className="flex flex-1 flex-col gap-6 pt-safe">
       <PageHeader
         eyebrow="Dinh dưỡng"
-        title="Hôm nay ăn gì"
+        title="Nhật ký ăn uống"
         subtitle={
           foods.length > 0
             ? `Còn lại ${fmt(remaining)} kcal`
-            : "Ghi món để theo dõi calo và macro"
+            : "Ghi món để theo dõi calo, macro và vi chất"
         }
         action={
           <button
@@ -205,6 +226,24 @@ export function NutritionScreen() {
               </div>
             );
           })}
+        </div>
+
+        {/* Health checks: fiber + sodium */}
+        <div className="grid grid-cols-2 gap-4 border-t border-border pt-4">
+          <HealthStat
+            label="Chất xơ"
+            value={fmtNum(totals.fiber)}
+            limit={`/ ${FIBER_TARGET_G} g`}
+            ratio={Math.min(totals.fiber / FIBER_TARGET_G, 1)}
+            tone={totals.fiber >= FIBER_TARGET_G ? "success" : "primary"}
+          />
+          <HealthStat
+            label="Natri"
+            value={fmt(totals.sodium)}
+            limit={`/ ${fmt(SODIUM_LIMIT_MG)} mg`}
+            ratio={Math.min(totals.sodium / SODIUM_LIMIT_MG, 1)}
+            tone={totals.sodium > SODIUM_LIMIT_MG ? "danger" : "primary"}
+          />
         </div>
       </Card>
 
@@ -321,6 +360,35 @@ export function NutritionScreen() {
   );
 }
 
+function HealthStat({
+  label,
+  value,
+  limit,
+  ratio,
+  tone,
+}: {
+  label: string;
+  value: string;
+  limit: string;
+  ratio: number;
+  tone: "primary" | "success" | "danger";
+}) {
+  const barColor =
+    tone === "success" ? "bg-success" : tone === "danger" ? "bg-danger" : "bg-primary";
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-xs font-medium text-muted">{label}</span>
+      <p className="text-sm">
+        <span className="font-semibold text-text">{value}</span>
+        <span className="text-muted"> {limit}</span>
+      </p>
+      <div className="h-2 overflow-hidden rounded-pill bg-surface-raised">
+        <div className={`h-full rounded-pill ${barColor}`} style={{ width: `${ratio * 100}%` }} />
+      </div>
+    </div>
+  );
+}
+
 function MealGroup({
   mealType,
   items,
@@ -376,146 +444,59 @@ function MealGroup({
   );
 }
 
-function EditFoodForm({
-  food,
-  onSave,
-}: {
-  food: LoggedFood;
-  onSave: (
-    patch: Pick<
-      LoggedFood,
-      "mealType" | "quantity" | "calories" | "protein" | "carbs" | "fat"
-    >,
-  ) => void;
-}) {
-  const [mealType, setMealType] = useState<MealType>(food.mealType);
-  const [qty, setQty] = useState(food.quantity > 0 ? food.quantity : 1);
-
-  const base = food.quantity > 0 ? food.quantity : 1;
-  const preview = {
-    calories: Math.round((food.calories / base) * qty),
-    protein: round1((food.protein / base) * qty),
-    carbs: round1((food.carbs / base) * qty),
-    fat: round1((food.fat / base) * qty),
-  };
-
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="rounded-card bg-surface-raised p-3">
-        <p className="text-sm font-semibold text-text">{food.name}</p>
-        <p className="text-xs text-muted">Đơn vị: {food.unit}</p>
-      </div>
-
-      <div className="grid grid-cols-4 gap-1.5">
-        {MEAL_TYPES.map((m) => (
-          <button
-            key={m}
-            type="button"
-            onClick={() => setMealType(m)}
-            className={`rounded-btn py-2 text-xs font-semibold transition-colors ${
-              mealType === m
-                ? "bg-primary text-primary-fg"
-                : "bg-surface-raised text-muted"
-            }`}
-          >
-            {MEAL_LABEL_VI[m]}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex flex-col gap-3 rounded-card bg-surface-raised p-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold text-text">
-            Số lượng ({food.unit})
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              aria-label="Giảm"
-              onClick={() => setQty((q) => Math.max(0.5, round1(q - 0.5)))}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
-            >
-              <Minus size={16} />
-            </button>
-            <span className="w-10 text-center text-base font-semibold text-text">
-              {fmtNum(qty)}
-            </span>
-            <button
-              type="button"
-              aria-label="Tăng"
-              onClick={() => setQty((q) => round1(q + 0.5))}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
-            >
-              <Plus size={16} />
-            </button>
-          </div>
-        </div>
-        <p className="text-xs text-muted">
-          {fmt(preview.calories)} kcal · Đạm {fmtNum(preview.protein)}g · Tinh bột{" "}
-          {fmtNum(preview.carbs)}g · Béo {fmtNum(preview.fat)}g
-        </p>
-      </div>
-
-      <button
-        type="button"
-        onClick={() =>
-          onSave({
-            mealType,
-            quantity: qty,
-            calories: preview.calories,
-            protein: preview.protein,
-            carbs: preview.carbs,
-            fat: preview.fat,
-          })
-        }
-        className="inline-flex h-12 items-center justify-center rounded-btn bg-primary text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-[0.98]"
-      >
-        Lưu thay đổi
-      </button>
-    </div>
-  );
-}
-
 function AddFoodForm({ onAdd }: { onAdd: (food: Omit<LoggedFood, "id">) => void }) {
   const allFoods = useAllFoods();
   const recentFoods = useRecentFoods();
   const [mealType, setMealType] = useState<MealType>(defaultMealByHour());
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<SeedFood | null>(null);
+  const [selected, setSelected] = useState<FoodItem | null>(null);
+  const [mode, setMode] = useState<"serving" | "gram">("serving");
   const [qty, setQty] = useState(1);
+  const [grams, setGrams] = useState("100");
+  const [fresh, setFresh] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return (q ? allFoods.filter((f) => f.name.toLowerCase().includes(q)) : allFoods).slice(0, 8);
+    const list = q
+      ? allFoods.filter(
+          (f) =>
+            f.name.toLowerCase().includes(q) ||
+            f.nameEn.toLowerCase().includes(q),
+        )
+      : allFoods;
+    return list.slice(0, 8);
   }, [query, allFoods]);
 
-  function pickFood(food: SeedFood) {
+  function pickFood(food: FoodItem) {
     setSelected(food);
     setQuery("");
+    setMode("serving");
+    setQty(1);
+    setGrams(String(food.serving.grams));
+    setFresh(false);
   }
 
-  const preview = selected
-    ? {
-        calories: Math.round(selected.calories * qty),
-        protein: round1(selected.protein * qty),
-        carbs: round1(selected.carbs * qty),
-        fat: round1(selected.fat * qty),
-      }
-    : null;
+  const gramsNum = Number.parseFloat(grams) || 0;
+  const edibleGrams = selected
+    ? mode === "serving"
+      ? qty * selected.serving.grams
+      : fresh
+        ? gramsNum * (1 - selected.refusePct / 100)
+        : gramsNum
+    : 0;
+  const preview = selected ? scaleFood(selected, edibleGrams) : null;
 
   function submit() {
-    if (!selected) return;
+    if (!selected || !preview || edibleGrams <= 0) return;
     onAdd({
       foodId: selected.id,
       name: selected.name,
       mealType,
-      quantity: qty,
-      unit: selected.unit,
-      calories: Math.round(selected.calories * qty),
-      protein: round1(selected.protein * qty),
-      carbs: round1(selected.carbs * qty),
-      fat: round1(selected.fat * qty),
+      quantity: mode === "serving" ? qty : gramsNum,
+      unit: mode === "serving" ? selected.serving.unit : "g",
+      grams: round1(edibleGrams),
+      ...preview,
     });
   }
 
@@ -529,9 +510,7 @@ function AddFoodForm({ onAdd }: { onAdd: (food: Omit<LoggedFood, "id">) => void 
             type="button"
             onClick={() => setMealType(m)}
             className={`rounded-btn py-2 text-xs font-semibold transition-colors ${
-              mealType === m
-                ? "bg-primary text-primary-fg"
-                : "bg-surface-raised text-muted"
+              mealType === m ? "bg-primary text-primary-fg" : "bg-surface-raised text-muted"
             }`}
           >
             {MEAL_LABEL_VI[m]}
@@ -570,26 +549,29 @@ function AddFoodForm({ onAdd }: { onAdd: (food: Omit<LoggedFood, "id">) => void 
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Tìm món ăn…"
+        placeholder="Tìm món ăn (VN / EN)…"
         className="w-full rounded-btn border border-border bg-surface px-4 py-3 text-base text-text outline-none placeholder:text-muted focus:border-primary"
       />
 
       {/* Food list */}
-      <ul className="flex max-h-52 flex-col gap-1 overflow-y-auto">
+      <ul className="flex max-h-48 flex-col gap-1 overflow-y-auto">
         {matches.map((f) => {
           const active = selected?.id === f.id;
           return (
             <li key={f.id}>
               <button
                 type="button"
-                onClick={() => setSelected(f)}
+                onClick={() => pickFood(f)}
                 className={`flex w-full items-center justify-between gap-3 rounded-btn border px-3 py-2.5 text-left transition-colors ${
                   active ? "border-primary bg-primary/10" : "border-border bg-surface hover:border-primary/40"
                 }`}
               >
-                <span className="text-sm font-medium text-text">{f.name}</span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-medium text-text">{f.name}</span>
+                  <span className="block truncate text-[11px] text-muted">{f.nameEn}</span>
+                </span>
                 <span className="shrink-0 text-xs text-muted">
-                  {f.calories} kcal/{f.unit}
+                  {f.per100g.calories} kcal/100g
                 </span>
               </button>
             </li>
@@ -620,39 +602,97 @@ function AddFoodForm({ onAdd }: { onAdd: (food: Omit<LoggedFood, "id">) => void 
         </button>
       )}
 
-      {/* Quantity + preview + submit */}
+      {/* Portion + preview + submit */}
       {selected ? (
         <div className="flex flex-col gap-3 rounded-card bg-surface-raised p-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-text">
-              Số lượng ({selected.unit})
-            </span>
-            <div className="flex items-center gap-2">
+          {/* Portion mode */}
+          <div className="grid grid-cols-2 gap-1 rounded-btn bg-surface p-1">
+            {(["serving", "gram"] as const).map((m) => (
               <button
+                key={m}
                 type="button"
-                aria-label="Giảm"
-                onClick={() => setQty((q) => Math.max(0.5, round1(q - 0.5)))}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
+                onClick={() => setMode(m)}
+                className={`rounded-[0.5rem] py-1.5 text-xs font-semibold transition-colors ${
+                  mode === m ? "bg-primary text-primary-fg" : "text-muted"
+                }`}
               >
-                <Minus size={16} />
+                {m === "serving" ? `Theo ${selected.serving.unit}` : "Theo gram"}
               </button>
-              <span className="w-10 text-center text-base font-semibold text-text">
-                {fmtNum(qty)}
-              </span>
-              <button
-                type="button"
-                aria-label="Tăng"
-                onClick={() => setQty((q) => round1(q + 0.5))}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
-              >
-                <Plus size={16} />
-              </button>
-            </div>
+            ))}
           </div>
+
+          {mode === "serving" ? (
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-text">
+                Số lượng ({selected.serving.unit})
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  aria-label="Giảm"
+                  onClick={() => setQty((q) => Math.max(0.5, round1(q - 0.5)))}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
+                >
+                  <Minus size={16} />
+                </button>
+                <span className="w-10 text-center text-base font-semibold text-text">
+                  {fmtNum(qty)}
+                </span>
+                <button
+                  type="button"
+                  aria-label="Tăng"
+                  onClick={() => setQty((q) => round1(q + 0.5))}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <label className="flex items-center justify-between gap-3">
+                <span className="text-sm font-semibold text-text">Khối lượng (g)</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  value={grams}
+                  onChange={(e) => setGrams(e.target.value)}
+                  aria-label="Khối lượng gram"
+                  className="w-24 rounded-btn border border-border bg-surface px-3 py-2 text-center text-base font-semibold text-text outline-none focus:border-primary"
+                />
+              </label>
+              {selected.refusePct > 0 ? (
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={fresh}
+                  onClick={() => setFresh((v) => !v)}
+                  className="flex items-center justify-between text-left"
+                >
+                  <span className="text-xs leading-snug text-muted">
+                    Khối lượng tươi (cả phần bỏ {selected.refusePct}%)
+                  </span>
+                  <span
+                    className={`relative ml-2 inline-block h-5 w-9 shrink-0 rounded-pill transition-colors ${
+                      fresh ? "bg-primary" : "bg-surface"
+                    }`}
+                  >
+                    <span
+                      className="absolute top-0.5 h-4 w-4 rounded-pill bg-surface-raised shadow-card transition-all"
+                      style={{ left: fresh ? "1.125rem" : "0.125rem" }}
+                    />
+                  </span>
+                </button>
+              ) : null}
+            </div>
+          )}
+
           {preview ? (
             <p className="text-xs text-muted">
               {fmt(preview.calories)} kcal · Đạm {fmtNum(preview.protein)}g · Tinh bột{" "}
               {fmtNum(preview.carbs)}g · Béo {fmtNum(preview.fat)}g
+              {preview.fiber != null ? ` · Xơ ${fmtNum(preview.fiber)}g` : ""}
             </p>
           ) : null}
         </div>
@@ -661,7 +701,7 @@ function AddFoodForm({ onAdd }: { onAdd: (food: Omit<LoggedFood, "id">) => void 
       <button
         type="button"
         onClick={submit}
-        disabled={!selected}
+        disabled={!selected || edibleGrams <= 0}
         className="inline-flex h-12 items-center justify-center rounded-btn bg-primary text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-[0.98] disabled:opacity-50"
       >
         Thêm vào nhật ký
@@ -670,10 +710,107 @@ function AddFoodForm({ onAdd }: { onAdd: (food: Omit<LoggedFood, "id">) => void 
   );
 }
 
-const CREATE_FIELDS: ReadonlyArray<{
-  key: keyof Omit<SeedFood, "id" | "name" | "unit">;
-  label: string;
-}> = [
+function EditFoodForm({
+  food,
+  onSave,
+}: {
+  food: LoggedFood;
+  onSave: (patch: Partial<Omit<LoggedFood, "id" | "foodId" | "name" | "unit">>) => void;
+}) {
+  const [mealType, setMealType] = useState<MealType>(food.mealType);
+  const [qty, setQty] = useState(food.quantity > 0 ? food.quantity : 1);
+
+  const base = food.quantity > 0 ? food.quantity : 1;
+  const ratio = qty / base;
+  const opt = (v: number | null | undefined) =>
+    v == null ? (v as null | undefined) : round1(v * ratio);
+  const preview = {
+    calories: Math.round(food.calories * ratio),
+    protein: round1(food.protein * ratio),
+    carbs: round1(food.carbs * ratio),
+    fat: round1(food.fat * ratio),
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="rounded-card bg-surface-raised p-3">
+        <p className="text-sm font-semibold text-text">{food.name}</p>
+        <p className="text-xs text-muted">Đơn vị: {food.unit}</p>
+      </div>
+
+      <div className="grid grid-cols-4 gap-1.5">
+        {MEAL_TYPES.map((m) => (
+          <button
+            key={m}
+            type="button"
+            onClick={() => setMealType(m)}
+            className={`rounded-btn py-2 text-xs font-semibold transition-colors ${
+              mealType === m ? "bg-primary text-primary-fg" : "bg-surface-raised text-muted"
+            }`}
+          >
+            {MEAL_LABEL_VI[m]}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-col gap-3 rounded-card bg-surface-raised p-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-semibold text-text">Số lượng ({food.unit})</span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-label="Giảm"
+              onClick={() => setQty((q) => Math.max(0.5, round1(q - 0.5)))}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
+            >
+              <Minus size={16} />
+            </button>
+            <span className="w-10 text-center text-base font-semibold text-text">
+              {fmtNum(qty)}
+            </span>
+            <button
+              type="button"
+              aria-label="Tăng"
+              onClick={() => setQty((q) => round1(q + 0.5))}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-surface text-text active:scale-95"
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+        </div>
+        <p className="text-xs text-muted">
+          {fmt(preview.calories)} kcal · Đạm {fmtNum(preview.protein)}g · Tinh bột{" "}
+          {fmtNum(preview.carbs)}g · Béo {fmtNum(preview.fat)}g
+        </p>
+      </div>
+
+      <button
+        type="button"
+        onClick={() =>
+          onSave({
+            mealType,
+            quantity: qty,
+            grams: food.grams != null ? round1(food.grams * ratio) : undefined,
+            calories: preview.calories,
+            protein: preview.protein,
+            carbs: preview.carbs,
+            fat: preview.fat,
+            fiber: opt(food.fiber),
+            sodiumMg: opt(food.sodiumMg),
+            calciumMg: opt(food.calciumMg),
+            ironMg: opt(food.ironMg),
+            purineMg: opt(food.purineMg),
+          })
+        }
+        className="inline-flex h-12 items-center justify-center rounded-btn bg-primary text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-[0.98]"
+      >
+        Lưu thay đổi
+      </button>
+    </div>
+  );
+}
+
+const CREATE_FIELDS: ReadonlyArray<{ key: "calories" | "protein" | "carbs" | "fat"; label: string }> = [
   { key: "calories", label: "Calo (kcal)" },
   { key: "protein", label: "Đạm (g)" },
   { key: "carbs", label: "Tinh bột (g)" },
@@ -684,30 +821,42 @@ function CreateFoodForm({
   onCreate,
   onCancel,
 }: {
-  onCreate: (food: Omit<SeedFood, "id">) => void;
+  onCreate: (food: Omit<FoodItem, "id" | "custom">) => void;
   onCancel: () => void;
 }) {
   const [name, setName] = useState("");
   const [unit, setUnit] = useState("phần");
-  const [macros, setMacros] = useState({ calories: "", protein: "", carbs: "", fat: "" });
+  const [grams, setGrams] = useState("100");
+  const [perServing, setPerServing] = useState({ calories: "", protein: "", carbs: "", fat: "" });
 
   const num = (v: string) => {
     const n = Number.parseFloat(v);
     return Number.isFinite(n) ? n : 0;
   };
-
   const trimmedName = name.trim();
-  const valid = trimmedName.length > 0 && num(macros.calories) >= 0;
+  const servingGrams = Math.max(1, num(grams));
+  const valid = trimmedName.length > 0 && num(perServing.calories) >= 0;
+  const k = 100 / servingGrams; // per-serving → per 100 g
 
   function save() {
     if (!valid) return;
     onCreate({
       name: trimmedName,
-      unit: unit.trim() || "phần",
-      calories: num(macros.calories),
-      protein: num(macros.protein),
-      carbs: num(macros.carbs),
-      fat: num(macros.fat),
+      nameEn: trimmedName,
+      group: "Tùy chỉnh",
+      refusePct: 0,
+      serving: { unit: unit.trim() || "phần", grams: servingGrams },
+      per100g: {
+        calories: round1(num(perServing.calories) * k),
+        protein: round1(num(perServing.protein) * k),
+        carbs: round1(num(perServing.carbs) * k),
+        fat: round1(num(perServing.fat) * k),
+        fiber: null,
+        sodiumMg: null,
+        calciumMg: null,
+        ironMg: null,
+        purineMg: null,
+      },
     });
   }
 
@@ -717,7 +866,7 @@ function CreateFoodForm({
   return (
     <div className="flex flex-col gap-3 rounded-card border border-border bg-surface-raised p-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-text">Món mới</span>
+        <span className="text-sm font-semibold text-text">Món mới (cho 1 phần)</span>
         <button
           type="button"
           onClick={onCancel}
@@ -728,7 +877,7 @@ function CreateFoodForm({
         </button>
       </div>
 
-      <div className="grid grid-cols-[1fr_auto] gap-2">
+      <div className="grid grid-cols-[1fr_auto_auto] gap-2">
         <input
           type="text"
           value={name}
@@ -742,7 +891,17 @@ function CreateFoodForm({
           onChange={(e) => setUnit(e.target.value)}
           placeholder="Đơn vị"
           aria-label="Đơn vị"
-          className={`${inputClass} w-24`}
+          className={`${inputClass} w-20`}
+        />
+        <input
+          type="number"
+          inputMode="numeric"
+          min={1}
+          value={grams}
+          onChange={(e) => setGrams(e.target.value)}
+          placeholder="g"
+          aria-label="Gram mỗi phần"
+          className={`${inputClass} w-16`}
         />
       </div>
 
@@ -754,10 +913,8 @@ function CreateFoodForm({
               type="number"
               inputMode="decimal"
               min={0}
-              value={macros[field.key]}
-              onChange={(e) =>
-                setMacros((m) => ({ ...m, [field.key]: e.target.value }))
-              }
+              value={perServing[field.key]}
+              onChange={(e) => setPerServing((m) => ({ ...m, [field.key]: e.target.value }))}
               placeholder="0"
               className={inputClass}
             />

@@ -10,3 +10,7 @@ export const DAILY_TARGETS = {
 } as const;
 
 export const WATER_GOAL_CUPS = 8;
+
+/** Daily fiber goal (g) and sodium upper limit (mg) for the health-check lines. */
+export const FIBER_TARGET_G = 25;
+export const SODIUM_LIMIT_MG = 2000;
