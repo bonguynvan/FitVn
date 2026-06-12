@@ -49,7 +49,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Điều hướng chính"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/80 pb-safe backdrop-blur-xl"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/85 pb-safe shadow-[0_-10px_30px_-16px_rgba(16,36,28,0.18)] backdrop-blur-xl"
     >
       <ul className="mx-auto flex max-w-app items-stretch justify-between px-2">
         {TABS.map((tab) => {

@@ -46,7 +46,7 @@ export function CoachNudge() {
   return (
     <Link
       href="/coach"
-      className="flex items-center gap-3 rounded-card border border-border bg-surface p-4 shadow-card transition-colors hover:border-primary/50 active:scale-[0.99]"
+      className="lift flex items-center gap-3 rounded-card border border-border bg-surface p-4 shadow-card hover:border-primary/50"
     >
       <IconBadge tone={TONE_BADGE[nudge.tone]} size="md">
         <Sparkles size={20} aria-hidden />

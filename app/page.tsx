@@ -82,7 +82,7 @@ export default async function HomePage() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="group flex h-full flex-col gap-2 rounded-card border border-border bg-surface p-4 shadow-card transition-colors hover:border-primary/50 active:scale-[0.99]"
+                  className="group lift flex h-full flex-col gap-2 rounded-card border border-border bg-surface p-4 shadow-card hover:border-primary/50"
                 >
                   <IconBadge tone={link.tone} size="md">
                     <Icon size={20} aria-hidden />

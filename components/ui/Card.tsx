@@ -25,6 +25,8 @@ interface CardProps {
   padding?: Padding;
   /** Use the raised elevation + soft gradient for hero-adjacent surfaces. */
   raised?: boolean;
+  /** Add a hover-lift for tappable cards (links/buttons). */
+  interactive?: boolean;
   className?: string;
   children: ReactNode;
 }
@@ -33,6 +35,7 @@ export function Card({
   as: Tag = "div",
   padding = "md",
   raised = false,
+  interactive = false,
   className = "",
   children,
   ...rest
@@ -40,10 +43,11 @@ export function Card({
   const elevation = raised
     ? "bg-surface-gradient shadow-raised"
     : "bg-surface shadow-card";
+  const lift = interactive ? "lift cursor-pointer" : "";
 
   return (
     <Tag
-      className={`rounded-card border border-border ${elevation} ${PADDING[padding]} ${className}`}
+      className={`rounded-card border border-border ${elevation} ${lift} ${PADDING[padding]} ${className}`}
       {...rest}
     >
       {children}

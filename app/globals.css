@@ -8,15 +8,15 @@
  * Mobile-first PWA. Single source of truth: Tailwind reads these via var(--...).
  */
 :root {
-  /* Surfaces */
-  --color-bg: #f6f8f5; /* soft fresh off-white */
+  /* Surfaces — layered, airy neutrals with a faint warm-green cast */
+  --color-bg: #f4f7f4; /* soft fresh off-white */
   --color-surface: #ffffff;
-  --color-surface-raised: #eef2ee; /* light cool tile */
-  --color-border: #e2e8e3; /* soft cool sand-green */
+  --color-surface-raised: #eef3ef; /* light cool tile */
+  --color-border: #e7eee9; /* gentle low-contrast hairline */
 
   /* Text */
-  --color-text: #16241d; /* deep green-charcoal */
-  --color-text-muted: #71807a; /* readable cool sage-gray */
+  --color-text: #14231c; /* deep green-charcoal */
+  --color-text-muted: #6b7b74; /* readable cool sage-gray */
 
   /* Brand — emerald */
   --color-primary: #0e9f6e;
@@ -28,33 +28,43 @@
   /* Semantic */
   --color-success: #0e9f6e; /* on-brand positive */
   --color-warning: #d9892b; /* amber */
-  --color-danger: #e11d48; /* fresh rose-red */
+  --color-danger: #e5365b; /* fresh rose-red */
 
   /* Typography — single warm humanist family, set by next/font in layout.tsx */
   --font-sans: var(--font-app-sans), "Segoe UI", system-ui, sans-serif;
   --font-display: var(--font-app-sans), "Segoe UI", system-ui, sans-serif;
 
-  /* Shape — soft, no sharp edges */
-  --radius-card: 0.75rem; /* 12px cards */
-  --radius-btn: 0.625rem; /* 10px buttons */
+  /* Shape — rounder = friendlier */
+  --radius-card: 1.125rem; /* 18px cards */
+  --radius-btn: 0.875rem; /* 14px buttons */
   --radius-pill: 999px;
 
-  /* Elevation — subtle, cool neutral */
+  /* Elevation — soft, diffuse, premium (light from above) */
   --shadow-card: 0 1px 2px rgba(16, 36, 28, 0.04),
-    0 4px 14px rgba(16, 36, 28, 0.06);
-  --shadow-glow: 0 6px 18px rgba(14, 159, 110, 0.2); /* soft emerald lift */
+    0 10px 26px -12px rgba(16, 36, 28, 0.16);
+  --shadow-glow: 0 10px 26px -8px rgba(14, 159, 110, 0.42); /* emerald lift */
   --shadow-raised: 0 2px 6px rgba(16, 36, 28, 0.05),
-    0 12px 30px rgba(16, 36, 28, 0.08);
+    0 26px 56px -22px rgba(16, 36, 28, 0.22);
 
   /* Atmosphere */
-  --surface-gradient: linear-gradient(160deg, #ffffff 0%, #eef4f0 100%);
+  --surface-gradient: linear-gradient(157deg, #ffffff 0%, #eef5f0 100%);
+  /* Page background: very subtle emerald glow in opposite corners. */
+  --page-atmosphere: radial-gradient(
+      1100px 560px at 100% -8%,
+      rgba(14, 159, 110, 0.07),
+      transparent 60%
+    ),
+    radial-gradient(900px 520px at -10% 108%, rgba(14, 159, 110, 0.05), transparent 55%);
   /* Emerald hero band for greeting / feature headers. */
   --gradient-hero: linear-gradient(
-    150deg,
-    #18b07e 0%,
-    #0e9f6e 55%,
-    #0a7d56 100%
+    145deg,
+    #1ec18a 0%,
+    #0e9f6e 52%,
+    #0a7350 100%
   );
+
+  /* Motion */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 
   /* Layout */
   --app-max-width: 30rem; /* mobile-first single column */
@@ -68,6 +78,9 @@
 
   body {
     background-color: var(--color-bg);
+    background-image: var(--page-atmosphere);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
     color: var(--color-text);
     font-family: var(--font-sans);
     font-weight: 400;
@@ -78,10 +91,24 @@
     overscroll-behavior-y: none;
   }
 
-  /* Headings: soft weight, slightly tightened tracking. */
+  /* Headings: soft weight, tightened tracking for a refined feel. */
   h1 {
     font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  h2,
+  h3 {
     letter-spacing: -0.01em;
+  }
+
+  /* Smooth, premium micro-interactions everywhere by default. */
+  button,
+  a {
+    transition: color 0.2s var(--ease-out-soft),
+      background-color 0.2s var(--ease-out-soft),
+      border-color 0.2s var(--ease-out-soft),
+      box-shadow 0.25s var(--ease-out-soft),
+      transform 0.15s var(--ease-out-soft);
   }
 
   :focus-visible {
@@ -125,6 +152,28 @@
   /* Bottom-sheet slide-up entrance. */
   .animate-sheet-up {
     animation: sheet-up 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Premium hover lift for tappable surfaces (cards, tiles, links). */
+  .lift {
+    transition: transform 0.2s var(--ease-out-soft),
+      box-shadow 0.25s var(--ease-out-soft),
+      border-color 0.2s var(--ease-out-soft);
+  }
+  .lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-raised);
+  }
+  .lift:active {
+    transform: translateY(0);
+  }
+
+  /* Eyebrow label: small, spaced, quiet — a premium section kicker. */
+  .text-eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.6875rem;
+    font-weight: 600;
   }
 }
 

@@ -14,7 +14,7 @@ export function ProfileNudge() {
   return (
     <Link
       href="/profile"
-      className="flex items-center gap-3 rounded-card border border-border bg-surface p-4 shadow-card transition-colors hover:border-primary/50 active:scale-[0.99]"
+      className="lift flex items-center gap-3 rounded-card border border-border bg-surface p-4 shadow-card hover:border-primary/50"
     >
       <IconBadge tone="primary" size="md">
         <Target size={20} aria-hidden />
