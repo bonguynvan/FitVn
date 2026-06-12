@@ -27,6 +27,12 @@ export function addSavedMeal(name: string, items: SavedMealItem[]): SavedMeal {
   return meal;
 }
 
+export function updateSavedMeal(id: string, name: string, items: SavedMealItem[]): void {
+  updateLocal<SavedMeal[]>(KEY, [], (list) =>
+    list.map((m) => (m.id === id ? { ...m, name, items } : m)),
+  );
+}
+
 export function removeSavedMeal(id: string): void {
   updateLocal<SavedMeal[]>(KEY, [], (list) => list.filter((m) => m.id !== id));
 }

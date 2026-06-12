@@ -6,7 +6,12 @@ import { Check, Plus, Trash2 } from "lucide-react";
 import { Stepper } from "@/components/ui";
 import type { FoodItem } from "@/lib/data/foods-db";
 import { useAllFoods } from "@/lib/store/food-store";
-import { addSavedMeal, type SavedMealItem } from "@/lib/store/meal-store";
+import {
+  addSavedMeal,
+  updateSavedMeal,
+  type SavedMeal,
+  type SavedMealItem,
+} from "@/lib/store/meal-store";
 import { round1, scaleFood } from "@/lib/nutrition/scale";
 
 const fmt = (n: number) => Math.round(n).toLocaleString("vi-VN");
@@ -31,12 +36,29 @@ function toSavedItem({ food, qty }: BuilderItem): SavedMealItem {
   };
 }
 
-/** Compose and save a reusable multi-food meal. */
-export function MealBuilder({ onDone }: { onDone: () => void }) {
+/** Compose and save a reusable multi-food meal (create or edit). */
+export function MealBuilder({
+  onDone,
+  editing,
+}: {
+  onDone: () => void;
+  editing?: SavedMeal;
+}) {
   const allFoods = useAllFoods();
-  const [name, setName] = useState("");
+  const [name, setName] = useState(editing?.name ?? "");
   const [query, setQuery] = useState("");
-  const [items, setItems] = useState<BuilderItem[]>([]);
+  const [items, setItems] = useState<BuilderItem[]>(() => {
+    if (!editing) return [];
+    // Rebuild builder items by resolving each saved item's foodId; drop any
+    // food that no longer exists (e.g. a deleted custom food).
+    const byId = new Map(allFoods.map((f) => [f.id, f]));
+    return editing.items
+      .map((it) => {
+        const food = it.foodId ? byId.get(it.foodId) : undefined;
+        return food ? { food, qty: it.quantity > 0 ? it.quantity : 1 } : null;
+      })
+      .filter((x): x is BuilderItem => x !== null);
+  });
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -91,7 +113,9 @@ export function MealBuilder({ onDone }: { onDone: () => void }) {
 
   function save() {
     if (!canSave) return;
-    addSavedMeal(trimmedName, items.map(toSavedItem));
+    const saved = items.map(toSavedItem);
+    if (editing) updateSavedMeal(editing.id, trimmedName, saved);
+    else addSavedMeal(trimmedName, saved);
     onDone();
   }
 
@@ -183,7 +207,7 @@ export function MealBuilder({ onDone }: { onDone: () => void }) {
         disabled={!canSave}
         className="inline-flex h-12 items-center justify-center gap-2 rounded-btn bg-primary text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-[0.98] disabled:opacity-50"
       >
-        <Check size={16} /> Lưu bữa
+        <Check size={16} /> {editing ? "Lưu thay đổi" : "Lưu bữa"}
       </button>
     </div>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ChevronRight, Plus, Trash2, UtensilsCrossed } from "lucide-react";
+import { Check, ChevronRight, Pencil, Plus, Trash2, UtensilsCrossed } from "lucide-react";
 
 import { Card, EmptyState, SectionHeader, Sheet } from "@/components/ui";
 import { MealBuilder } from "@/components/nutrition/MealBuilder";
@@ -20,7 +20,9 @@ const fmt = (n: number) => Math.round(n).toLocaleString("vi-VN");
 export function SavedMeals({ dateIso }: { dateIso: string }) {
   const meals = useSavedMeals();
   const [building, setBuilding] = useState(false);
+  const [editingMeal, setEditingMeal] = useState<SavedMeal | null>(null);
   const [loggedId, setLoggedId] = useState<string | null>(null);
+  const sheetOpen = building || editingMeal != null;
 
   function logMeal(meal: SavedMeal) {
     const mealType = defaultMealByHour();
@@ -89,6 +91,14 @@ export function SavedMeals({ dateIso }: { dateIso: string }) {
                   </button>
                   <button
                     type="button"
+                    onClick={() => setEditingMeal(meal)}
+                    aria-label={`Sửa bữa ${meal.name}`}
+                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-btn text-muted transition hover:bg-surface-raised hover:text-text"
+                  >
+                    <Pencil size={15} />
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => removeSavedMeal(meal.id)}
                     aria-label={`Xóa bữa ${meal.name}`}
                     className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-btn text-muted transition hover:bg-surface-raised hover:text-danger"
@@ -102,8 +112,24 @@ export function SavedMeals({ dateIso }: { dateIso: string }) {
         </Card>
       )}
 
-      <Sheet open={building} onClose={() => setBuilding(false)} title="Tạo bữa mới">
-        <MealBuilder onDone={() => setBuilding(false)} />
+      <Sheet
+        open={sheetOpen}
+        onClose={() => {
+          setBuilding(false);
+          setEditingMeal(null);
+        }}
+        title={editingMeal ? "Sửa bữa" : "Tạo bữa mới"}
+      >
+        {sheetOpen ? (
+          <MealBuilder
+            key={editingMeal?.id ?? "new"}
+            editing={editingMeal ?? undefined}
+            onDone={() => {
+              setBuilding(false);
+              setEditingMeal(null);
+            }}
+          />
+        ) : null}
       </Sheet>
     </section>
   );
