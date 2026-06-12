@@ -1,13 +1,14 @@
 import { cookies } from "next/headers";
-// import { createClient } from "@/lib/supabase/server"; // TODO(auth): real auth
+
+import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 /**
  * Session helper.
  *
- * TEMPORARY implementation: a stub session is stored in an httpOnly cookie so
- * the whole app flow (login → gated routes → logout) works without a backend.
- * The real Supabase auth is written below but commented — uncomment it (and set
- * the NEXT_PUBLIC_SUPABASE_* env vars) to integrate, then delete the stub.
+ * Uses real Supabase auth when configured (NEXT_PUBLIC_SUPABASE_* set); falls
+ * back to a stub httpOnly-cookie session otherwise so the app still runs
+ * end-to-end without a backend.
  */
 
 export const SESSION_COOKIE = "fitvn-session";
@@ -25,17 +26,21 @@ export function nameFromEmail(email: string): string {
 
 /** Returns the signed-in user, or null. Use in Server Components / actions. */
 export async function getCurrentUser(): Promise<SessionUser | null> {
-  // --- Supabase (integrate later) -------------------------------------------
-  // const supabase = await createClient();
-  // const { data: { user } } = await supabase.auth.getUser();
-  // if (!user?.email) return null;
-  // return {
-  //   email: user.email,
-  //   name: user.user_metadata?.full_name ?? nameFromEmail(user.email),
-  // };
-  // --------------------------------------------------------------------------
+  if (isSupabaseConfigured()) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user?.email) return null;
+    return {
+      email: user.email,
+      name:
+        (user.user_metadata?.full_name as string | undefined) ??
+        nameFromEmail(user.email),
+    };
+  }
 
-  // TEMP: read the stub session cookie.
+  // Fallback: read the stub session cookie.
   const email = cookies().get(SESSION_COOKIE)?.value;
   if (!email) return null;
   return { email, name: nameFromEmail(email) };

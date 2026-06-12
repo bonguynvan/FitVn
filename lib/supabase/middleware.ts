@@ -9,7 +9,14 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
  * and the response (for the browser). Do not add logic between client creation
  * and `getUser()` — it can desync the session.
  */
-export async function updateSession(request: NextRequest) {
+export interface SessionRefresh {
+  /** Response carrying any refreshed auth cookies — return or copy onto a redirect. */
+  response: NextResponse;
+  /** Whether a signed-in user is present. */
+  authenticated: boolean;
+}
+
+export async function updateSession(request: NextRequest): Promise<SessionRefresh> {
   let supabaseResponse = NextResponse.next({ request });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -17,7 +24,7 @@ export async function updateSession(request: NextRequest) {
 
   // If env is not configured yet, pass through rather than crashing the app.
   if (!url || !anonKey) {
-    return supabaseResponse;
+    return { response: supabaseResponse, authenticated: false };
   }
 
   const supabase = createServerClient(url, anonKey, {
@@ -40,7 +47,9 @@ export async function updateSession(request: NextRequest) {
   });
 
   // Touch the session so expired tokens get refreshed.
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  return supabaseResponse;
+  return { response: supabaseResponse, authenticated: Boolean(user) };
 }

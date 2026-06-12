@@ -17,7 +17,9 @@ export default function LoginPage() {
 
   const isLogin = mode === "login";
   const action = isLogin ? loginAction : signupAction;
-  const error = (isLogin ? loginState : signupState).error;
+  const state = isLogin ? loginState : signupState;
+  const error = state.error;
+  const notice = state.notice;
 
   return (
     <main className="flex min-h-dvh flex-1 flex-col justify-center gap-8 px-6 py-10 pt-safe">
@@ -79,6 +81,14 @@ export default function LoginPage() {
               {error}
             </p>
           ) : null}
+          {notice ? (
+            <p
+              role="status"
+              className="rounded-btn bg-success/10 px-3 py-2 text-sm text-success"
+            >
+              {notice}
+            </p>
+          ) : null}
 
           <SubmitButton
             label={isLogin ? "Đăng nhập" : "Tạo tài khoản"}
@@ -96,7 +106,7 @@ export default function LoginPage() {
         <GoogleButton />
 
         <p className="mt-4 text-center text-xs leading-relaxed text-muted">
-          Đăng nhập tạm thời để trải nghiệm — chỉ cần email và mật khẩu bất kỳ.
+          Đăng nhập để đồng bộ dữ liệu của bạn trên mọi thiết bị.
         </p>
       </section>
     </main>

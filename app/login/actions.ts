@@ -1,23 +1,23 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { SESSION_COOKIE } from "@/lib/auth/session";
-// import { createClient } from "@/lib/supabase/server"; // TODO(auth): real auth
-// import { headers } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 /**
  * Auth server actions.
  *
- * The Supabase email + Google logic is fully written but COMMENTED — the app
- * currently runs on a temporary stub session (an httpOnly cookie) so the flow
- * is testable without a backend. To go live: set the Supabase env vars and
- * uncomment the marked blocks (and remove the `// TEMP` stubs).
+ * Use real Supabase auth (email/password + Google) when configured, else a
+ * temporary stub httpOnly-cookie session so the app runs without a backend.
  */
 
 export interface AuthResult {
   error?: string;
+  /** Non-error message (e.g. "check your email to confirm"). */
+  notice?: string;
 }
 
 const COOKIE_OPTIONS = {
@@ -45,13 +45,14 @@ export async function login(
     return { error: "Email không hợp lệ." };
   }
 
-  // --- Supabase email auth (integrate later) --------------------------------
-  // const supabase = await createClient();
-  // const { error } = await supabase.auth.signInWithPassword({ email, password });
-  // if (error) return { error: "Email hoặc mật khẩu không đúng." };
-  // --------------------------------------------------------------------------
+  if (isSupabaseConfigured()) {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { error: "Email hoặc mật khẩu không đúng." };
+    redirect("/");
+  }
 
-  // TEMP: accept any credentials and store a stub session.
+  // Fallback: accept any credentials and store a stub session.
   cookies().set(SESSION_COOKIE, email, COOKIE_OPTIONS);
   redirect("/");
 }
@@ -69,43 +70,53 @@ export async function signUp(
     return { error: "Mật khẩu cần ít nhất 6 ký tự." };
   }
 
-  // --- Supabase sign-up (integrate later) -----------------------------------
-  // const supabase = await createClient();
-  // const { error } = await supabase.auth.signUp({ email, password });
-  // if (error) return { error: error.message };
-  // --------------------------------------------------------------------------
+  if (isSupabaseConfigured()) {
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      const msg = /already registered/i.test(error.message)
+        ? "Email này đã được đăng ký. Hãy đăng nhập."
+        : "Không tạo được tài khoản. Vui lòng thử lại.";
+      return { error: msg };
+    }
+    // When email confirmation is on, no session is returned yet.
+    if (!data.session) {
+      return { notice: "Đã gửi email xác nhận. Kiểm tra hộp thư rồi đăng nhập." };
+    }
+    redirect("/");
+  }
 
-  // TEMP: create the stub session immediately.
+  // Fallback: create the stub session immediately.
   cookies().set(SESSION_COOKIE, email, COOKIE_OPTIONS);
   redirect("/");
 }
 
 /** Google OAuth sign-in. Written for Supabase; not enabled in the temp phase. */
 export async function loginWithGoogle(): Promise<AuthResult> {
-  // --- Supabase Google OAuth (integrate later) ------------------------------
-  // const supabase = await createClient();
-  // const origin = headers().get("origin") ?? "";
-  // const { data, error } = await supabase.auth.signInWithOAuth({
-  //   provider: "google",
-  //   options: { redirectTo: `${origin}/auth/callback` },
-  // });
-  // if (error) return { error: "Không thể đăng nhập với Google." };
-  // if (data.url) redirect(data.url);
-  // --------------------------------------------------------------------------
+  if (isSupabaseConfigured()) {
+    const supabase = await createClient();
+    const origin = headers().get("origin") ?? "";
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${origin}/auth/callback` },
+    });
+    if (error) return { error: "Không thể đăng nhập với Google." };
+    if (data.url) redirect(data.url);
+    return {};
+  }
 
-  // TEMP: Google is not wired up yet — guide the user to email sign-in.
+  // Fallback: Google needs Supabase — guide the user to email sign-in.
   return {
-    error: "Đăng nhập Google sẽ sớm được hỗ trợ. Hãy dùng email để tiếp tục.",
+    error: "Đăng nhập Google cần cấu hình Supabase. Hãy dùng email để tiếp tục.",
   };
 }
 
 /** Sign out and return to the login screen. */
 export async function logout(): Promise<void> {
-  // --- Supabase (integrate later) -------------------------------------------
-  // const supabase = await createClient();
-  // await supabase.auth.signOut();
-  // --------------------------------------------------------------------------
-
+  if (isSupabaseConfigured()) {
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+  }
   cookies().delete(SESSION_COOKIE);
   redirect("/login");
 }

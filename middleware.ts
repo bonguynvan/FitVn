@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { SESSION_COOKIE } from "@/lib/auth/session";
-// import { updateSession } from "@/lib/supabase/middleware"; // TODO(auth): real session refresh
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { updateSession } from "@/lib/supabase/middleware";
 
 /** Path prefixes reachable without a session. */
 const PUBLIC_PREFIXES = ["/login", "/auth", "/api", "/offline"];
@@ -12,35 +13,37 @@ function isPublic(pathname: string): boolean {
   );
 }
 
+/** Build a redirect that preserves any refreshed auth cookies. */
+function redirectTo(
+  request: NextRequest,
+  pathname: string,
+  carry?: NextResponse,
+): NextResponse {
+  const url = request.nextUrl.clone();
+  url.pathname = pathname;
+  const res = NextResponse.redirect(url);
+  carry?.cookies.getAll().forEach((c) => res.cookies.set(c));
+  return res;
+}
+
 /**
- * Route guard.
- *
- * TEMPORARY: gates on the stub session cookie (see lib/auth/session.ts). When
- * Supabase auth is integrated, refresh the session first via updateSession and
- * gate on the real user (the commented block shows where).
+ * Route guard. Uses real Supabase auth when configured (refreshing the session
+ * first so rotated tokens persist), else the stub session cookie.
  */
 export async function middleware(request: NextRequest) {
-  // --- Supabase session refresh (integrate later) ---------------------------
-  // return updateSession(request); // refreshes auth cookies on every request
-  // --------------------------------------------------------------------------
-
   const { pathname } = request.nextUrl;
+
+  if (isSupabaseConfigured()) {
+    const { response, authenticated } = await updateSession(request);
+    if (!authenticated && !isPublic(pathname)) return redirectTo(request, "/login", response);
+    if (authenticated && pathname === "/login") return redirectTo(request, "/", response);
+    return response;
+  }
+
+  // Fallback: stub session cookie.
   const hasSession = Boolean(request.cookies.get(SESSION_COOKIE)?.value);
-
-  // Unauthenticated visitor on a protected route → send to /login.
-  if (!hasSession && !isPublic(pathname)) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
-  }
-
-  // Signed-in visitor on /login → go home.
-  if (hasSession && pathname === "/login") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/";
-    return NextResponse.redirect(url);
-  }
-
+  if (!hasSession && !isPublic(pathname)) return redirectTo(request, "/login");
+  if (hasSession && pathname === "/login") return redirectTo(request, "/");
   return NextResponse.next();
 }
 
