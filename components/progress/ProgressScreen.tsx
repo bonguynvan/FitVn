@@ -33,6 +33,7 @@ import {
   useMeasurements,
 } from "@/lib/store/progress-store";
 import { useStats } from "@/lib/store/stats-store";
+import { useProfile } from "@/lib/store/profile-store";
 import type { Measurement } from "@/lib/store/types";
 
 /** "70,5" — one decimal, comma separator (vi-VN). */
@@ -52,6 +53,8 @@ const fmtOptional = (n: number | null) =>
 export function ProgressScreen() {
   const measurements = useMeasurements();
   const { stats, achievements } = useStats();
+  const profile = useProfile();
+  const targetWeight = profile?.targetWeightKg ?? null;
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Measurement | null>(null);
 
@@ -248,6 +251,14 @@ export function ProgressScreen() {
                   {measurements.length} lần đo
                 </span>
               </div>
+
+              {targetWeight != null && latest && first ? (
+                <TargetWeightBar
+                  start={first.weightKg}
+                  current={latest.weightKg}
+                  target={targetWeight}
+                />
+              ) : null}
             </Card>
           </section>
 
@@ -311,6 +322,43 @@ export function ProgressScreen() {
         />
       </Sheet>
     </main>
+  );
+}
+
+function TargetWeightBar({
+  start,
+  current,
+  target,
+}: {
+  start: number;
+  current: number;
+  target: number;
+}) {
+  const total = start - target; // signed total change needed
+  const done = start - current; // signed change so far
+  const pct =
+    total !== 0 ? Math.min(Math.max(done / total, 0), 1) : current === target ? 1 : 0;
+  // Reached when current is at/past the target in the goal direction.
+  const reached = total === 0 ? current === target : done / total >= 1;
+  const remaining = Math.abs(current - target);
+
+  return (
+    <div className="flex flex-col gap-1.5 border-t border-border pt-3">
+      <div className="flex items-baseline justify-between text-xs">
+        <span className="text-muted">
+          Mục tiêu <span className="font-bold text-text">{fmtKg(target)} kg</span>
+        </span>
+        <span className={`font-semibold ${reached ? "text-success" : "text-text"}`}>
+          {reached ? "Đã đạt mục tiêu" : `còn ${fmtKg(remaining)} kg`}
+        </span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-pill bg-surface-raised">
+        <div
+          className={`h-full rounded-pill ${reached ? "bg-success" : "bg-primary"}`}
+          style={{ width: `${pct * 100}%` }}
+        />
+      </div>
+    </div>
   );
 }
 

@@ -11,6 +11,8 @@ export interface UserProfile {
   heightCm: number;
   weightKg: number;
   activityLevel: ActivityLevel;
+  /** Optional goal body weight (kg) for the Progress tracker. */
+  targetWeightKg?: number | null;
   /** When set, overrides the auto-computed targets. */
   customTargets?: DailyTargets | null;
   /** Gout management: tightens the purine ceiling and flags high-purine foods.

@@ -207,6 +207,25 @@ export function ProfileScreen() {
           <NumberField label="Nặng (kg)" value={form.weightKg} onChange={(v) => set("weightKg", v)} min={30} max={250} />
         </div>
 
+        <label className="flex flex-col gap-1.5">
+          <span className="text-sm font-semibold text-text">
+            Cân nặng mục tiêu{" "}
+            <span className="font-medium text-muted">(kg, tùy chọn)</span>
+          </span>
+          <input
+            type="number"
+            inputMode="decimal"
+            min={30}
+            max={250}
+            value={form.targetWeightKg ?? ""}
+            onChange={(e) =>
+              set("targetWeightKg", e.target.value === "" ? null : Number(e.target.value))
+            }
+            placeholder="Ví dụ: 65"
+            className="w-full rounded-btn border border-border bg-surface px-4 py-3 text-base font-semibold text-text outline-none placeholder:font-normal placeholder:text-muted focus:border-primary"
+          />
+        </label>
+
         <Field label="Mức vận động">
           <div className="flex flex-col gap-2">
             {ACTIVITY_OPTIONS.map((a) => {
