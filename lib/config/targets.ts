@@ -14,3 +14,14 @@ export const WATER_GOAL_CUPS = 8;
 /** Daily fiber goal (g) and sodium upper limit (mg) for the health-check lines. */
 export const FIBER_TARGET_G = 25;
 export const SODIUM_LIMIT_MG = 2000;
+
+/** Micronutrient reference values (approx adult RDA / limits). */
+export const CALCIUM_TARGET_MG = 1000;
+/** Iron RDA differs by sex (menstruation). */
+export const IRON_TARGET_MG: Record<"male" | "female" | "other", number> = {
+  male: 8,
+  female: 18,
+  other: 12,
+};
+/** Daily purine ceiling (mg) for gout-aware tracking. */
+export const PURINE_LIMIT_MG = 400;

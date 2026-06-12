@@ -22,8 +22,14 @@ import { PageHeader } from "@/components/nav/PageHeader";
 import { Card, IconBadge, Pill, ProgressRing, SectionHeader, Sheet } from "@/components/ui";
 import type { FoodItem } from "@/lib/data/foods-db";
 import { addCustomFood, useAllFoods, useRecentFoods } from "@/lib/store/food-store";
-import { FIBER_TARGET_G, SODIUM_LIMIT_MG } from "@/lib/config/targets";
-import { useDailyTargets } from "@/lib/store/profile-store";
+import {
+  CALCIUM_TARGET_MG,
+  FIBER_TARGET_G,
+  IRON_TARGET_MG,
+  PURINE_LIMIT_MG,
+  SODIUM_LIMIT_MG,
+} from "@/lib/config/targets";
+import { useDailyTargets, useProfile } from "@/lib/store/profile-store";
 import { setWaterGoal, useWaterGoal } from "@/lib/store/preferences-store";
 import { addDaysIso, longDateVi, shortDateVi, todayIso } from "@/lib/date";
 import { fmtNum } from "@/lib/format";
@@ -90,9 +96,12 @@ export function NutritionScreen() {
   const foods = useDayFoods(dateIso);
   const water = useWater(dateIso);
   const targets = useDailyTargets();
+  const profile = useProfile();
   const waterGoal = useWaterGoal();
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<LoggedFood | null>(null);
+
+  const ironTarget = IRON_TARGET_MG[profile?.sex ?? "male"];
 
   const totals = useMemo(
     () =>
@@ -104,11 +113,52 @@ export function NutritionScreen() {
           fat: a.fat + f.fat,
           fiber: a.fiber + (f.fiber ?? 0),
           sodium: a.sodium + (f.sodiumMg ?? 0),
+          calcium: a.calcium + (f.calciumMg ?? 0),
+          iron: a.iron + (f.ironMg ?? 0),
+          purine: a.purine + (f.purineMg ?? 0),
         }),
-        { cal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sodium: 0 },
+        { cal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sodium: 0, calcium: 0, iron: 0, purine: 0 },
       ),
     [foods],
   );
+
+  const healthStats: HealthStatData[] = [
+    {
+      label: "Chất xơ",
+      value: fmtNum(totals.fiber),
+      limit: `/ ${FIBER_TARGET_G} g`,
+      ratio: Math.min(totals.fiber / FIBER_TARGET_G, 1),
+      tone: totals.fiber >= FIBER_TARGET_G ? "success" : "primary",
+    },
+    {
+      label: "Natri",
+      value: fmt(totals.sodium),
+      limit: `/ ${fmt(SODIUM_LIMIT_MG)} mg`,
+      ratio: Math.min(totals.sodium / SODIUM_LIMIT_MG, 1),
+      tone: totals.sodium > SODIUM_LIMIT_MG ? "danger" : "primary",
+    },
+    {
+      label: "Canxi",
+      value: fmt(totals.calcium),
+      limit: `/ ${fmt(CALCIUM_TARGET_MG)} mg`,
+      ratio: Math.min(totals.calcium / CALCIUM_TARGET_MG, 1),
+      tone: totals.calcium >= CALCIUM_TARGET_MG ? "success" : "primary",
+    },
+    {
+      label: "Sắt",
+      value: fmtNum(totals.iron),
+      limit: `/ ${ironTarget} mg`,
+      ratio: Math.min(totals.iron / ironTarget, 1),
+      tone: totals.iron >= ironTarget ? "success" : "primary",
+    },
+    {
+      label: "Purin (gout)",
+      value: fmt(totals.purine),
+      limit: `/ ${fmt(PURINE_LIMIT_MG)} mg`,
+      ratio: Math.min(totals.purine / PURINE_LIMIT_MG, 1),
+      tone: totals.purine > PURINE_LIMIT_MG ? "danger" : "primary",
+    },
+  ];
 
   const remaining = Math.max(targets.calories - totals.cal, 0);
   const macros = [
@@ -228,24 +278,17 @@ export function NutritionScreen() {
           })}
         </div>
 
-        {/* Health checks: fiber + sodium */}
-        <div className="grid grid-cols-2 gap-4 border-t border-border pt-4">
-          <HealthStat
-            label="Chất xơ"
-            value={fmtNum(totals.fiber)}
-            limit={`/ ${FIBER_TARGET_G} g`}
-            ratio={Math.min(totals.fiber / FIBER_TARGET_G, 1)}
-            tone={totals.fiber >= FIBER_TARGET_G ? "success" : "primary"}
-          />
-          <HealthStat
-            label="Natri"
-            value={fmt(totals.sodium)}
-            limit={`/ ${fmt(SODIUM_LIMIT_MG)} mg`}
-            ratio={Math.min(totals.sodium / SODIUM_LIMIT_MG, 1)}
-            tone={totals.sodium > SODIUM_LIMIT_MG ? "danger" : "primary"}
-          />
-        </div>
       </Card>
+
+      {/* Health checks: fiber, sodium, micronutrients, purine */}
+      <section aria-labelledby="health-heading" className="flex flex-col gap-3">
+        <SectionHeader id="health-heading">Vi chất &amp; sức khỏe</SectionHeader>
+        <Card padding="lg" className="grid grid-cols-2 gap-x-4 gap-y-4">
+          {healthStats.map((s) => (
+            <HealthStat key={s.label} {...s} />
+          ))}
+        </Card>
+      </section>
 
       {/* Water */}
       <section aria-labelledby="water-heading" className="flex flex-col gap-3">
@@ -360,19 +403,15 @@ export function NutritionScreen() {
   );
 }
 
-function HealthStat({
-  label,
-  value,
-  limit,
-  ratio,
-  tone,
-}: {
+interface HealthStatData {
   label: string;
   value: string;
   limit: string;
   ratio: number;
   tone: "primary" | "success" | "danger";
-}) {
+}
+
+function HealthStat({ label, value, limit, ratio, tone }: HealthStatData) {
   const barColor =
     tone === "success" ? "bg-success" : tone === "danger" ? "bg-danger" : "bg-primary";
   return (
