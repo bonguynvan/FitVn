@@ -4,6 +4,7 @@ import { Bot, Dumbbell, LineChart, Salad, User, type LucideIcon } from "lucide-r
 import { getCurrentUser } from "@/lib/auth/session";
 import { BrandHero } from "@/components/nav/BrandHero";
 import { CoachNudge } from "@/components/home/CoachNudge";
+import { RemindersBanner } from "@/components/home/RemindersBanner";
 import { DailyCheckIn } from "@/components/home/DailyCheckIn";
 import { ProfileNudge } from "@/components/home/ProfileNudge";
 import { TodayDashboard } from "@/components/home/TodayDashboard";
@@ -57,6 +58,9 @@ export default async function HomePage() {
 
       {/* Personalize-goal nudge (hidden once a profile exists) */}
       <ProfileNudge />
+
+      {/* Due reminders (water / meals / marker re-test) */}
+      <RemindersBanner />
 
       {/* Personalized coach insight (shown once a profile exists) */}
       <CoachNudge />

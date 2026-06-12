@@ -16,6 +16,7 @@ import {
 } from "@/lib/fitness/targets";
 import { getProfile, saveProfile } from "@/lib/store/profile-store";
 import { DataSection } from "@/components/profile/DataSection";
+import { RemindersSection } from "@/components/profile/RemindersSection";
 import {
   CONDITION_ORDER,
   CONDITIONS,
@@ -329,6 +330,9 @@ export function ProfileScreen() {
           )}
         </button>
       </section>
+
+      {/* Reminders */}
+      <RemindersSection />
 
       {/* Data backup */}
       <DataSection />

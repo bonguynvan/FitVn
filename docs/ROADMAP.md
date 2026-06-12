@@ -23,3 +23,10 @@ table exists only as the official PDF:
   project + real Supabase auth (RLS uses `auth.uid()`; app currently uses a temp
   cookie). Dexie sync-queue scaffold already exists in `lib/db/sync.ts`.
 - Optional `.xlsx` reader for the importer (currently CSV only).
+- **Background/scheduled reminders (closed app):** reminders currently evaluate
+  while the app is open (in-app banner on Home + OS notification when permission
+  is granted — see lib/reminders/engine.ts + components/home/RemindersBanner.tsx).
+  Firing reminders when the app is CLOSED needs server-sent Web Push on a
+  schedule: store subscriptions (push scaffolding exists in lib/push + api/push)
+  and add a cron/Edge scheduler to send at each user's reminder time. Deferred
+  with the other backend items.
