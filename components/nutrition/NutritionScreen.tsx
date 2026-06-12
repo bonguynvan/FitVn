@@ -421,6 +421,15 @@ function HealthStat({ label, value, limit, ratio, tone }: HealthStatData) {
   );
 }
 
+function NutrientRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-2 text-xs">
+      <span className="text-muted">{label}</span>
+      <span className="font-semibold tabular-nums text-text">{value}</span>
+    </div>
+  );
+}
+
 function GroupChip({
   label,
   active,
@@ -737,12 +746,35 @@ function AddFoodForm({
             </div>
           )}
 
-          {preview ? (
-            <p className="text-xs text-muted">
-              {fmt(preview.calories)} kcal · Đạm {fmtNum(preview.protein)}g · Tinh bột{" "}
-              {fmtNum(preview.carbs)}g · Béo {fmtNum(preview.fat)}g
-              {preview.fiber != null ? ` · Xơ ${fmtNum(preview.fiber)}g` : ""}
-            </p>
+          {preview && selected ? (
+            <div className="flex flex-col gap-2 rounded-card border border-border bg-surface p-3">
+              <p className="text-xs font-semibold text-text">Thành phần cho phần này</p>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                <NutrientRow label="Calo" value={`${fmt(preview.calories)} kcal`} />
+                <NutrientRow label="Đạm" value={`${fmtNum(preview.protein)} g`} />
+                <NutrientRow label="Tinh bột" value={`${fmtNum(preview.carbs)} g`} />
+                <NutrientRow label="Chất béo" value={`${fmtNum(preview.fat)} g`} />
+                {preview.fiber != null ? (
+                  <NutrientRow label="Chất xơ" value={`${fmtNum(preview.fiber)} g`} />
+                ) : null}
+                {preview.sodiumMg != null ? (
+                  <NutrientRow label="Natri" value={`${fmt(preview.sodiumMg)} mg`} />
+                ) : null}
+                {preview.calciumMg != null ? (
+                  <NutrientRow label="Canxi" value={`${fmt(preview.calciumMg)} mg`} />
+                ) : null}
+                {preview.ironMg != null ? (
+                  <NutrientRow label="Sắt" value={`${fmtNum(preview.ironMg)} mg`} />
+                ) : null}
+                {preview.purineMg != null ? (
+                  <NutrientRow label="Purin" value={`${fmt(preview.purineMg)} mg`} />
+                ) : null}
+              </div>
+              <p className="border-t border-border pt-2 text-[11px] text-muted">
+                {selected.group} · {selected.per100g.calories} kcal/100g
+                {selected.refusePct > 0 ? ` · thải bỏ ${selected.refusePct}%` : ""}
+              </p>
+            </div>
           ) : null}
 
           {goutMode && selected && isHighPurine(selected) ? (
