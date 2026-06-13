@@ -39,6 +39,7 @@ import {
 import { PRESET_TEMPLATES } from "@/lib/data/workout-templates";
 import { SessionDetail } from "@/components/workouts/SessionDetail";
 import { ExerciseProgress } from "@/components/workouts/ExerciseProgress";
+import { RestTimer } from "@/components/workouts/RestTimer";
 import type {
   LoggedExercise,
   LoggedSet,
@@ -642,6 +643,9 @@ function AddSessionForm({
           className="w-full rounded-btn border border-border bg-surface px-4 py-3 text-base text-text outline-none placeholder:text-muted focus:border-primary"
         />
       </label>
+
+      {/* Rest timer — start a countdown between sets */}
+      <RestTimer />
 
       {/* Exercise builder */}
       <div className="flex flex-col gap-3">

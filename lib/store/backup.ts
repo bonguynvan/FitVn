@@ -12,6 +12,7 @@ export const DATA_KEYS = [
   "fitvn:custom-foods:v2",
   "fitvn:templates:v1",
   "fitvn:prefs:water-goal:v1",
+  "fitvn:prefs:rest-duration:v1",
   "fitvn:health:v1",
   "fitvn:checkin:v1",
   "fitvn:meals:v1",
