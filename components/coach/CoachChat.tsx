@@ -14,11 +14,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-import { SendHorizontal, Sparkles, Square, Zap } from 'lucide-react';
+import { SendHorizontal, Sparkles, Square, Trash2, Zap } from 'lucide-react';
 
 import { MessageBubble } from './MessageBubble';
 import { QuickActions } from './QuickActions';
 import { buildLocalCoachContext } from '@/lib/coach/build-context';
+import {
+  clearChatMessages,
+  readChatMessages,
+  writeChatMessages,
+  type StoredChatMessage,
+} from '@/lib/store/coach-chat-store';
 
 /** Empty-state copy shown before the first message. */
 const EMPTY_TITLE = 'Chào bạn!';
@@ -26,16 +32,35 @@ const EMPTY_BODY =
   'Mình là HLV FitVN. Hỏi mình về dinh dưỡng, macro còn lại hôm nay, hay buổi tập của bạn nhé.';
 
 export function CoachChat() {
-  const { messages, sendMessage, status, stop, error } = useChat({
+  const { messages, sendMessage, status, stop, error, setMessages } = useChat({
     transport: new DefaultChatTransport({ api: '/api/coach' }),
   });
 
   const [input, setInput] = useState('');
   const [quick, setQuick] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const loaded = useRef(false);
 
   const isBusy = status === 'submitted' || status === 'streaming';
   const hasMessages = messages.length > 0;
+
+  // Rehydrate the saved conversation once after mount (avoids SSR mismatch).
+  useEffect(() => {
+    const saved = readChatMessages();
+    if (saved.length > 0) {
+      setMessages(saved as unknown as typeof messages);
+    }
+    loaded.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist the conversation whenever it settles (not mid-stream).
+  useEffect(() => {
+    if (!loaded.current || isBusy) return;
+    if (messages.length > 0) {
+      writeChatMessages(messages as unknown as StoredChatMessage[]);
+    }
+  }, [messages, isBusy]);
 
   // Auto-scroll to the newest message / token as the stream grows.
   useEffect(() => {
@@ -44,6 +69,12 @@ export function CoachChat() {
       behavior: 'smooth',
     });
   }, [messages, status]);
+
+  function clearConversation() {
+    if (isBusy) return;
+    setMessages([]);
+    clearChatMessages();
+  }
 
   function send(text: string) {
     // Attach a fresh snapshot of the user's local data so the coach answers
@@ -125,8 +156,20 @@ export function CoachChat() {
         <QuickActions onSend={handleQuickAction} disabled={isBusy} />
       )}
 
-      {/* Quick-analysis (Haiku) toggle */}
-      <div className="flex items-center justify-end">
+      {/* Clear conversation + quick-analysis (Haiku) toggle */}
+      <div className="flex items-center justify-between gap-2">
+        {hasMessages ? (
+          <button
+            type="button"
+            onClick={clearConversation}
+            disabled={isBusy}
+            className="inline-flex items-center gap-1.5 rounded-pill border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-muted transition-colors hover:border-danger/40 hover:text-danger active:scale-95 disabled:opacity-50"
+          >
+            <Trash2 size={14} aria-hidden /> Xóa hội thoại
+          </button>
+        ) : (
+          <span />
+        )}
         <button
           type="button"
           role="switch"
