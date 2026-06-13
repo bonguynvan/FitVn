@@ -192,7 +192,7 @@ export function CoachChat() {
       {/* Composer */}
       <form
         onSubmit={handleSubmit}
-        className="flex items-end gap-2 rounded-card border border-border bg-surface p-2 shadow-card"
+        className="flex items-end gap-2 rounded-card border border-border bg-surface p-2 shadow-card transition-colors focus-within:border-primary"
       >
         <label htmlFor="coach-input" className="sr-only">
           Nhập câu hỏi cho HLV AI
