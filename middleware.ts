@@ -53,6 +53,6 @@ export const config = {
    * extensions, and PWA artifacts (manifest, service worker, workbox runtime).
    */
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|workbox-.*|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|woff|woff2|ttf)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|swe-worker-.*|workbox-.*|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|woff|woff2|ttf)$).*)",
   ],
 };
