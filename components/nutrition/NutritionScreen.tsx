@@ -21,6 +21,7 @@ import {
 import { BrandHero } from "@/components/nav/BrandHero";
 import {
   Card,
+  EmptyState,
   IconBadge,
   Pill,
   ProgressRing,
@@ -358,19 +359,20 @@ export function NutritionScreen() {
           );
         })}
         {foods.length === 0 ? (
-          <Card padding="lg" className="flex flex-col items-center gap-3 border-dashed text-center">
-            <IconBadge tone="primary" size="lg">
-              <UtensilsCrossed size={24} aria-hidden />
-            </IconBadge>
-            <p className="text-sm text-muted">Chưa ghi món nào.</p>
-            <button
-              type="button"
-              onClick={() => setAdding(true)}
-              className="inline-flex items-center gap-2 rounded-btn bg-primary px-4 py-2.5 text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-95"
-            >
-              <Plus size={16} /> Ghi bữa ăn
-            </button>
-          </Card>
+          <EmptyState
+            icon={UtensilsCrossed}
+            title="Chưa ghi món nào"
+            description="Ghi bữa ăn để theo dõi calo, macro và vi chất trong ngày."
+            action={
+              <button
+                type="button"
+                onClick={() => setAdding(true)}
+                className="inline-flex items-center gap-2 rounded-btn bg-primary px-4 py-2.5 text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-95"
+              >
+                <Plus size={16} aria-hidden /> Ghi bữa ăn
+              </button>
+            }
+          />
         ) : null}
       </section>
 

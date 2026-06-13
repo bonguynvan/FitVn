@@ -25,7 +25,7 @@ import { WeeklyWorkouts } from "@/components/progress/WeeklyWorkouts";
 import { MeasurementTrendCard } from "@/components/progress/MeasurementTrend";
 import { HealthMarkers } from "@/components/progress/HealthMarkers";
 import { ShareProgress } from "@/components/progress/ShareProgress";
-import { Card, IconBadge, Pill, SectionHeader, Sparkline, StatTile, Sheet } from "@/components/ui";
+import { Card, EmptyState, IconBadge, Pill, SectionHeader, Sparkline, StatTile, Sheet } from "@/components/ui";
 import { shortDateVi, todayIso } from "@/lib/date";
 import type { Achievement } from "@/lib/fitness/achievements";
 import {
@@ -191,27 +191,20 @@ export function ProgressScreen() {
       </section>
 
       {!hasData ? (
-        <Card
-          padding="lg"
-          className="flex flex-col items-center gap-3 border-dashed text-center"
-        >
-          <IconBadge tone="primary" size="lg">
-            <LineChart size={26} aria-hidden />
-          </IconBadge>
-          <div>
-            <p className="text-base font-bold text-text">Chưa có số đo nào</p>
-            <p className="mt-1 text-sm leading-relaxed text-muted">
-              Ghi cân nặng đầu tiên để FitVN vẽ biểu đồ xu hướng cho bạn.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setAdding(true)}
-            className="inline-flex items-center gap-2 rounded-btn bg-primary px-4 py-2.5 text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-95"
-          >
-            <Plus size={16} aria-hidden /> Ghi số đo
-          </button>
-        </Card>
+        <EmptyState
+          icon={LineChart}
+          title="Chưa có số đo nào"
+          description="Ghi cân nặng đầu tiên để FitVN vẽ biểu đồ xu hướng cho bạn."
+          action={
+            <button
+              type="button"
+              onClick={() => setAdding(true)}
+              className="inline-flex items-center gap-2 rounded-btn bg-primary px-4 py-2.5 text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-95"
+            >
+              <Plus size={16} aria-hidden /> Ghi số đo
+            </button>
+          }
+        />
       ) : (
         <>
           {/* Weight trend */}

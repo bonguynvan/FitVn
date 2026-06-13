@@ -16,6 +16,7 @@ import {
 import { BrandHero } from "@/components/nav/BrandHero";
 import {
   Card,
+  EmptyState,
   IconBadge,
   MiniBarChart,
   Pill,
@@ -233,26 +234,20 @@ export function WorkoutsScreen() {
       ) : (
         <section aria-labelledby="empty-heading" className="flex flex-col gap-3">
           <SectionHeader id="empty-heading">Bắt đầu</SectionHeader>
-          <Card
-            padding="lg"
-            className="flex flex-col items-center gap-3 border-dashed text-center"
-          >
-            <IconBadge tone="primary" size="lg">
-              <Dumbbell size={26} aria-hidden />
-            </IconBadge>
-            <p className="text-sm font-semibold text-text">Chưa có buổi tập nào</p>
-            <p className="max-w-[36ch] text-sm text-muted">
-              Ghi buổi tập đầu tiên để FitVN theo dõi thời lượng, số bài và khối
-              lượng cho bạn.
-            </p>
-            <button
-              type="button"
-              onClick={openBlank}
-              className="inline-flex items-center gap-2 rounded-btn bg-primary px-4 py-2.5 text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-95"
-            >
-              <Plus size={16} /> Ghi buổi tập
-            </button>
-          </Card>
+          <EmptyState
+            icon={Dumbbell}
+            title="Chưa có buổi tập nào"
+            description="Ghi buổi tập đầu tiên để FitVN theo dõi thời lượng, số bài và khối lượng cho bạn."
+            action={
+              <button
+                type="button"
+                onClick={openBlank}
+                className="inline-flex items-center gap-2 rounded-btn bg-primary px-4 py-2.5 text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-95"
+              >
+                <Plus size={16} aria-hidden /> Ghi buổi tập
+              </button>
+            }
+          />
         </section>
       )}
 
