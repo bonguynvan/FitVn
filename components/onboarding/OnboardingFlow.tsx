@@ -46,6 +46,13 @@ export function OnboardingFlow() {
   const set = <K extends keyof UserProfile>(k: K, v: UserProfile[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
+  // Only the first step gates progress (a name personalizes everything).
+  const canContinue = step !== 0 || form.name.trim().length > 0;
+
+  function next() {
+    if (step < STEPS.length - 1 && canContinue) setStep((s) => s + 1);
+  }
+
   function toggleCondition(key: ConditionKey) {
     setForm((f) => {
       const cur = f.conditions ?? [];
@@ -104,9 +111,19 @@ export function OnboardingFlow() {
               type="text"
               value={form.name}
               onChange={(e) => set("name", e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  next();
+                }
+              }}
+              autoFocus
               placeholder="Tên của bạn"
               className="w-full rounded-btn border border-border bg-surface px-4 py-3 text-base text-text outline-none placeholder:text-muted focus:border-primary"
             />
+            <span className="text-[11px] text-muted">
+              FitVN dùng tên này để cá nhân hoá lời khuyên của bạn.
+            </span>
           </label>
         </div>
       ) : null}
@@ -177,21 +194,7 @@ export function OnboardingFlow() {
               ))}
             </div>
           </Field>
-          <Card raised padding="lg" className="flex items-center gap-4">
-            <IconBadge tone="primary" size="md">
-              <Flame size={20} aria-hidden />
-            </IconBadge>
-            <div>
-              <p className="text-sm text-muted">Mục tiêu hằng ngày</p>
-              <p className="text-2xl font-extrabold text-text">
-                {fmt(targets.calories)}{" "}
-                <span className="text-base font-semibold text-muted">kcal</span>
-              </p>
-              <p className="text-xs text-muted">
-                Đạm {targets.proteinG}g · Tinh bột {targets.carbsG}g · Béo {targets.fatG}g
-              </p>
-            </div>
-          </Card>
+          <TargetSummaryCard targets={targets} />
         </div>
       ) : null}
 
@@ -227,6 +230,8 @@ export function OnboardingFlow() {
               );
             })}
           </div>
+          {/* Payoff: the personalized target the user is about to start with. */}
+          <TargetSummaryCard targets={targets} />
         </div>
       ) : null}
 
@@ -252,8 +257,9 @@ export function OnboardingFlow() {
         {step < STEPS.length - 1 ? (
           <button
             type="button"
-            onClick={() => setStep((s) => s + 1)}
-            className="inline-flex h-12 flex-1 items-center justify-center gap-1.5 rounded-btn bg-primary text-sm font-semibold text-primary-fg shadow-glow active:scale-[0.98]"
+            onClick={next}
+            disabled={!canContinue}
+            className="inline-flex h-12 flex-1 items-center justify-center gap-1.5 rounded-btn bg-primary text-sm font-semibold text-primary-fg shadow-glow transition-transform active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Tiếp tục <ArrowRight size={16} />
           </button>
@@ -268,6 +274,30 @@ export function OnboardingFlow() {
         )}
       </div>
     </main>
+  );
+}
+
+function TargetSummaryCard({
+  targets,
+}: {
+  targets: ReturnType<typeof computeTargets>;
+}) {
+  return (
+    <Card raised padding="lg" className="flex items-center gap-4">
+      <IconBadge tone="primary" size="md">
+        <Flame size={20} aria-hidden />
+      </IconBadge>
+      <div>
+        <p className="text-sm text-muted">Mục tiêu hằng ngày</p>
+        <p className="text-2xl font-extrabold text-text">
+          {fmt(targets.calories)}{" "}
+          <span className="text-base font-semibold text-muted">kcal</span>
+        </p>
+        <p className="text-xs text-muted">
+          Đạm {targets.proteinG}g · Tinh bột {targets.carbsG}g · Béo {targets.fatG}g
+        </p>
+      </div>
+    </Card>
   );
 }
 
