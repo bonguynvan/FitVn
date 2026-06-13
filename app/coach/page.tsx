@@ -20,7 +20,9 @@ export const metadata: Metadata = {
  */
 export default function CoachPage() {
   return (
-    <main className="flex flex-1 flex-col gap-4 pb-safe pt-safe">
+    // Bound to the viewport (minus the fixed bottom nav) so the chat scrolls
+    // internally and the composer stays pinned, instead of growing the page.
+    <main className="flex h-[calc(100dvh_-_72px_-_env(safe-area-inset-bottom))] flex-col gap-4 pt-safe">
       <BrandHero
         eyebrow="Huấn luyện viên AI"
         title="HLV FitVN"

@@ -14,7 +14,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-import { SendHorizontal, Sparkles, Square, Trash2, Zap } from 'lucide-react';
+import { ArrowDown, SendHorizontal, Sparkles, Square, Trash2, Zap } from 'lucide-react';
 
 import { MessageBubble } from './MessageBubble';
 import { QuickActions } from './QuickActions';
@@ -38,8 +38,11 @@ export function CoachChat() {
 
   const [input, setInput] = useState('');
   const [quick, setQuick] = useState(false);
+  const [showJump, setShowJump] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const loaded = useRef(false);
+  // Pinned-to-bottom state (ref keeps the auto-scroll effect deps stable).
+  const atBottomRef = useRef(true);
 
   const isBusy = status === 'submitted' || status === 'streaming';
   const hasMessages = messages.length > 0;
@@ -62,16 +65,32 @@ export function CoachChat() {
     }
   }, [messages, isBusy]);
 
-  // Auto-scroll to the newest message / token as the stream grows. Honor the
-  // user's reduced-motion preference (instant jump instead of smooth scroll).
+  // Auto-scroll as the stream grows — only when already pinned to the bottom, so
+  // a user reading scrollback isn't yanked down.
   useEffect(() => {
+    if (atBottomRef.current) scrollToBottom();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, status]);
+
+  function scrollToBottom(smooth = true) {
     const el = scrollRef.current;
     if (!el) return;
     const reduce =
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    el.scrollTo({ top: el.scrollHeight, behavior: reduce ? 'auto' : 'smooth' });
-  }, [messages, status]);
+    el.scrollTo({ top: el.scrollHeight, behavior: reduce || !smooth ? 'auto' : 'smooth' });
+    atBottomRef.current = true;
+    setShowJump(false);
+  }
+
+  function onScroll() {
+    const el = scrollRef.current;
+    if (!el) return;
+    const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const bottom = distance < 80;
+    atBottomRef.current = bottom;
+    setShowJump(!bottom && messages.length > 0);
+  }
 
   function clearConversation() {
     if (isBusy) return;
@@ -80,6 +99,8 @@ export function CoachChat() {
   }
 
   function send(text: string) {
+    // Sending returns the user to the bottom to follow the new reply.
+    atBottomRef.current = true;
     // Attach a fresh snapshot of the user's local data so the coach answers
     // with real numbers (the server is stateless / local-first). `preset`
     // selects the model: quick → Haiku (cheap/fast), default → Sonnet.
@@ -108,11 +129,13 @@ export function CoachChat() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-3 overflow-hidden">
-      {/* Scrollable conversation area */}
+    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+      {/* Scrollable conversation area (relative for the jump-to-bottom button) */}
+      <div className="relative flex min-h-0 flex-1 flex-col">
       <div
         ref={scrollRef}
-        className="flex flex-1 flex-col gap-3 overflow-y-auto rounded-card bg-bg/40 p-1"
+        onScroll={onScroll}
+        className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto rounded-card bg-bg/40 p-1"
         aria-live="polite"
         aria-label="Cuộc trò chuyện với HLV AI"
       >
@@ -152,6 +175,19 @@ export function CoachChat() {
             Đã có lỗi xảy ra. Vui lòng thử gửi lại tin nhắn.
           </div>
         )}
+      </div>
+
+        {/* Jump to latest — shown when scrolled up in a long thread */}
+        {showJump ? (
+          <button
+            type="button"
+            onClick={() => scrollToBottom()}
+            aria-label="Cuộn xuống tin nhắn mới nhất"
+            className="absolute bottom-3 right-3 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-text shadow-raised transition-transform active:scale-95"
+          >
+            <ArrowDown size={18} aria-hidden />
+          </button>
+        ) : null}
       </div>
 
       {/* Quick actions — only before the conversation starts */}
