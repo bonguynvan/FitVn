@@ -38,6 +38,13 @@ function suggestProteinFoods(gapG: number): string[] {
 
 const bullets = (items: string[]) => items.map((s) => `• ${s}`).join("\n");
 
+/** Celebratory line for a recent strength PR, or null when there's none. */
+function prLine(ctx: CoachContext): string | null {
+  const pr = ctx.recentPr;
+  if (!pr) return null;
+  return `Kỷ lục mới tuần này: ${pr.name} (1RM ước tính ~${pr.oneRepMaxKg}kg). Tuyệt vời!`;
+}
+
 function summary(ctx: CoachContext): string {
   const { today, profile } = ctx;
   const name = profile.fullName ? ` ${profile.fullName}` : "";
@@ -64,6 +71,8 @@ function summary(ctx: CoachContext): string {
   if (ctx.conditions && ctx.conditions.length > 0) {
     lines.push(`• Lưu ý sức khỏe: ${ctx.conditions.join(" · ")}`);
   }
+  const pr = prLine(ctx);
+  if (pr) lines.push(`• ${pr}`);
   const ci = ctx.checkin;
   if (ci && ((ci.sleepHours != null && ci.sleepHours < 6) || (ci.energy != null && ci.energy <= 2))) {
     lines.push(
@@ -186,6 +195,8 @@ function workoutAdvice(ctx: CoachContext): string {
   } else {
     lines.push(`Tuần qua bạn tập ${daysTrained}/7 ngày.`);
   }
+  const pr = prLine(ctx);
+  if (pr) lines.push(pr);
   lines.push(
     daysTrained >= 3
       ? "Tần suất ổn — giữ đều và tăng tải từ từ (progressive overload)."
@@ -222,6 +233,8 @@ function weeklyReview(ctx: CoachContext): string {
     lines.push(
       `• Tập luyện: ${wk.daysTrained}/7 ngày, ${wk.totalSessions} buổi, khối lượng ${wk.totalVolumeKg} kg.`,
     );
+    const pr = prLine(ctx);
+    if (pr) lines.push(`• ${pr}`);
   } else {
     lines.push("• Tập luyện: chưa ghi buổi nào tuần này.");
   }

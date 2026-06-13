@@ -180,6 +180,11 @@ export interface CoachContext {
   readonly goutMode?: boolean;
   /** Active health-condition focus lines (e.g. "Huyết áp cao: ăn nhạt…"). */
   readonly conditions?: readonly string[];
+  /** Best estimated-1RM PR set in the last 7 days, if any (client-built). */
+  readonly recentPr?: {
+    readonly name: string;
+    readonly oneRepMaxKg: number;
+  } | null;
   /** Today's wellbeing check-in (optional; client-built). */
   readonly checkin?: {
     readonly mood: number | null;

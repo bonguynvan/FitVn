@@ -57,7 +57,7 @@ function bestOneRepMaxFor(sessions: readonly WorkoutSession[], key: string): num
 }
 
 /** Best genuine 1RM PR (beats a prior all-time best) set within the last 7 days. */
-function bestWeeklyPr(
+export function bestWeeklyPr(
   sessions: readonly WorkoutSession[],
   today: string,
 ): { name: string; oneRepMax: number } | null {

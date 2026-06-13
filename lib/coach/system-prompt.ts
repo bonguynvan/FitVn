@@ -228,6 +228,12 @@ export function buildSystemPrompt(ctx: CoachContext): string {
     '',
     renderHistory(ctx.history7d),
     ...(weekly ? ['', weekly] : []),
+    ...(ctx.recentPr
+      ? [
+          '',
+          `KỶ LỤC TUẦN NÀY: ${ctx.recentPr.name} — 1RM ước tính ${ctx.recentPr.oneRepMaxKg}kg (kỷ lục mới trong 7 ngày qua, hãy chúc mừng người dùng khi phù hợp).`,
+        ]
+      : []),
     ...(markers ? ['', markers] : []),
     ...(ctx.checkin && (ctx.checkin.mood || ctx.checkin.energy || ctx.checkin.sleepHours)
       ? [

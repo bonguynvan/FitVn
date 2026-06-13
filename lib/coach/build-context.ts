@@ -20,6 +20,7 @@ import {
 import { conditionFocuses, sodiumLimitFor } from "@/lib/health/conditions";
 import { computeWeeklyNutrition } from "@/lib/fitness/nutrition-insights";
 import { computeWeeklyWorkouts } from "@/lib/fitness/workout-insights";
+import { bestWeeklyPr } from "@/lib/fitness/weekly-recap";
 import { MARKERS, MARKER_ORDER } from "@/lib/health/markers";
 import type { HealthReading } from "@/lib/store/health-store";
 import { latestByMarker } from "@/lib/store/health-store";
@@ -149,6 +150,7 @@ export function buildLocalCoachContext(): CoachContext {
     goutMode,
   });
   const ww = computeWeeklyWorkouts(today, workouts);
+  const weeklyPr = bestWeeklyPr(workouts, today);
 
   // Latest health markers with evaluated status.
   const sex = profile?.sex ?? "male";
@@ -219,6 +221,9 @@ export function buildLocalCoachContext(): CoachContext {
     markers,
     goutMode,
     conditions: conditionFocuses(profile?.conditions),
+    recentPr: weeklyPr
+      ? { name: weeklyPr.name, oneRepMaxKg: weeklyPr.oneRepMax }
+      : null,
     checkin:
       readLocal<Record<string, { mood: number | null; energy: number | null; sleepHours: number | null }>>(
         CHECKIN_KEY,
