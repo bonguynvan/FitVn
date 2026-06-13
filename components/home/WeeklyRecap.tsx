@@ -8,6 +8,7 @@ import {
   Dumbbell,
   Salad,
   Target,
+  Trophy,
   Weight,
 } from "lucide-react";
 
@@ -94,8 +95,13 @@ export function WeeklyRecap() {
           />
         </div>
 
-        {(recap.weightDeltaKg != null || recap.topExercise) ? (
+        {(recap.weightDeltaKg != null || recap.topExercise || recap.bestPr) ? (
           <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
+            {recap.bestPr ? (
+              <Pill tone="primary" icon={<Trophy size={14} aria-hidden />}>
+                PR {recap.bestPr.name} {fmt(recap.bestPr.oneRepMax)}kg
+              </Pill>
+            ) : null}
             {recap.weightDeltaKg != null ? (
               <Pill
                 tone={weightDown ? "success" : "muted"}
