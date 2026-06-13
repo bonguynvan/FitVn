@@ -9,6 +9,7 @@ import { RemindersBanner } from "@/components/home/RemindersBanner";
 import { DailyCheckIn } from "@/components/home/DailyCheckIn";
 import { ProfileNudge } from "@/components/home/ProfileNudge";
 import { TodayDashboard } from "@/components/home/TodayDashboard";
+import { WeeklyRecap } from "@/components/home/WeeklyRecap";
 import { PushManager } from "@/components/pwa/PushManager";
 import { IconBadge, SectionHeader } from "@/components/ui";
 
@@ -71,6 +72,9 @@ export default async function HomePage() {
 
       {/* Today — reactive to locally-logged data */}
       <TodayDashboard />
+
+      {/* This week — 7-day recap of training, nutrition, weight */}
+      <WeeklyRecap />
 
       {/* Daily wellbeing check-in */}
       <DailyCheckIn />
