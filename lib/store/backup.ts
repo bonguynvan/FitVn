@@ -17,6 +17,7 @@ export const DATA_KEYS = [
   "fitvn:checkin:v1",
   "fitvn:meals:v1",
   "fitvn:reminders:v1",
+  "fitvn:achievements:seen:v1",
 ] as const;
 
 /** Snapshot all local user data into a plain object (skips unset keys). */

@@ -4,6 +4,7 @@ import "./globals.css";
 import { BottomNav } from "@/components/nav/BottomNav";
 import { PwaShell } from "@/components/pwa/PwaShell";
 import { SyncManager } from "@/components/sync/SyncManager";
+import { AchievementCelebration } from "@/components/achievements/AchievementCelebration";
 
 /**
  * Be Vietnam Pro — a warm humanist sans designed for Vietnamese, used app-wide
@@ -73,6 +74,8 @@ export default function RootLayout({
         <PwaShell />
         {/* App-wide cloud auto-sync: pull on a fresh device, debounce-push edits. */}
         <SyncManager />
+        {/* Celebrate newly-earned achievements with a toast + confetti. */}
+        <AchievementCelebration />
       </body>
     </html>
   );
