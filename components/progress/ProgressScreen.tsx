@@ -22,6 +22,7 @@ import {
 import { BrandHero } from "@/components/nav/BrandHero";
 import { WeeklyNutrition } from "@/components/progress/WeeklyNutrition";
 import { WeeklyWorkouts } from "@/components/progress/WeeklyWorkouts";
+import { MeasurementTrendCard } from "@/components/progress/MeasurementTrend";
 import { HealthMarkers } from "@/components/progress/HealthMarkers";
 import { ShareProgress } from "@/components/progress/ShareProgress";
 import { Card, IconBadge, Pill, SectionHeader, Sparkline, StatTile, Sheet } from "@/components/ui";
@@ -69,6 +70,23 @@ export function ProgressScreen() {
     () => measurements.map((m) => m.weightKg),
     [measurements],
   );
+
+  // Optional-metric series (only entries where the value was recorded).
+  const bodyFatSeries = useMemo(
+    () =>
+      measurements
+        .filter((m) => m.bodyFatPct != null)
+        .map((m) => ({ date: m.measuredOn, value: m.bodyFatPct as number })),
+    [measurements],
+  );
+  const waistSeries = useMemo(
+    () =>
+      measurements
+        .filter((m) => m.waistCm != null)
+        .map((m) => ({ date: m.measuredOn, value: m.waistCm as number })),
+    [measurements],
+  );
+  const hasMetricTrend = bodyFatSeries.length >= 2 || waistSeries.length >= 2;
 
   // Delta vs the first ever entry; negative = weight lost (the desired direction).
   const delta = latest && first ? latest.weightKg - first.weightKg : 0;
@@ -265,6 +283,25 @@ export function ProgressScreen() {
               ) : null}
             </Card>
           </section>
+
+          {/* Body-composition trends (fat % / waist) — only when there's history */}
+          {hasMetricTrend ? (
+            <section aria-labelledby="metric-trend-heading" className="flex flex-col gap-3">
+              <SectionHeader id="metric-trend-heading">Xu hướng số đo</SectionHeader>
+              <MeasurementTrendCard
+                title="Tỷ lệ mỡ"
+                unit="%"
+                icon={HeartPulse}
+                points={bodyFatSeries}
+              />
+              <MeasurementTrendCard
+                title="Vòng eo"
+                unit="cm"
+                icon={Ruler}
+                points={waistSeries}
+              />
+            </section>
+          ) : null}
 
           {/* Latest values — bento */}
           <section aria-labelledby="measure-heading" className="flex flex-col gap-3">
