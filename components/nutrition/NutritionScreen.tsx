@@ -35,6 +35,7 @@ import { FOOD_GROUPS, type FoodItem } from "@/lib/data/foods-db";
 import { round1, scaleFood } from "@/lib/nutrition/scale";
 import { defaultMealByHour } from "@/lib/nutrition/meal-time";
 import { SavedMeals } from "@/components/nutrition/SavedMeals";
+import { QuickAdd } from "@/components/nutrition/QuickAdd";
 import { addCustomFood, useAllFoods, useRecentFoods } from "@/lib/store/food-store";
 import {
   CALCIUM_TARGET_MG,
@@ -333,6 +334,9 @@ export function NutritionScreen() {
           </div>
         </Card>
       </section>
+
+      {/* Quick-add — one-tap re-log of frequent foods (today only) */}
+      {isToday ? <QuickAdd dateIso={dateIso} /> : null}
 
       {/* Saved meals — one-tap logging + builder */}
       <SavedMeals dateIso={dateIso} />
