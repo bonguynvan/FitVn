@@ -13,6 +13,9 @@
  */
 
 import fctFoods from "./fct-foods.json";
+import { FOOD_GROUPS, type FoodGroup } from "./food-groups";
+
+export { FOOD_GROUPS, type FoodGroup };
 
 export interface FoodNutrients {
   /** kcal per 100 g edible */
@@ -41,26 +44,6 @@ export interface FoodItem {
   serving: { unit: string; grams: number };
   custom?: boolean;
 }
-
-/** FCT food groups, in display order. Used for browsing the database. */
-export const FOOD_GROUPS = [
-  "Ngũ cốc",
-  "Khoai củ",
-  "Đậu & hạt",
-  "Rau",
-  "Trái cây",
-  "Thịt",
-  "Thủy sản",
-  "Trứng",
-  "Sữa",
-  "Dầu mỡ",
-  "Đường & bánh kẹo",
-  "Gia vị",
-  "Đồ uống",
-  "Món ăn",
-] as const;
-
-export type FoodGroup = (typeof FOOD_GROUPS)[number];
 
 type Row = [
   id: string,

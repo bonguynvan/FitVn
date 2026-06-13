@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { newId, updateLocal, useLocalValue } from "./local-store";
-import { FOODS, type FoodItem } from "@/lib/data/foods-db";
+import type { FoodItem } from "@/lib/data/foods-db";
 import { loadFoodLibrary } from "@/lib/data/food-repository";
 import type { LoggedFood } from "./types";
 
@@ -35,7 +35,10 @@ export function removeCustomFood(id: string): void {
  * never waits on the network and works fully offline.
  */
 export function useLibraryFoods(): FoodItem[] {
-  const [library, setLibrary] = useState<FoodItem[]>(FOODS as FoodItem[]);
+  // Starts empty; the bundled catalog (~126 KB) is loaded lazily after mount via
+  // a dynamic import inside loadFoodLibrary, so it stays out of the initial
+  // nutrition bundle. The picker lives in a sheet, so data is ready by open.
+  const [library, setLibrary] = useState<FoodItem[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -44,7 +47,7 @@ export function useLibraryFoods(): FoodItem[] {
         if (active && foods.length > 0) setLibrary(foods);
       })
       .catch(() => {
-        /* keep the bundled fallback already in state */
+        /* leave empty — search simply shows no results until retry */
       });
     return () => {
       active = false;

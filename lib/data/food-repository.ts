@@ -17,7 +17,13 @@
  * read path. User-created custom foods remain in localStorage.
  */
 
-import { FOODS, type FoodItem } from "./foods-db";
+import type { FoodItem } from "./foods-db";
+
+/** Lazily load the bundled catalog so it isn't in the initial page bundle. */
+async function bundledFoods(): Promise<ReadonlyArray<FoodItem>> {
+  const { FOODS } = await import("./foods-db");
+  return FOODS;
+}
 import { getDb, type CachedLibraryFood } from "@/lib/db/dexie";
 import { createClient } from "@/lib/supabase/client";
 import type { Food } from "@/types/database.types";
@@ -122,9 +128,9 @@ export async function refreshFoodLibrary(): Promise<FoodItem[] | null> {
  * Remote refresh is the caller's job (see loadFoodLibrary) so this stays fast.
  */
 export async function getLibrary(): Promise<FoodItem[]> {
-  const cached = await readCache();
+  const [cached, bundled] = await Promise.all([readCache(), bundledFoods()]);
   // Cache first (it's the freshest remote snapshot), then bundle fills gaps.
-  return dedupeById([...cached, ...FOODS]);
+  return dedupeById([...cached, ...bundled]);
 }
 
 /**
@@ -134,6 +140,8 @@ export async function getLibrary(): Promise<FoodItem[]> {
  */
 export async function loadFoodLibrary(): Promise<FoodItem[]> {
   const remote = await refreshFoodLibrary();
-  if (remote && remote.length > 0) return dedupeById([...remote, ...FOODS]);
+  if (remote && remote.length > 0) {
+    return dedupeById([...remote, ...(await bundledFoods())]);
+  }
   return getLibrary();
 }

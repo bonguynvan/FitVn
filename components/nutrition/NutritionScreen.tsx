@@ -32,7 +32,8 @@ import {
   Toggle,
   type SegmentOption,
 } from "@/components/ui";
-import { FOOD_GROUPS, type FoodItem } from "@/lib/data/foods-db";
+import { FOOD_GROUPS } from "@/lib/data/food-groups";
+import type { FoodItem } from "@/lib/data/foods-db";
 import { round1, scaleFood } from "@/lib/nutrition/scale";
 import { defaultMealByHour } from "@/lib/nutrition/meal-time";
 import { SavedMeals } from "@/components/nutrition/SavedMeals";
