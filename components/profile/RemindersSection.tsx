@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Bell, Droplet, HeartPulse, Scale, UtensilsCrossed } from "lucide-react";
 
-import { Card, IconBadge, SectionHeader, Toggle } from "@/components/ui";
+import { Card, IconBadge, Toggle } from "@/components/ui";
 import { setReminder, useReminderSettings } from "@/lib/store/reminders-store";
 
 /** Reminder preferences + device-notification opt-in (Profile screen). */
@@ -31,8 +31,7 @@ export function RemindersSection() {
     "rounded-btn border border-border bg-surface px-3 py-2 text-sm font-semibold text-text outline-none focus:border-primary";
 
   return (
-    <section className="flex flex-col gap-3">
-      <SectionHeader>Nhắc nhở</SectionHeader>
+    <div className="flex flex-col gap-3">
       <Card padding="md" className="flex flex-col gap-1 divide-y divide-border">
         <Row
           icon={<Droplet size={18} aria-hidden />}
@@ -139,7 +138,7 @@ export function RemindersSection() {
           </button>
         )
       ) : null}
-    </section>
+    </div>
   );
 }
 

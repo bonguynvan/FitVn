@@ -3,7 +3,6 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { AlertTriangle, CloudDownload, CloudUpload, Download, Trash2, Upload } from "lucide-react";
 
-import { SectionHeader } from "@/components/ui";
 import { clearAllData, downloadBackup, importBackup } from "@/lib/store/backup";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { pullFromCloud, pushToCloud } from "@/lib/sync/cloud";
@@ -71,9 +70,7 @@ export function DataSection() {
   }
 
   return (
-    <section className="flex flex-col gap-3">
-      <SectionHeader>Dữ liệu</SectionHeader>
-
+    <div className="flex flex-col gap-3">
       <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
@@ -161,6 +158,6 @@ export function DataSection() {
           ? "Dữ liệu tự động đồng bộ lên đám mây khi bạn đăng nhập. Dùng nút trên để sao lưu hoặc khôi phục thủ công, hoặc xuất tệp để giữ bản dự phòng."
           : "Dữ liệu được lưu trên thiết bị này. Hãy xuất tệp sao lưu định kỳ để tránh mất dữ liệu."}
       </p>
-    </section>
+    </div>
   );
 }

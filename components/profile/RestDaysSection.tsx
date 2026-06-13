@@ -2,7 +2,7 @@
 
 import { CalendarOff } from "lucide-react";
 
-import { Card, SectionHeader } from "@/components/ui";
+import { Card } from "@/components/ui";
 import { toggleRestDay, useRestDays } from "@/lib/store/preferences-store";
 
 /** Weekday labels indexed by JS getDay (0=Sun … 6=Sat). */
@@ -22,9 +22,7 @@ export function RestDaysSection() {
   const restSet = new Set(restDays);
 
   return (
-    <section className="flex flex-col gap-3">
-      <SectionHeader>Ngày nghỉ</SectionHeader>
-      <Card padding="md" className="flex flex-col gap-3">
+    <Card padding="md" className="flex flex-col gap-3">
         <div className="flex items-start gap-3">
           <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-btn bg-primary/10 text-primary">
             <CalendarOff size={18} aria-hidden />
@@ -54,7 +52,6 @@ export function RestDaysSection() {
             );
           })}
         </div>
-      </Card>
-    </section>
+    </Card>
   );
 }

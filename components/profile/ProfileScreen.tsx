@@ -1,11 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Flame, LogOut } from "lucide-react";
+import {
+  Bell,
+  CalendarOff,
+  Check,
+  Database,
+  Flame,
+  LogOut,
+  UserCircle,
+} from "lucide-react";
 
 import { logout } from "@/app/login/actions";
 import { BrandHero } from "@/components/nav/BrandHero";
-import { Card, IconBadge, SectionHeader, Toggle } from "@/components/ui";
+import { Card, CollapsibleSection, IconBadge, Toggle } from "@/components/ui";
 import {
   ACTIVITY_OPTIONS,
   GOAL_OPTIONS,
@@ -163,7 +171,12 @@ export function ProfileScreen() {
       </Card>
 
       {/* Form */}
-      <section className="flex flex-col gap-4">
+      <CollapsibleSection
+        title="Thông tin & mục tiêu"
+        icon={<UserCircle size={16} aria-hidden />}
+        defaultOpen
+      >
+        <div className="flex flex-col gap-4">
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-semibold text-text">Tên hiển thị</span>
           <input
@@ -325,20 +338,26 @@ export function ProfileScreen() {
             "Lưu hồ sơ"
           )}
         </button>
-      </section>
+        </div>
+      </CollapsibleSection>
 
       {/* Reminders */}
-      <RemindersSection />
+      <CollapsibleSection title="Nhắc nhở" icon={<Bell size={16} aria-hidden />}>
+        <RemindersSection />
+      </CollapsibleSection>
 
       {/* Planned rest days (protect the workout streak) */}
-      <RestDaysSection />
+      <CollapsibleSection title="Ngày nghỉ" icon={<CalendarOff size={16} aria-hidden />}>
+        <RestDaysSection />
+      </CollapsibleSection>
 
       {/* Data backup */}
-      <DataSection />
+      <CollapsibleSection title="Dữ liệu" icon={<Database size={16} aria-hidden />}>
+        <DataSection />
+      </CollapsibleSection>
 
       {/* Account */}
-      <section className="flex flex-col gap-3">
-        <SectionHeader>Tài khoản</SectionHeader>
+      <CollapsibleSection title="Tài khoản" icon={<LogOut size={16} aria-hidden />}>
         <form action={logout}>
           <button
             type="submit"
@@ -348,7 +367,7 @@ export function ProfileScreen() {
             Đăng xuất
           </button>
         </form>
-      </section>
+      </CollapsibleSection>
     </main>
   );
 }
