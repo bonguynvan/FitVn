@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 
 import { IconBadge } from "./IconBadge";
@@ -25,6 +25,18 @@ export function CollapsibleSection({
   children,
 }: CollapsibleSectionProps) {
   const [open, setOpen] = useState(defaultOpen);
+  const bodyId = useId();
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  // Keep the collapsed body out of the tab order + a11y tree (without using
+  // display:none, which would break the height animation). `inert` is toggled
+  // imperatively to avoid React-version attribute-typing differences.
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    if (open) el.removeAttribute("inert");
+    else el.setAttribute("inert", "");
+  }, [open]);
 
   return (
     <section className="flex flex-col">
@@ -32,6 +44,7 @@ export function CollapsibleSection({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
+        aria-controls={bodyId}
         className="flex items-center justify-between gap-3 rounded-btn px-1 py-1.5 text-left transition-colors hover:bg-surface-raised/60"
       >
         <span className="flex min-w-0 items-center gap-2.5">
@@ -54,6 +67,9 @@ export function CollapsibleSection({
       </button>
 
       <div
+        ref={bodyRef}
+        id={bodyId}
+        role="region"
         className={`grid transition-[grid-template-rows] duration-300 ease-out ${
           open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
         }`}

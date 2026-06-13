@@ -62,12 +62,15 @@ export function CoachChat() {
     }
   }, [messages, isBusy]);
 
-  // Auto-scroll to the newest message / token as the stream grows.
+  // Auto-scroll to the newest message / token as the stream grows. Honor the
+  // user's reduced-motion preference (instant jump instead of smooth scroll).
   useEffect(() => {
-    scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
-      behavior: 'smooth',
-    });
+    const el = scrollRef.current;
+    if (!el) return;
+    const reduce =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    el.scrollTo({ top: el.scrollHeight, behavior: reduce ? 'auto' : 'smooth' });
   }, [messages, status]);
 
   function clearConversation() {

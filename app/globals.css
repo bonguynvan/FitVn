@@ -220,10 +220,18 @@
   }
 }
 
+/*
+ * Respect the user's reduced-motion preference globally: neutralize animations,
+ * transitions, and smooth scrolling everywhere (keeps animationend events firing
+ * via a near-zero duration rather than removing them outright).
+ */
 @media (prefers-reduced-motion: reduce) {
-  .animate-sheet-up,
-  .animate-pop-in,
-  .confetti-piece {
-    animation: none;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
