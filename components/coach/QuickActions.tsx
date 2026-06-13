@@ -17,6 +17,7 @@ import {
   Compass,
   Dumbbell,
   Timer,
+  Trophy,
   UtensilsCrossed,
   type LucideIcon,
 } from 'lucide-react';
@@ -32,6 +33,11 @@ const QUICK_ACTIONS: ReadonlyArray<QuickAction> = [
     icon: CalendarCheck,
     label: 'Tổng kết tuần',
     prompt: 'Tổng kết tuần của tôi: dinh dưỡng và tập luyện, kèm đề xuất.',
+  },
+  {
+    icon: Trophy,
+    label: 'Kỷ lục của tôi',
+    prompt: 'Tôi có kỷ lục (PR) nào gần đây không? Cho tôi lời khuyên để mạnh hơn.',
   },
   {
     icon: Dumbbell,

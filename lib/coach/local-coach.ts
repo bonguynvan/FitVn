@@ -205,6 +205,30 @@ function workoutAdvice(ctx: CoachContext): string {
   return lines.join("\n");
 }
 
+/** Strength-focused reply: celebrate a recent PR + progressive-overload nudge. */
+function strengthAdvice(ctx: CoachContext): string {
+  const lines: string[] = [];
+  const pr = prLine(ctx);
+  if (pr) {
+    lines.push(pr);
+  } else {
+    lines.push(
+      "Tuần này chưa có kỷ lục 1RM mới. Thử tăng nhẹ mức tạ hoặc thêm 1 rep ở bài chính để phá kỷ lục nhé.",
+    );
+  }
+  const wk = ctx.weekly;
+  if (wk && wk.totalSessions > 0) {
+    lines.push(
+      `Tuần qua: ${wk.daysTrained}/7 ngày, ${wk.totalSessions} buổi, khối lượng ${wk.totalVolumeKg} kg.`,
+    );
+    if (wk.topExercise) lines.push(`Bài tập nhiều nhất: ${wk.topExercise}.`);
+  }
+  lines.push(
+    "Để mạnh hơn đều đặn: tăng tải từ từ (progressive overload), ngủ đủ 7–8 giờ và đủ đạm mỗi ngày.",
+  );
+  return lines.join("\n");
+}
+
 /** A data-backed weekly review across nutrition + training. */
 function weeklyReview(ctx: CoachContext): string {
   const wk = ctx.weekly;
@@ -328,6 +352,8 @@ export function generateLocalReply(ctx: CoachContext, userText: string): string 
     body = periWorkoutAdvice();
   else if (has("nhận xét", "tuần", "tổng kết", "review", "đánh giá"))
     body = weeklyReview(ctx);
+  else if (has("kỷ lục", "ky luc", "1rm", "sức mạnh", "mạnh hơn", "khỏe hơn"))
+    body = strengthAdvice(ctx);
   else if (has("giảm cân", "giảm mỡ", "tăng cân", "tăng cơ", "lên cân", "xuống cân"))
     body = goalAdvice(ctx);
   else if (has("nên làm gì", "ưu tiên", "lời khuyên", "khuyên", "focus", "tập trung", "hôm nay nên"))
