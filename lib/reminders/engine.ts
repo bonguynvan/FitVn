@@ -10,7 +10,7 @@
 
 import type { ReminderSettings } from "@/lib/store/reminders-store";
 
-export type ReminderKey = "water" | "mealLog" | "markerRecheck";
+export type ReminderKey = "water" | "mealLog" | "markerRecheck" | "measurement";
 
 export interface DueReminder {
   key: ReminderKey;
@@ -31,6 +31,8 @@ export interface ReminderInput {
   mealsToday: number;
   /** Most recent health-marker date (yyyy-mm-dd) or null if none logged. */
   lastMarkerIso: string | null;
+  /** Most recent body-measurement date (yyyy-mm-dd) or null if none logged. */
+  lastMeasurementIso: string | null;
   /** Reminder keys already dismissed today. */
   dismissed: ReadonlyArray<string>;
 }
@@ -42,8 +44,17 @@ function daysBetween(fromIso: string, toIso: string): number {
 }
 
 export function computeDueReminders(input: ReminderInput): DueReminder[] {
-  const { settings, nowHHMM, todayIso, waterCups, waterGoal, mealsToday, lastMarkerIso, dismissed } =
-    input;
+  const {
+    settings,
+    nowHHMM,
+    todayIso,
+    waterCups,
+    waterGoal,
+    mealsToday,
+    lastMarkerIso,
+    lastMeasurementIso,
+    dismissed,
+  } = input;
   const due: DueReminder[] = [];
   const isDismissed = (k: ReminderKey) => dismissed.includes(k);
 
@@ -86,6 +97,22 @@ export function computeDueReminders(input: ReminderInput): DueReminder[] {
         body: lastMarkerIso
           ? `Đã ${daysBetween(lastMarkerIso, todayIso)} ngày kể từ lần đo gần nhất.`
           : "Bạn chưa ghi chỉ số nào — hãy đo và theo dõi.",
+        href: "/progress",
+      });
+    }
+  }
+
+  if (settings.measurement.enabled && !isDismissed("measurement")) {
+    const overdue =
+      lastMeasurementIso == null ||
+      daysBetween(lastMeasurementIso, todayIso) >= settings.measurement.everyDays;
+    if (overdue) {
+      due.push({
+        key: "measurement",
+        title: "Cập nhật số đo cơ thể",
+        body: lastMeasurementIso
+          ? `Đã ${daysBetween(lastMeasurementIso, todayIso)} ngày kể từ lần cân gần nhất.`
+          : "Bạn chưa ghi số đo nào — hãy cân để theo dõi tiến độ.",
         href: "/progress",
       });
     }

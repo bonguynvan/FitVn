@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronRight, Droplet, HeartPulse, UtensilsCrossed, X } from "lucide-react";
+import { ChevronRight, Droplet, HeartPulse, Scale, UtensilsCrossed, X } from "lucide-react";
 
 import { Card, IconBadge, SectionHeader } from "@/components/ui";
 import { todayIso } from "@/lib/date";
@@ -15,11 +15,13 @@ import {
 import { useDayFoods, useWater } from "@/lib/store/nutrition-store";
 import { useWaterGoal } from "@/lib/store/preferences-store";
 import { useHealthReadings } from "@/lib/store/health-store";
+import { useMeasurements } from "@/lib/store/progress-store";
 
 const ICON: Record<ReminderKey, typeof Droplet> = {
   water: Droplet,
   mealLog: UtensilsCrossed,
   markerRecheck: HeartPulse,
+  measurement: Scale,
 };
 
 const NOTIFIED_KEY = "fitvn:reminders-notified:v1";
@@ -50,6 +52,7 @@ export function RemindersBanner() {
   const waterGoal = useWaterGoal();
   const foods = useDayFoods(today);
   const readings = useHealthReadings();
+  const measurements = useMeasurements();
   const dismissed = useDismissed(today);
 
   // Re-evaluate on mount + every minute so reminders appear when their time passes.
@@ -67,6 +70,12 @@ export function RemindersBanner() {
     return max;
   }, [readings]);
 
+  const lastMeasurementIso = useMemo(() => {
+    let max: string | null = null;
+    for (const m of measurements) if (!max || m.measuredOn > max) max = m.measuredOn;
+    return max;
+  }, [measurements]);
+
   const due = useMemo(() => {
     if (!mounted) return [];
     const now = new Date();
@@ -79,10 +88,11 @@ export function RemindersBanner() {
       waterGoal,
       mealsToday: foods.length,
       lastMarkerIso,
+      lastMeasurementIso,
       dismissed,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted, settings, water, waterGoal, foods.length, lastMarkerIso, dismissed, today]);
+  }, [mounted, settings, water, waterGoal, foods.length, lastMarkerIso, lastMeasurementIso, dismissed, today]);
 
   // Best-effort OS notifications for whatever is currently due.
   useEffect(() => {

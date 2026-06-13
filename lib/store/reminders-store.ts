@@ -9,30 +9,31 @@ export interface ReminderSettings {
   water: { enabled: boolean; time: string };
   mealLog: { enabled: boolean; time: string };
   markerRecheck: { enabled: boolean; everyDays: number };
+  measurement: { enabled: boolean; everyDays: number };
 }
 
 export const DEFAULT_REMINDERS: ReminderSettings = {
   water: { enabled: false, time: "16:00" },
   mealLog: { enabled: false, time: "20:00" },
   markerRecheck: { enabled: false, everyDays: 30 },
+  measurement: { enabled: false, everyDays: 7 },
 };
 
-export function useReminderSettings(): ReminderSettings {
-  const stored = useLocalValue<Partial<ReminderSettings>>(KEY, {});
+function mergeSettings(stored: Partial<ReminderSettings>): ReminderSettings {
   return {
     water: { ...DEFAULT_REMINDERS.water, ...stored.water },
     mealLog: { ...DEFAULT_REMINDERS.mealLog, ...stored.mealLog },
     markerRecheck: { ...DEFAULT_REMINDERS.markerRecheck, ...stored.markerRecheck },
+    measurement: { ...DEFAULT_REMINDERS.measurement, ...stored.measurement },
   };
 }
 
+export function useReminderSettings(): ReminderSettings {
+  return mergeSettings(useLocalValue<Partial<ReminderSettings>>(KEY, {}));
+}
+
 export function getReminderSettings(): ReminderSettings {
-  const stored = readLocal<Partial<ReminderSettings>>(KEY, {});
-  return {
-    water: { ...DEFAULT_REMINDERS.water, ...stored.water },
-    mealLog: { ...DEFAULT_REMINDERS.mealLog, ...stored.mealLog },
-    markerRecheck: { ...DEFAULT_REMINDERS.markerRecheck, ...stored.markerRecheck },
-  };
+  return mergeSettings(readLocal<Partial<ReminderSettings>>(KEY, {}));
 }
 
 export function setReminder<K extends keyof ReminderSettings>(

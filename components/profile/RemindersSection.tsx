@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, Droplet, HeartPulse, UtensilsCrossed } from "lucide-react";
+import { Bell, Droplet, HeartPulse, Scale, UtensilsCrossed } from "lucide-react";
 
 import { Card, IconBadge, SectionHeader, Toggle } from "@/components/ui";
 import { setReminder, useReminderSettings } from "@/lib/store/reminders-store";
@@ -86,6 +86,33 @@ export function RemindersSection() {
                 })
               }
               aria-label="Số ngày đo lại"
+              className={`${inputClass} w-16 text-center`}
+            />
+            ngày
+          </span>
+        </Row>
+        <Row
+          icon={<Scale size={18} aria-hidden />}
+          title="Cập nhật số đo"
+          hint="Nhắc cân lại sau số ngày"
+          enabled={s.measurement.enabled}
+          onToggle={() =>
+            setReminder("measurement", { enabled: !s.measurement.enabled })
+          }
+        >
+          <span className="flex items-center gap-1.5 text-sm text-muted">
+            mỗi
+            <input
+              type="number"
+              min={1}
+              max={365}
+              value={s.measurement.everyDays}
+              onChange={(e) =>
+                setReminder("measurement", {
+                  everyDays: Math.max(1, Number(e.target.value) || 1),
+                })
+              }
+              aria-label="Số ngày cân lại"
               className={`${inputClass} w-16 text-center`}
             />
             ngày
