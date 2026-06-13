@@ -38,6 +38,7 @@ import { round1, scaleFood } from "@/lib/nutrition/scale";
 import { defaultMealByHour } from "@/lib/nutrition/meal-time";
 import { SavedMeals } from "@/components/nutrition/SavedMeals";
 import { QuickAdd } from "@/components/nutrition/QuickAdd";
+import { CustomFoods } from "@/components/nutrition/CustomFoods";
 import { addCustomFood, useAllFoods, useRecentFoods } from "@/lib/store/food-store";
 import {
   CALCIUM_TARGET_MG,
@@ -342,6 +343,9 @@ export function NutritionScreen() {
 
       {/* Saved meals — one-tap logging + builder */}
       <SavedMeals dateIso={dateIso} />
+
+      {/* Custom foods — manage (delete) foods you created */}
+      <CustomFoods />
 
       {/* Meals */}
       <section aria-labelledby="meals-heading" className="flex flex-col gap-3">
