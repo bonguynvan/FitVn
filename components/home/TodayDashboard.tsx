@@ -17,6 +17,8 @@ import { fmtNum } from "@/lib/format";
 import { useDayFoods } from "@/lib/store/nutrition-store";
 import { useSessions } from "@/lib/store/workout-store";
 import { useMeasurements } from "@/lib/store/progress-store";
+import { useRestDays } from "@/lib/store/preferences-store";
+import { computeWorkoutStreak } from "@/lib/fitness/streak";
 
 const fmt = (n: number) => Math.round(n).toLocaleString("vi-VN");
 const round1 = (n: number) => Math.round(n * 10) / 10;
@@ -26,12 +28,6 @@ function isoNDaysAgo(iso: string, n: number): string {
   d.setDate(d.getDate() - n);
   const p = (x: number) => String(x).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-}
-
-function workoutStreak(dates: Set<string>, today: string): number {
-  let streak = 0;
-  while (dates.has(isoNDaysAgo(today, streak))) streak += 1;
-  return streak;
 }
 
 /**
@@ -45,6 +41,7 @@ export function TodayDashboard() {
   const sessions = useSessions();
   const measurements = useMeasurements();
   const targets = useDailyTargets();
+  const restDays = useRestDays();
 
   const hasData =
     foods.length > 0 || sessions.length > 0 || measurements.length > 0;
@@ -97,7 +94,7 @@ export function TodayDashboard() {
   ];
 
   const sessionDates = new Set(sessions.map((s) => s.performedOn));
-  const streak = workoutStreak(sessionDates, today);
+  const streak = computeWorkoutStreak(sessionDates, today, new Set(restDays));
   const weekStart = isoNDaysAgo(today, 6);
   const weekSessions = sessions.filter((s) => s.performedOn >= weekStart).length;
   const latestWeight =

@@ -21,7 +21,7 @@ import { useDayFoods, useWater } from "@/lib/store/nutrition-store";
 import { useSessions } from "@/lib/store/workout-store";
 import { useMeasurements } from "@/lib/store/progress-store";
 import { useDailyTargets, useProfile } from "@/lib/store/profile-store";
-import { useWaterGoal } from "@/lib/store/preferences-store";
+import { useRestDays, useWaterGoal } from "@/lib/store/preferences-store";
 
 const ICON: Record<HighlightKind, LucideIcon> = {
   pr: Trophy,
@@ -57,6 +57,7 @@ export function TodayHighlight() {
   const targets = useDailyTargets();
   const waterToday = useWater(today);
   const waterGoal = useWaterGoal();
+  const restDays = useRestDays();
 
   const highlight = computeTodayHighlight({
     today,
@@ -67,6 +68,7 @@ export function TodayHighlight() {
     waterToday,
     waterGoal,
     goal: profile?.goal,
+    restWeekdays: restDays,
   });
 
   if (!highlight) return null;

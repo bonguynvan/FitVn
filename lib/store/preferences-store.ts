@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocalValue, writeLocal } from "./local-store";
+import { readLocal, useLocalValue, writeLocal } from "./local-store";
 import { WATER_GOAL_CUPS } from "@/lib/config/targets";
 
 const WATER_GOAL_KEY = "fitvn:prefs:water-goal:v1";
@@ -35,4 +35,22 @@ export function useRestDuration(): number {
 export function setRestDuration(seconds: number): void {
   const clamped = Math.min(MAX_REST, Math.max(MIN_REST, Math.round(seconds)));
   writeLocal(REST_DURATION_KEY, clamped);
+}
+
+const REST_DAYS_KEY = "fitvn:prefs:rest-days:v1";
+
+/** Planned rest weekdays (0=Sun … 6=Sat, JS getDay). These don't break the
+ *  workout streak. Empty by default (every day counts). */
+export function useRestDays(): number[] {
+  const v = useLocalValue<number[]>(REST_DAYS_KEY, []);
+  return Array.isArray(v) ? v.filter((d) => Number.isInteger(d) && d >= 0 && d <= 6) : [];
+}
+
+export function toggleRestDay(weekday: number): void {
+  if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) return;
+  const current = readLocal<number[]>(REST_DAYS_KEY, []);
+  const set = new Set(Array.isArray(current) ? current : []);
+  if (set.has(weekday)) set.delete(weekday);
+  else set.add(weekday);
+  writeLocal(REST_DAYS_KEY, [...set].sort((a, b) => a - b));
 }

@@ -11,6 +11,7 @@ import {
 
 import type { DailyTargets } from "@/lib/fitness/targets";
 import { addDaysIso } from "@/lib/date";
+import { computeWorkoutStreak } from "@/lib/fitness/streak";
 import type { LoggedFood, Measurement, WorkoutSession } from "@/lib/store/types";
 
 export interface FitnessStats {
@@ -48,6 +49,8 @@ export interface StatsInput {
   /** Daily water goal in cups (configurable in preferences). */
   waterGoal: number;
   targets: DailyTargets;
+  /** Planned rest weekdays (0=Sun … 6=Sat) that don't break the streak. */
+  restWeekdays?: ReadonlyArray<number>;
 }
 
 /** Count consecutive days present in `days`, allowing the streak to end on
@@ -76,10 +79,15 @@ export function computeStats(input: StatsInput): FitnessStats {
     waterByDay,
     waterGoal,
     targets,
+    restWeekdays = [],
   } = input;
 
   const workoutDays = new Set(sessions.map((s) => s.performedOn));
-  const workoutStreak = streakFrom(workoutDays, today);
+  const workoutStreak = computeWorkoutStreak(
+    workoutDays,
+    today,
+    new Set(restWeekdays),
+  );
 
   const loggedDays = new Set<string>();
   let proteinGoalDays = 0;

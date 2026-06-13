@@ -12,7 +12,7 @@ import {
 import { useNutritionHistory, useWaterHistory } from "./nutrition-store";
 import { useMeasurements } from "./progress-store";
 import { useDailyTargets } from "./profile-store";
-import { useWaterGoal } from "./preferences-store";
+import { useRestDays, useWaterGoal } from "./preferences-store";
 import { useSessions } from "./workout-store";
 
 /** Reactive fitness stats + achievements derived from every local store. */
@@ -23,7 +23,9 @@ export function useStats(): { stats: FitnessStats; achievements: Achievement[] }
   const waterByDay = useWaterHistory();
   const waterGoal = useWaterGoal();
   const targets = useDailyTargets();
+  const restDays = useRestDays();
   const today = todayIso();
+  const restKey = restDays.join(",");
 
   return useMemo(() => {
     const stats = computeStats({
@@ -34,7 +36,9 @@ export function useStats(): { stats: FitnessStats; achievements: Achievement[] }
       waterByDay,
       waterGoal,
       targets,
+      restWeekdays: restDays,
     });
     return { stats, achievements: computeAchievements(stats) };
-  }, [today, sessions, measurements, nutritionByDay, waterByDay, waterGoal, targets]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [today, sessions, measurements, nutritionByDay, waterByDay, waterGoal, targets, restKey]);
 }

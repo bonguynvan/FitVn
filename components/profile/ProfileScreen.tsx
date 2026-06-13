@@ -17,6 +17,7 @@ import {
 import { getProfile, saveProfile } from "@/lib/store/profile-store";
 import { DataSection } from "@/components/profile/DataSection";
 import { RemindersSection } from "@/components/profile/RemindersSection";
+import { RestDaysSection } from "@/components/profile/RestDaysSection";
 import {
   CONDITION_ORDER,
   CONDITIONS,
@@ -328,6 +329,9 @@ export function ProfileScreen() {
 
       {/* Reminders */}
       <RemindersSection />
+
+      {/* Planned rest days (protect the workout streak) */}
+      <RestDaysSection />
 
       {/* Data backup */}
       <DataSection />

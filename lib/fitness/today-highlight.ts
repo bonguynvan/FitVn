@@ -6,6 +6,7 @@
 
 import type { GoalType } from "@/types/database.types";
 import { estimateOneRepMax } from "@/lib/fitness/exercise-history";
+import { computeWorkoutStreak } from "@/lib/fitness/streak";
 import type { LoggedFood, Measurement, WorkoutSession } from "@/lib/store/types";
 
 export type HighlightKind = "pr" | "weight" | "streak" | "protein" | "water";
@@ -28,18 +29,12 @@ export interface HighlightInput {
   readonly waterToday: number;
   readonly waterGoal: number;
   readonly goal?: GoalType;
+  readonly restWeekdays?: ReadonlyArray<number>;
 }
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 const fmt0 = (n: number) => Math.round(n).toLocaleString("vi-VN");
 const exKey = (name: string) => name.trim().toLowerCase().replace(/\s+/g, " ");
-
-function isoNDaysAgo(iso: string, n: number): string {
-  const d = new Date(`${iso}T00:00:00`);
-  d.setDate(d.getDate() - n);
-  const p = (x: number) => String(x).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-}
 
 /** Best estimated 1RM for an exercise across a set of sessions; 0 if none. */
 function bestOneRepMax(
@@ -87,24 +82,12 @@ function prToday(
   return best;
 }
 
-/** Consecutive workout days ending today (today must have a session). */
-function streakEndingToday(
-  sessions: readonly WorkoutSession[],
-  today: string,
-): number {
-  const days = new Set(sessions.map((s) => s.performedOn));
-  if (!days.has(today)) return 0;
-  let streak = 0;
-  while (days.has(isoNDaysAgo(today, streak))) streak += 1;
-  return streak;
-}
-
 /**
  * Pick today's standout by priority: a new strength PR, a fresh all-time weight
  * low, a workout streak (≥3, advanced today), protein goal met, then water goal.
  */
 export function computeTodayHighlight(input: HighlightInput): TodayHighlight | null {
-  const { today, sessions, foodsToday, measurements, proteinTargetG, waterToday, waterGoal, goal } = input;
+  const { today, sessions, foodsToday, measurements, proteinTargetG, waterToday, waterGoal, goal, restWeekdays = [] } = input;
 
   // 1) Strength PR set today.
   const pr = prToday(sessions, today);
@@ -133,8 +116,11 @@ export function computeTodayHighlight(input: HighlightInput): TodayHighlight | n
     }
   }
 
-  // 3) Workout streak advanced today.
-  const streak = streakEndingToday(sessions, today);
+  // 3) Workout streak advanced today (requires a workout logged today).
+  const workoutDays = new Set(sessions.map((s) => s.performedOn));
+  const streak = workoutDays.has(today)
+    ? computeWorkoutStreak(workoutDays, today, new Set(restWeekdays))
+    : 0;
   if (streak >= 3) {
     return {
       kind: "streak",
