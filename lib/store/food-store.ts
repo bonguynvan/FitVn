@@ -23,6 +23,16 @@ export function addCustomFood(food: Omit<FoodItem, "id" | "custom">): FoodItem {
   return created;
 }
 
+/** Update a user-created food in place, preserving its id + custom flag. */
+export function updateCustomFood(
+  id: string,
+  food: Omit<FoodItem, "id" | "custom">,
+): void {
+  updateLocal<FoodItem[]>(CUSTOM_KEY, [], (list) =>
+    list.map((f) => (f.id === id ? { ...food, id, custom: true } : f)),
+  );
+}
+
 export function removeCustomFood(id: string): void {
   updateLocal<FoodItem[]>(CUSTOM_KEY, [], (list) =>
     list.filter((f) => f.id !== id),
