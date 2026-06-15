@@ -29,7 +29,9 @@ class ChoiceTile extends StatelessWidget {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: active ? AppColors.primary.withOpacity(0.10) : AppColors.surface,
+            color: active
+                ? AppColors.primary.withValues(alpha: 0.10)
+                : AppColors.surface,
             borderRadius: AppRadii.btnR,
             border: Border.all(
                 color: active ? AppColors.primary : AppColors.border),
@@ -50,9 +52,7 @@ class ChoiceTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(hint!,
                     style: const TextStyle(
-                        fontSize: 11,
-                        height: 1.2,
-                        color: AppColors.textMuted)),
+                        fontSize: 11, height: 1.2, color: AppColors.textMuted)),
               ],
             ],
           ),

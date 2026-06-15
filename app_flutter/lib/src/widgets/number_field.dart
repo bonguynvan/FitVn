@@ -97,8 +97,8 @@ class _NumberFieldState extends State<NumberField> {
           controller: _controller,
           focusNode: _focus,
           textAlign: TextAlign.center,
-          keyboardType: TextInputType.numberWithOptions(
-              decimal: widget.allowDecimal),
+          keyboardType:
+              TextInputType.numberWithOptions(decimal: widget.allowDecimal),
           inputFormatters: [
             FilteringTextInputFormatter.allow(
                 widget.allowDecimal ? RegExp(r'[0-9.,]') : RegExp(r'[0-9]')),

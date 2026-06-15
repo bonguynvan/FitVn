@@ -46,8 +46,7 @@ class WorkoutRepository {
     String? notes,
   }) {
     final now = DateTime.now().millisecondsSinceEpoch;
-    final setsJson =
-        jsonEncode(sets.map((s) => s.toSyncJson()).toList());
+    final setsJson = jsonEncode(sets.map((s) => s.toSyncJson()).toList());
     return _db.addPendingWorkout(
       PendingWorkoutSessionsCompanion.insert(
         localId: _uuid.v4(),

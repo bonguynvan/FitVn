@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../theme/tokens.dart';
 import '../../widgets/app_card.dart';
 import 'reminder_controller.dart';
-import 'reminder_prefs.dart';
 
 /// Daily reminder settings (meals + workout) — schedules local notifications.
 class RemindersSection extends ConsumerWidget {

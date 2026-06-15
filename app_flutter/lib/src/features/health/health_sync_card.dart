@@ -55,7 +55,7 @@ class _HealthSyncCardState extends ConsumerState<HealthSyncCard> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.12),
+              color: AppColors.primary.withValues(alpha: 0.12),
               borderRadius: AppRadii.btnR,
             ),
             child: const Icon(Icons.favorite_outline, color: AppColors.primary),
@@ -69,8 +69,7 @@ class _HealthSyncCardState extends ConsumerState<HealthSyncCard> {
                     style: TextStyle(fontWeight: FontWeight.w600)),
                 SizedBox(height: 2),
                 Text('Nhập cân nặng và bước chân',
-                    style:
-                        TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                    style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
               ],
             ),
           ),

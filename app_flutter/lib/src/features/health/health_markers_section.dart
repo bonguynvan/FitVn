@@ -27,8 +27,8 @@ class HealthMarkersSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final sex = ref.watch(profileControllerProvider).valueOrNull?.sex ??
-        SexType.male;
+    final sex =
+        ref.watch(profileControllerProvider).valueOrNull?.sex ?? SexType.male;
     final latest = ref.watch(latestByMarkerProvider);
     final series = ref.watch(seriesByMarkerProvider);
     final shown = markerOrder.where(latest.containsKey).toList();
@@ -122,8 +122,7 @@ class _MarkerCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(def.name,
-                          style:
-                              const TextStyle(fontWeight: FontWeight.w600)),
+                          style: const TextStyle(fontWeight: FontWeight.w600)),
                       Text(def.rangeText,
                           style: const TextStyle(
                               fontSize: 11, color: AppColors.textMuted)),
@@ -146,7 +145,7 @@ class _MarkerCard extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: tone.withOpacity(0.12),
+                    color: tone.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(eval.label,
@@ -266,9 +265,8 @@ class _AddReadingSheetState extends ConsumerState<_AddReadingSheet> {
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
-                    labelText: def.hasSecond
-                        ? 'Tâm thu'
-                        : 'Giá trị (${def.unit})',
+                    labelText:
+                        def.hasSecond ? 'Tâm thu' : 'Giá trị (${def.unit})',
                   ),
                 ),
               ),

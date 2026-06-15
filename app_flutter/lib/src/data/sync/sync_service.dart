@@ -217,7 +217,8 @@ class SyncService {
   Future<void> _markFailed(SyncQueueData entry, Object err) async {
     final attempts = entry.attempts + 1;
     if (attempts >= kMaxSyncAttempts) {
-      await _db.deleteQueueEntry(entry.id); // give up; pending row stays flagged
+      await _db
+          .deleteQueueEntry(entry.id); // give up; pending row stays flagged
     } else {
       await _db.bumpQueueAttempt(entry.id, attempts, err.toString());
     }

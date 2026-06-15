@@ -1,4 +1,5 @@
 /// Sync value types, mirroring `lib/db/sync.ts`.
+library;
 
 const int kMaxSyncAttempts = 5;
 

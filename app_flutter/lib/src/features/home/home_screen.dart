@@ -2,6 +2,7 @@ import 'package:fitvn_domain/fitvn_domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/providers.dart';
 import '../../theme/tokens.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/hero_header.dart';
@@ -17,8 +18,9 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(profileControllerProvider).valueOrNull;
     final name = (profile?.name.isNotEmpty ?? false) ? profile!.name : 'bạn';
-    final targets =
-        profile == null ? null : (profile.customTargets ?? computeTargets(profile));
+    final targets = profile == null
+        ? null
+        : (profile.customTargets ?? computeTargets(profile));
 
     return ListView(
       padding: EdgeInsets.zero,
@@ -73,8 +75,8 @@ class _StepsCard extends ConsumerWidget {
                   style: TextStyle(fontWeight: FontWeight.w600)),
             ),
             Text('$steps',
-                style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.w600)),
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
           ],
         ),
       ),

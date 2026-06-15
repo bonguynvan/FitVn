@@ -52,7 +52,8 @@ class NutritionScreen extends ConsumerWidget {
                     const AppCard(
                       child: Text(
                         'Chưa có món nào hôm nay. Nhấn "Ghi món" để thêm.',
-                        style: TextStyle(color: AppColors.textMuted, height: 1.5),
+                        style:
+                            TextStyle(color: AppColors.textMuted, height: 1.5),
                       ),
                     )
                   else
@@ -122,15 +123,17 @@ class _ConsumedCard extends StatelessWidget {
               value: day.calorieProgress,
               minHeight: 8,
               backgroundColor: AppColors.surfaceRaised,
-              valueColor:
-                  AlwaysStoppedAnimation(remaining >= 0 ? AppColors.primary : AppColors.danger),
+              valueColor: AlwaysStoppedAnimation(
+                  remaining >= 0 ? AppColors.primary : AppColors.danger),
             ),
           ),
           const SizedBox(height: 14),
           Row(
             children: [
-              _Macro(label: 'Đạm', got: day.proteinG, goal: day.targets.proteinG),
-              _Macro(label: 'Tinh bột', got: day.carbsG, goal: day.targets.carbsG),
+              _Macro(
+                  label: 'Đạm', got: day.proteinG, goal: day.targets.proteinG),
+              _Macro(
+                  label: 'Tinh bột', got: day.carbsG, goal: day.targets.carbsG),
               _Macro(label: 'Béo', got: day.fatG, goal: day.targets.fatG),
             ],
           ),
@@ -152,15 +155,15 @@ class _Macro extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 3),
         padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: AppColors.surfaceRaised,
           borderRadius: AppRadii.btnR,
         ),
         child: Column(
           children: [
             Text('$got / ${goal}g',
-                style: const TextStyle(
-                    fontSize: 13, fontWeight: FontWeight.w600)),
+                style:
+                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
             const SizedBox(height: 2),
             Text(label,
                 style:
@@ -204,7 +207,8 @@ class _EntryTile extends StatelessWidget {
                 style: const TextStyle(fontWeight: FontWeight.w600)),
             IconButton(
               onPressed: onRemove,
-              icon: const Icon(Icons.close, size: 18, color: AppColors.textMuted),
+              icon:
+                  const Icon(Icons.close, size: 18, color: AppColors.textMuted),
               tooltip: 'Xoá',
             ),
           ],

@@ -21,8 +21,7 @@ class CoachMessage {
 /// PHASE 2 SCOPE: request/response only. Token streaming is a Phase 3 UX
 /// enhancement once the chat screen exists.
 class CoachClient {
-  CoachClient({http.Client? httpClient})
-      : _http = httpClient ?? http.Client();
+  CoachClient({http.Client? httpClient}) : _http = httpClient ?? http.Client();
 
   final http.Client _http;
 

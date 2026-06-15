@@ -21,10 +21,8 @@ class PullService {
   }
 
   Future<void> _pullHealth(String userId) async {
-    final rows = await _client
-        .from('health_readings')
-        .select()
-        .eq('user_id', userId);
+    final rows =
+        await _client.from('health_readings').select().eq('user_id', userId);
     final have = await _db.healthReadingRemoteIds();
     final now = DateTime.now().millisecondsSinceEpoch;
 
@@ -48,10 +46,8 @@ class PullService {
   }
 
   Future<void> _pullMeasurements(String userId) async {
-    final rows = await _client
-        .from('body_measurements')
-        .select()
-        .eq('user_id', userId);
+    final rows =
+        await _client.from('body_measurements').select().eq('user_id', userId);
     final have = await _db.measurementRemoteIds();
     final now = DateTime.now().millisecondsSinceEpoch;
 

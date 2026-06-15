@@ -42,7 +42,7 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
         if (Env.coachEndpoint.isEmpty)
           Container(
             width: double.infinity,
-            color: AppColors.warning.withOpacity(0.12),
+            color: AppColors.warning.withValues(alpha: 0.12),
             padding: const EdgeInsets.all(12),
             child: const Text(
               'Chưa cấu hình COACH_ENDPOINT — HLV sẽ trả lời mặc định.',
@@ -100,8 +100,8 @@ class _Bubble extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.78),
+        constraints:
+            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
         decoration: BoxDecoration(
           color: isUser ? AppColors.primary : AppColors.surfaceRaised,
           borderRadius: AppRadii.cardR,

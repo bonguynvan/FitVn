@@ -6,7 +6,7 @@ import 'tokens.dart';
 /// soft weight (~w500/w600), matching the web app's deliberate "never 700"
 /// remap for the warm, friendly feel.
 ThemeData buildAppTheme() {
-  final scheme = const ColorScheme.light(
+  const scheme = ColorScheme.light(
     primary: AppColors.primary,
     onPrimary: AppColors.primaryFg,
     secondary: AppColors.accent,

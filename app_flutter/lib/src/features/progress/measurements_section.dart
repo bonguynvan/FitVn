@@ -20,7 +20,8 @@ class MeasurementsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final list = ref.watch(measurementsProvider).valueOrNull ?? const [];
-    final goal = ref.watch(profileControllerProvider).valueOrNull?.targetWeightKg;
+    final goal =
+        ref.watch(profileControllerProvider).valueOrNull?.targetWeightKg;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,10 +53,20 @@ class MeasurementsSection extends ConsumerWidget {
             values: list.map((m) => m.weightKg).toList(),
             goal: goal,
           ),
-          _optionalTrend('Mỡ cơ thể', '%',
-              list.where((m) => m.bodyFatPct != null).map((m) => m.bodyFatPct!).toList()),
-          _optionalTrend('Vòng eo', 'cm',
-              list.where((m) => m.waistCm != null).map((m) => m.waistCm!).toList()),
+          _optionalTrend(
+              'Mỡ cơ thể',
+              '%',
+              list
+                  .where((m) => m.bodyFatPct != null)
+                  .map((m) => m.bodyFatPct!)
+                  .toList()),
+          _optionalTrend(
+              'Vòng eo',
+              'cm',
+              list
+                  .where((m) => m.waistCm != null)
+                  .map((m) => m.waistCm!)
+                  .toList()),
           const SizedBox(height: 8),
           _History(list: list.reversed.toList()),
         ],
@@ -128,7 +139,8 @@ class _TrendCard extends StatelessWidget {
                   style: const TextStyle(
                       fontSize: 12, color: AppColors.textMuted)),
             const SizedBox(height: 12),
-            LineChart(values: values, height: 80, showDots: values.length <= 12),
+            LineChart(
+                values: values, height: 80, showDots: values.length <= 12),
           ],
         ),
       ),
@@ -250,8 +262,7 @@ class _AddMeasurementSheetState extends ConsumerState<_AddMeasurementSheet> {
                   controller: _bodyFat,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
-                  decoration:
-                      const InputDecoration(labelText: 'Mỡ cơ thể (%)'),
+                  decoration: const InputDecoration(labelText: 'Mỡ cơ thể (%)'),
                 ),
               ),
               const SizedBox(width: 12),

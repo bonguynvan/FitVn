@@ -42,7 +42,8 @@ class WorkoutsScreen extends ConsumerWidget {
                     const AppCard(
                       child: Text(
                         'Chưa ghi buổi tập nào hôm nay. Nhấn "Ghi buổi tập" để bắt đầu.',
-                        style: TextStyle(color: AppColors.textMuted, height: 1.5),
+                        style:
+                            TextStyle(color: AppColors.textMuted, height: 1.5),
                       ),
                     )
                   else
@@ -92,7 +93,8 @@ class _SessionTile extends StatelessWidget {
             ),
             IconButton(
               onPressed: onRemove,
-              icon: const Icon(Icons.close, size: 18, color: AppColors.textMuted),
+              icon:
+                  const Icon(Icons.close, size: 18, color: AppColors.textMuted),
               tooltip: 'Xoá',
             ),
           ],

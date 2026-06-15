@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
 import '../../core/date.dart';
+import '../../data/repositories/nutrition_repository.dart';
 import '../profile/profile_controller.dart';
 import 'food.dart';
 

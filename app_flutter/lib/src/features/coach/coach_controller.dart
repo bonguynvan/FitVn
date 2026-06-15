@@ -40,8 +40,9 @@ class CoachController extends Notifier<CoachState> {
     final profile = ref.read(profileControllerProvider).valueOrNull;
     try {
       final reply = await client.ask(
-        messages:
-            history.map((t) => CoachMessage(role: t.role, text: t.text)).toList(),
+        messages: history
+            .map((t) => CoachMessage(role: t.role, text: t.text))
+            .toList(),
         context: _context(profile),
       );
       state = state.copyWith(
@@ -52,7 +53,7 @@ class CoachController extends Notifier<CoachState> {
       state = state.copyWith(
         messages: [
           ...history,
-          ChatTurn('assistant', 'Xin lỗi, hiện chưa kết nối được HLV AI.'),
+          const ChatTurn('assistant', 'Xin lỗi, hiện chưa kết nối được HLV AI.'),
         ],
         sending: false,
       );

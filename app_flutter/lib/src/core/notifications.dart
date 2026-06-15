@@ -17,8 +17,8 @@ class NotificationService {
     channelDescription: 'Nhắc ghi bữa ăn và buổi tập',
     importance: Importance.defaultImportance,
   );
-  static const _details =
-      NotificationDetails(android: _androidChannel, iOS: DarwinNotificationDetails());
+  static const _details = NotificationDetails(
+      android: _androidChannel, iOS: DarwinNotificationDetails());
 
   Future<void> init() async {
     const settings = InitializationSettings(

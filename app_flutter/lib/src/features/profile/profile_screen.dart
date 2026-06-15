@@ -30,7 +30,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _form = ref.read(profileControllerProvider).valueOrNull ?? const UserProfile();
+    _form =
+        ref.read(profileControllerProvider).valueOrNull ?? const UserProfile();
     _nameCtrl = TextEditingController(text: _form.name);
   }
 

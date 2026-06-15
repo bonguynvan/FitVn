@@ -28,7 +28,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   /// In-memory database for tests: `AppDatabase.forTesting(NativeDatabase.memory())`.
-  AppDatabase.forTesting(QueryExecutor executor) : super(executor);
+  AppDatabase.forTesting(super.executor);
 
   @override
   int get schemaVersion => 4;
@@ -61,8 +61,7 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> pendingCount() async {
     final count = countAll();
-    final row = await (selectOnly(syncQueue)..addColumns([count]))
-        .getSingle();
+    final row = await (selectOnly(syncQueue)..addColumns([count])).getSingle();
     return row.read(count) ?? 0;
   }
 
@@ -209,8 +208,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<HealthReading?> healthReadingById(int id) =>
-      (select(healthReadings)..where((t) => t.id.equals(id)))
-          .getSingleOrNull();
+      (select(healthReadings)..where((t) => t.id.equals(id))).getSingleOrNull();
 
   Future<void> markHealthReading(int id,
       {String? remoteId, String? syncStatus}) {
@@ -275,8 +273,7 @@ class AppDatabase extends _$AppDatabase {
       (select(bodyMeasurements)..where((t) => t.id.equals(id)))
           .getSingleOrNull();
 
-  Future<void> markMeasurement(int id,
-      {String? remoteId, String? syncStatus}) {
+  Future<void> markMeasurement(int id, {String? remoteId, String? syncStatus}) {
     return (update(bodyMeasurements)..where((t) => t.id.equals(id))).write(
       BodyMeasurementsCompanion(
         remoteId: remoteId == null ? const Value.absent() : Value(remoteId),

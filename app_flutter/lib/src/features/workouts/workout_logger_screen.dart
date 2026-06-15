@@ -66,13 +66,14 @@ class _WorkoutLoggerScreenState extends ConsumerState<WorkoutLoggerScreen> {
                     style: TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: _exerciseId,
+                  initialValue: _exerciseId,
                   decoration: const InputDecoration(labelText: 'Bài tập'),
                   items: [
                     for (final e in seedExercises)
                       DropdownMenuItem(value: e.id, child: Text(e.nameVi)),
                   ],
-                  onChanged: (v) => setState(() => _exerciseId = v ?? _exerciseId),
+                  onChanged: (v) =>
+                      setState(() => _exerciseId = v ?? _exerciseId),
                 ),
                 const SizedBox(height: 12),
                 Row(

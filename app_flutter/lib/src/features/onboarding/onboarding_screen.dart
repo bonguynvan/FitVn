@@ -45,7 +45,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void _toggleCondition(ConditionKey key) {
     final cur = [..._form.conditions];
     cur.contains(key) ? cur.remove(key) : cur.add(key);
-    _set(_form.copyWith(conditions: cur, goutMode: () => cur.contains(ConditionKey.gout)));
+    _set(_form.copyWith(
+        conditions: cur, goutMode: () => cur.contains(ConditionKey.gout)));
   }
 
   Future<void> _finish() async {
@@ -284,7 +285,9 @@ class _ProgressBar extends StatelessWidget {
                   Container(
                     height: 6,
                     decoration: BoxDecoration(
-                      color: i <= step ? AppColors.primary : AppColors.surfaceRaised,
+                      color: i <= step
+                          ? AppColors.primary
+                          : AppColors.surfaceRaised,
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
@@ -292,8 +295,10 @@ class _ProgressBar extends StatelessWidget {
                   Text(_steps[i],
                       style: TextStyle(
                           fontSize: 11,
-                          color: i == step ? AppColors.text : AppColors.textMuted,
-                          fontWeight: i == step ? FontWeight.w600 : FontWeight.w400)),
+                          color:
+                              i == step ? AppColors.text : AppColors.textMuted,
+                          fontWeight:
+                              i == step ? FontWeight.w600 : FontWeight.w400)),
                 ],
               ),
             ),
@@ -317,7 +322,7 @@ class _TargetSummary extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.12),
+              color: AppColors.primary.withValues(alpha: 0.12),
               borderRadius: AppRadii.btnR,
             ),
             child: const Icon(Icons.local_fire_department,
@@ -334,7 +339,8 @@ class _TargetSummary extends StatelessWidget {
                       fontSize: 22, fontWeight: FontWeight.w600)),
               Text(
                 'Đạm ${targets.proteinG}g · Tinh bột ${targets.carbsG}g · Béo ${targets.fatG}g',
-                style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                style:
+                    const TextStyle(fontSize: 12, color: AppColors.textMuted),
               ),
             ],
           ),

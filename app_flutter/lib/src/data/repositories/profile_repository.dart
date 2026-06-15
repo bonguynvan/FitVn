@@ -15,11 +15,8 @@ class ProfileRepository {
   final SupabaseClient _client;
 
   Future<UserProfile?> fetch(String userId) async {
-    final row = await _client
-        .from('profiles')
-        .select()
-        .eq('id', userId)
-        .maybeSingle();
+    final row =
+        await _client.from('profiles').select().eq('id', userId).maybeSingle();
     if (row == null) return null;
     return _fromRow(row);
   }

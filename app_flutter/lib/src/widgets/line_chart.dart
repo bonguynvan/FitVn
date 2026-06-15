@@ -90,7 +90,7 @@ class _LinePainter extends CustomPainter {
         ..close();
       canvas.drawPath(
         area,
-        Paint()..color = color.withOpacity(0.12),
+        Paint()..color = color.withValues(alpha: 0.12),
       );
     }
 
