@@ -7,6 +7,7 @@ import '../../widgets/app_card.dart';
 import '../../widgets/choice_tile.dart';
 import '../../widgets/number_field.dart';
 import '../../widgets/targets_card.dart';
+import '../health/health_sync_card.dart';
 import '../reminders/reminders_section.dart';
 import '../sync/sync_controller.dart';
 import 'profile_controller.dart';
@@ -62,6 +63,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           DailyTargetsCard(targets: targets),
           const SizedBox(height: 16),
           const _SyncRow(),
+          const SizedBox(height: 16),
+          const HealthSyncCard(),
           const SizedBox(height: 16),
           const Text('Nhắc nhở', style: TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),

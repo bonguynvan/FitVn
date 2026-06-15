@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/env.dart';
+import '../core/health_integration.dart';
 import '../core/notifications.dart';
 import '../core/supabase.dart';
 import '../data/local/database.dart';
@@ -59,6 +60,16 @@ final healthRepositoryProvider = Provider<HealthRepository>(
 /// Local on-device notifications (reminders). Initialized in `main`.
 final notificationServiceProvider =
     Provider<NotificationService>((ref) => NotificationService());
+
+/// Apple Health / Google Fit integration (read-only).
+final healthIntegrationProvider =
+    Provider<HealthIntegrationService>((ref) => HealthIntegrationService());
+
+/// Today's step count from Health, or null if unavailable/denied. Refreshable
+/// via `ref.invalidate(todayStepsProvider)`.
+final todayStepsProvider = FutureProvider<int?>((ref) {
+  return ref.watch(healthIntegrationProvider).todaySteps();
+});
 
 /// The signed-in user's id, or 'local' when running without a backend (the
 /// native counterpart to the web app's stub session). Pending records key off

@@ -42,11 +42,42 @@ class HomeScreen extends ConsumerWidget {
             children: [
               if (targets != null) DailyTargetsCard(targets: targets),
               const SizedBox(height: 16),
+              const _StepsCard(),
               const _TodayConsumed(),
             ],
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Today's steps from Apple Health / Google Fit. Renders nothing unless Health
+/// returns a value (not connected / denied / unsupported → silent).
+class _StepsCard extends ConsumerWidget {
+  const _StepsCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final steps = ref.watch(todayStepsProvider).valueOrNull;
+    if (steps == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: AppCard(
+        child: Row(
+          children: [
+            const Icon(Icons.directions_walk, color: AppColors.primary),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text('Bước chân hôm nay',
+                  style: TextStyle(fontWeight: FontWeight.w600)),
+            ),
+            Text('$steps',
+                style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.w600)),
+          ],
+        ),
+      ),
     );
   }
 }

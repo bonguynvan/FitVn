@@ -41,9 +41,16 @@ and the **same domain logic** via the `fitvn_domain` package (Phase 1).
   + native config (google-services.json, APNs key, capabilities); wire it from
   `main` once that's done.
 
+- **Phase 7 — Apple Health / Google Fit:** read-only integration via the
+  `health` package (`core/health_integration.dart`). Profile card imports the
+  latest body weight (recomputing targets); Home shows today's steps when
+  available. Fails soft when unsupported/denied. **Requires native setup** —
+  HealthKit capability + Info.plist usage strings (iOS), Health Connect
+  permissions (Android).
+
 Remaining for later phases: weight/measurement history + charts, finishing FCM
-wiring, and Apple Health / Google Fit. Health readings are local-only until a
-Supabase table + sync are added.
+wiring, and writing data back to Health. Health-marker readings are local-only
+until a Supabase table + sync are added.
 
 ### Original phase-2 layout
 
