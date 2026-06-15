@@ -34,9 +34,16 @@ and the **same domain logic** via the `fitvn_domain` package (Phase 1).
   evaluation via fitvn_domain, trend sparklines + a history chart
   (dependency-free `LineChart` CustomPainter). Lives in the Progress tab.
 
-Remaining for later phases: weight/measurement history + charts, push (FCM/APNs),
-and Apple Health / Google Fit. Health readings are local-only until a Supabase
-table + sync are added.
+- **Phase 6 — notifications:** local daily reminders (meals + workout) via
+  flutter_local_notifications + timezone — fully offline, scheduled from a
+  Reminders section on Profile. Server push (FCM/APNs) is scaffolded in
+  `core/push.dart` but **not initialized** — it needs `flutterfire configure`
+  + native config (google-services.json, APNs key, capabilities); wire it from
+  `main` once that's done.
+
+Remaining for later phases: weight/measurement history + charts, finishing FCM
+wiring, and Apple Health / Google Fit. Health readings are local-only until a
+Supabase table + sync are added.
 
 ### Original phase-2 layout
 

@@ -46,6 +46,15 @@ dependencies:
   # Connectivity changes → trigger the offline sync push.
   connectivity_plus: ^6.0.3
 
+  # Local reminders (offline) + scheduling.
+  flutter_local_notifications: ^17.2.2
+  timezone: ^0.9.4
+
+  # Server push (FCM/APNs). Requires `flutterfire configure` + native setup;
+  # see core/push.dart — not initialized unless configured.
+  firebase_core: ^3.3.0
+  firebase_messaging: ^15.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
