@@ -1,0 +1,14 @@
+name: fitvn_domain
+description: >-
+  Pure-Dart domain core for FitVN — nutrition target computation, health-marker
+  evaluation, and condition tuning. Ported from the TypeScript app (lib/fitness,
+  lib/health, lib/config); behavior MUST stay in parity, guarded by golden tests.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.4.0
+
+dev_dependencies:
+  test: ^1.25.0
+  lints: ^4.0.0
