@@ -15,7 +15,13 @@ part 'database.g.dart';
 ///   `dart run build_runner build --delete-conflicting-outputs`
 /// after `flutter pub get`. It is intentionally gitignored.
 @DriftDatabase(
-  tables: [PendingWorkoutSessions, PendingLogItems, SyncQueue, CachedFoods],
+  tables: [
+    PendingWorkoutSessions,
+    PendingLogItems,
+    SyncQueue,
+    CachedFoods,
+    HealthReadings,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -24,7 +30,16 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (m) => m.createAll(),
+        onUpgrade: (m, from, to) async {
+          // v2: health-marker readings.
+          if (from < 2) await m.createTable(healthReadings);
+        },
+      );
 
   // --- Sync queue (FIFO) ---------------------------------------------------
 
@@ -151,6 +166,24 @@ class AppDatabase extends _$AppDatabase {
 
   Future<CachedFood?> cachedFood(String id) =>
       (select(cachedFoods)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  // --- Health markers ------------------------------------------------------
+
+  Future<void> addHealthReading(HealthReadingsCompanion reading) =>
+      into(healthReadings).insert(reading);
+
+  /// All readings, newest first (by measured date, then insert order).
+  Stream<List<HealthReading>> watchHealthReadings() {
+    return (select(healthReadings)
+          ..orderBy([
+            (t) => OrderingTerm.desc(t.measuredOn),
+            (t) => OrderingTerm.desc(t.createdAt),
+          ]))
+        .watch();
+  }
+
+  Future<void> deleteHealthReading(int id) =>
+      (delete(healthReadings)..where((t) => t.id.equals(id))).go();
 
   // --- Sync status ---------------------------------------------------------
 

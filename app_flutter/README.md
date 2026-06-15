@@ -29,8 +29,14 @@ and the **same domain logic** via the `fitvn_domain` package (Phase 1).
   add-food sheet now searches the library (debounced); logged-item macros
   resolve from the cached-food index.
 
-Remaining for later phases: health-marker history, charts, push, and
-Apple Health / Google Fit.
+- **Phase 5 — health markers + charts:** local `HealthReadings` Drift table
+  (schema v2 + migration), log readings for the 8 markers, reference-range
+  evaluation via fitvn_domain, trend sparklines + a history chart
+  (dependency-free `LineChart` CustomPainter). Lives in the Progress tab.
+
+Remaining for later phases: weight/measurement history + charts, push (FCM/APNs),
+and Apple Health / Google Fit. Health readings are local-only until a Supabase
+table + sync are added.
 
 ### Original phase-2 layout
 

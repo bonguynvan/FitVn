@@ -5,6 +5,7 @@ import '../core/supabase.dart';
 import '../data/local/database.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/food_repository.dart';
+import '../data/repositories/health_repository.dart';
 import '../data/repositories/nutrition_repository.dart';
 import '../data/repositories/profile_repository.dart';
 import '../data/repositories/workout_repository.dart';
@@ -48,6 +49,10 @@ final workoutRepositoryProvider = Provider<WorkoutRepository>(
 
 final foodRepositoryProvider = Provider<FoodRepository>(
   (ref) => FoodRepository(ref.watch(databaseProvider)),
+);
+
+final healthRepositoryProvider = Provider<HealthRepository>(
+  (ref) => HealthRepository(ref.watch(databaseProvider)),
 );
 
 /// The signed-in user's id, or 'local' when running without a backend (the

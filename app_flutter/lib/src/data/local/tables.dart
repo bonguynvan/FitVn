@@ -59,6 +59,18 @@ class SyncQueue extends Table {
   IntColumn get enqueuedAt => integer()();
 }
 
+/// A health-marker reading (acid uric, blood pressure, glucose, lipids…).
+/// Local-only for now — the web app keeps these in localStorage; there is no
+/// Supabase table yet, so they are not enqueued for sync.
+class HealthReadings extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get marker => text()(); // MarkerKey.wire
+  RealColumn get value => real()();
+  RealColumn get value2 => real().nullable()(); // e.g. diastolic
+  TextColumn get measuredOn => text()(); // yyyy-mm-dd
+  IntColumn get createdAt => integer()();
+}
+
 /// A locally cached food row for offline search (subset of public.foods).
 class CachedFoods extends Table {
   TextColumn get id => text()();

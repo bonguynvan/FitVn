@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../theme/tokens.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/hero_header.dart';
+import '../health/health_markers_section.dart';
 import '../profile/profile_controller.dart';
 
 class ProgressScreen extends ConsumerWidget {
@@ -42,14 +43,8 @@ class ProgressScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-              const SizedBox(height: 16),
-              const AppCard(
-                child: Text(
-                  'Biểu đồ cân nặng, số đo và lịch sử chỉ số sức khỏe '
-                  '(acid uric, huyết áp, đường huyết, mỡ máu) sẽ có ở giai đoạn tới.',
-                  style: TextStyle(color: AppColors.textMuted, height: 1.5),
-                ),
-              ),
+              const SizedBox(height: 24),
+              const HealthMarkersSection(),
             ],
           ),
         ),
