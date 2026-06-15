@@ -37,6 +37,9 @@ dependencies:
   # Coach endpoint requests.
   http: ^1.2.0
 
+  # Local profile persistence (mirrors the web app's localStorage profile-store).
+  shared_preferences: ^2.2.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

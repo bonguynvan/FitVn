@@ -10,5 +10,6 @@ export 'src/conditions.dart';
 export 'src/defaults.dart';
 export 'src/enums.dart';
 export 'src/markers.dart';
+export 'src/options.dart';
 export 'src/profile_bounds.dart';
 export 'src/targets.dart';

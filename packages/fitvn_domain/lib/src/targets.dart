@@ -49,6 +49,43 @@ class UserProfile {
   /// Opt-in health conditions that re-tune limits + advice.
   final List<ConditionKey> conditions;
 
+  /// JSON for local persistence (shared_preferences) and cloud sync. Enums use
+  /// their wire strings so the payload matches what Supabase/the web app store.
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'goal': goal.wire,
+        'sex': sex.wire,
+        'age': age,
+        'heightCm': heightCm,
+        'weightKg': weightKg,
+        'activityLevel': activityLevel.wire,
+        'targetWeightKg': targetWeightKg,
+        'customTargets': customTargets?.toJson(),
+        'goutMode': goutMode,
+        'conditions': conditions.map((c) => c.wire).toList(),
+      };
+
+  static UserProfile fromJson(Map<String, dynamic> json) {
+    final custom = json['customTargets'];
+    final conds = (json['conditions'] as List?) ?? const [];
+    return UserProfile(
+      name: (json['name'] as String?) ?? '',
+      goal: GoalType.fromWire((json['goal'] as String?) ?? 'maintain'),
+      sex: SexType.fromWire((json['sex'] as String?) ?? 'male'),
+      age: ((json['age'] as num?) ?? 25).toDouble(),
+      heightCm: ((json['heightCm'] as num?) ?? 170).toDouble(),
+      weightKg: ((json['weightKg'] as num?) ?? 65).toDouble(),
+      activityLevel:
+          ActivityLevel.fromWire((json['activityLevel'] as String?) ?? 'moderate'),
+      targetWeightKg: (json['targetWeightKg'] as num?)?.toDouble(),
+      customTargets:
+          custom == null ? null : DailyTargets.fromJson(custom as Map<String, dynamic>),
+      goutMode: json['goutMode'] as bool?,
+      conditions:
+          conds.map((c) => ConditionKey.fromWire(c as String)).toList(),
+    );
+  }
+
   UserProfile copyWith({
     String? name,
     GoalType? goal,
@@ -92,6 +129,20 @@ class DailyTargets {
   final int proteinG;
   final int carbsG;
   final int fatG;
+
+  Map<String, dynamic> toJson() => {
+        'calories': calories,
+        'proteinG': proteinG,
+        'carbsG': carbsG,
+        'fatG': fatG,
+      };
+
+  static DailyTargets fromJson(Map<String, dynamic> json) => DailyTargets(
+        calories: (json['calories'] as num).toInt(),
+        proteinG: (json['proteinG'] as num).toInt(),
+        carbsG: (json['carbsG'] as num).toInt(),
+        fatG: (json['fatG'] as num).toInt(),
+      );
 
   @override
   bool operator ==(Object other) =>
