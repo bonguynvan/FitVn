@@ -1,0 +1,24 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+
+# Generated code (regenerated via build_runner)
+*.g.dart
+*.freezed.dart
+
+# Platform folders are materialized locally via `flutter create .`
+# (kept out of source until the team standardizes signing/config)
+/android/
+/ios/
+/linux/
+/macos/
+/windows/
+/web/
+
+# IDE
+.idea/
+*.iml

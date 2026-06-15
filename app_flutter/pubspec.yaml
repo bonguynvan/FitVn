@@ -1,0 +1,50 @@
+name: fitvn
+description: FitVN — native mobile client (iOS + Android). Shares the domain core
+  with the web app via the local fitvn_domain package and the same Supabase backend.
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.4.0
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Shared, framework-agnostic domain logic (phase 1).
+  fitvn_domain:
+    path: ../packages/fitvn_domain
+
+  # State management — closest mental model to the web app's stores.
+  flutter_riverpod: ^2.5.1
+
+  # Routing.
+  go_router: ^14.2.0
+
+  # Backend: auth + Postgrest + realtime against the existing Supabase project.
+  supabase_flutter: ^2.5.6
+
+  # Local-first persistence (replaces Dexie/IndexedDB).
+  drift: ^2.18.0
+  sqlite3_flutter_libs: ^0.5.20
+  path_provider: ^2.1.3
+  path: ^1.9.0
+
+  # i18n / number + date formatting (vi-VN).
+  intl: ^0.19.0
+
+  # Coach endpoint requests.
+  http: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+  # Drift codegen — run `dart run build_runner build` after pub get.
+  drift_dev: ^2.18.0
+  build_runner: ^2.4.11
+
+flutter:
+  uses-material-design: true
