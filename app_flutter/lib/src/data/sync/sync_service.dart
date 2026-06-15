@@ -34,9 +34,13 @@ class SyncService {
     for (final entry in queue) {
       summary.processed += 1;
       try {
-        final outcome = entry.entity == 'workout_session'
-            ? await _syncWorkoutSession(entry)
-            : await _syncLogItem(entry);
+        final outcome = switch (entry.entity) {
+          'workout_session' => await _syncWorkoutSession(entry),
+          'log_item' => await _syncLogItem(entry),
+          'health_reading' => await _syncHealthReading(entry),
+          'body_measurement' => await _syncMeasurement(entry),
+          _ => SyncOutcome.skipped,
+        };
 
         if (outcome == SyncOutcome.synced) {
           summary.succeeded += 1;
@@ -153,6 +157,60 @@ class SyncService {
       syncStatus: const Value('synced'),
       updatedAt: Value(_now()),
     ));
+    return SyncOutcome.synced;
+  }
+
+  Future<SyncOutcome> _syncHealthReading(SyncQueueData entry) async {
+    final id = int.tryParse(entry.localId.replaceFirst('hr:', ''));
+    if (id == null) return SyncOutcome.skipped;
+    final record = await _db.healthReadingById(id);
+    if (record == null) return SyncOutcome.skipped;
+    if (record.remoteId != null) {
+      await _db.markHealthReading(id, syncStatus: 'synced');
+      return SyncOutcome.skipped;
+    }
+
+    final row = await _client
+        .from('health_readings')
+        .insert({
+          'user_id': record.userId,
+          'marker': record.marker,
+          'value': record.value,
+          'value2': record.value2,
+          'measured_on': record.measuredOn,
+        })
+        .select('id')
+        .single();
+
+    await _db.markHealthReading(id,
+        remoteId: row['id'] as String, syncStatus: 'synced');
+    return SyncOutcome.synced;
+  }
+
+  Future<SyncOutcome> _syncMeasurement(SyncQueueData entry) async {
+    final id = int.tryParse(entry.localId.replaceFirst('bm:', ''));
+    if (id == null) return SyncOutcome.skipped;
+    final record = await _db.measurementById(id);
+    if (record == null) return SyncOutcome.skipped;
+    if (record.remoteId != null) {
+      await _db.markMeasurement(id, syncStatus: 'synced');
+      return SyncOutcome.skipped;
+    }
+
+    final row = await _client
+        .from('body_measurements')
+        .insert({
+          'user_id': record.userId,
+          'measured_on': record.measuredOn,
+          'weight_kg': record.weightKg,
+          'body_fat_pct': record.bodyFatPct,
+          'waist_cm': record.waistCm,
+        })
+        .select('id')
+        .single();
+
+    await _db.markMeasurement(id,
+        remoteId: row['id'] as String, syncStatus: 'synced');
     return SyncOutcome.synced;
   }
 

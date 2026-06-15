@@ -43,12 +43,16 @@ MarkerKey? _key(String wire) {
 }
 
 final healthActionsProvider = Provider<HealthActions>(
-  (ref) => HealthActions(ref.watch(healthRepositoryProvider)),
+  (ref) => HealthActions(
+    ref.watch(healthRepositoryProvider),
+    () => ref.read(currentUserIdProvider),
+  ),
 );
 
 class HealthActions {
-  HealthActions(this._repo);
+  HealthActions(this._repo, this._userId);
   final HealthRepository _repo;
+  final String Function() _userId;
 
   Future<void> add({
     required MarkerKey marker,
@@ -57,6 +61,7 @@ class HealthActions {
     required String measuredOn,
   }) =>
       _repo.add(
+        userId: _userId(),
         marker: marker.wire,
         value: value,
         value2: value2,

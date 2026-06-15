@@ -69,6 +69,10 @@ class HealthReadings extends Table {
   RealColumn get value2 => real().nullable()(); // e.g. diastolic
   TextColumn get measuredOn => text()(); // yyyy-mm-dd
   IntColumn get createdAt => integer()();
+  // Sync fields (v4): owner + push state.
+  TextColumn get userId => text().withDefault(const Constant(''))();
+  TextColumn get remoteId => text().nullable()();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
 }
 
 /// A body measurement entry (weight + optional body-fat % / waist), for the
@@ -80,6 +84,10 @@ class BodyMeasurements extends Table {
   RealColumn get bodyFatPct => real().nullable()();
   RealColumn get waistCm => real().nullable()();
   IntColumn get createdAt => integer()();
+  // Sync fields (v4): owner + push state.
+  TextColumn get userId => text().withDefault(const Constant(''))();
+  TextColumn get remoteId => text().nullable()();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
 }
 
 /// A locally cached food row for offline search (subset of public.foods).

@@ -54,8 +54,14 @@ and the **same domain logic** via the `fitvn_domain` package (Phase 1).
   delta, a history list, and an add sheet. Logging a measurement also updates
   the profile's current weight (recomputing targets).
 
+- **Phase 9 — health/measurement Supabase sync:** new `health_readings` +
+  `body_measurements` tables (migration 0005, owner-only RLS). Local tables
+  gained sync fields (schema v4 migration); adding a reading/measurement
+  enqueues a sync op when Supabase is configured, and `SyncService` pushes them
+  (idempotent via `remoteId`). Pre-existing local rows aren't back-filled.
+
 Remaining for later phases: finishing FCM wiring, writing data back to Health,
-and syncing health/measurement data to a Supabase table (local-only for now).
+and a pull/merge path (downstream sync) for multi-device.
 
 ### Original phase-2 layout
 

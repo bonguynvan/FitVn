@@ -26,6 +26,7 @@ class MeasurementActions {
     double? waistCm,
   }) async {
     await _ref.read(measurementRepositoryProvider).add(
+          userId: _ref.read(currentUserIdProvider),
           measuredOn: measuredOn,
           weightKg: weightKg,
           bodyFatPct: bodyFatPct,

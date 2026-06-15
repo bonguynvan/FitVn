@@ -31,7 +31,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -41,6 +41,15 @@ class AppDatabase extends _$AppDatabase {
           if (from < 2) await m.createTable(healthReadings);
           // v3: body measurements (weight history).
           if (from < 3) await m.createTable(bodyMeasurements);
+          // v4: sync fields on health + measurement tables.
+          if (from < 4) {
+            await m.addColumn(healthReadings, healthReadings.userId);
+            await m.addColumn(healthReadings, healthReadings.remoteId);
+            await m.addColumn(healthReadings, healthReadings.syncStatus);
+            await m.addColumn(bodyMeasurements, bodyMeasurements.userId);
+            await m.addColumn(bodyMeasurements, bodyMeasurements.remoteId);
+            await m.addColumn(bodyMeasurements, bodyMeasurements.syncStatus);
+          }
         },
       );
 
@@ -172,8 +181,22 @@ class AppDatabase extends _$AppDatabase {
 
   // --- Health markers ------------------------------------------------------
 
-  Future<void> addHealthReading(HealthReadingsCompanion reading) =>
-      into(healthReadings).insert(reading);
+  /// Insert a reading; when [enqueue], also queue a sync op (localId 'hr:<id>').
+  Future<void> addHealthReading(
+    HealthReadingsCompanion reading, {
+    required bool enqueue,
+  }) {
+    return transaction(() async {
+      final id = await into(healthReadings).insert(reading);
+      if (enqueue) {
+        await into(syncQueue).insert(SyncQueueCompanion.insert(
+          entity: 'health_reading',
+          localId: 'hr:$id',
+          enqueuedAt: reading.createdAt.value,
+        ));
+      }
+    });
+  }
 
   /// All readings, newest first (by measured date, then insert order).
   Stream<List<HealthReading>> watchHealthReadings() {
@@ -185,13 +208,46 @@ class AppDatabase extends _$AppDatabase {
         .watch();
   }
 
-  Future<void> deleteHealthReading(int id) =>
-      (delete(healthReadings)..where((t) => t.id.equals(id))).go();
+  Future<HealthReading?> healthReadingById(int id) =>
+      (select(healthReadings)..where((t) => t.id.equals(id)))
+          .getSingleOrNull();
+
+  Future<void> markHealthReading(int id,
+      {String? remoteId, String? syncStatus}) {
+    return (update(healthReadings)..where((t) => t.id.equals(id))).write(
+      HealthReadingsCompanion(
+        remoteId: remoteId == null ? const Value.absent() : Value(remoteId),
+        syncStatus:
+            syncStatus == null ? const Value.absent() : Value(syncStatus),
+      ),
+    );
+  }
+
+  Future<void> deleteHealthReading(int id) {
+    return transaction(() async {
+      await (delete(healthReadings)..where((t) => t.id.equals(id))).go();
+      await (delete(syncQueue)..where((t) => t.localId.equals('hr:$id'))).go();
+    });
+  }
 
   // --- Body measurements (weight history) ----------------------------------
 
-  Future<void> addMeasurement(BodyMeasurementsCompanion m) =>
-      into(bodyMeasurements).insert(m);
+  /// Insert a measurement; when [enqueue], also queue a sync op ('bm:<id>').
+  Future<void> addMeasurement(
+    BodyMeasurementsCompanion m, {
+    required bool enqueue,
+  }) {
+    return transaction(() async {
+      final id = await into(bodyMeasurements).insert(m);
+      if (enqueue) {
+        await into(syncQueue).insert(SyncQueueCompanion.insert(
+          entity: 'body_measurement',
+          localId: 'bm:$id',
+          enqueuedAt: m.createdAt.value,
+        ));
+      }
+    });
+  }
 
   /// Oldest → newest, chart-ready (reverse for a newest-first history list).
   Stream<List<BodyMeasurement>> watchMeasurements() {
@@ -203,8 +259,27 @@ class AppDatabase extends _$AppDatabase {
         .watch();
   }
 
-  Future<void> deleteMeasurement(int id) =>
-      (delete(bodyMeasurements)..where((t) => t.id.equals(id))).go();
+  Future<BodyMeasurement?> measurementById(int id) =>
+      (select(bodyMeasurements)..where((t) => t.id.equals(id)))
+          .getSingleOrNull();
+
+  Future<void> markMeasurement(int id,
+      {String? remoteId, String? syncStatus}) {
+    return (update(bodyMeasurements)..where((t) => t.id.equals(id))).write(
+      BodyMeasurementsCompanion(
+        remoteId: remoteId == null ? const Value.absent() : Value(remoteId),
+        syncStatus:
+            syncStatus == null ? const Value.absent() : Value(syncStatus),
+      ),
+    );
+  }
+
+  Future<void> deleteMeasurement(int id) {
+    return transaction(() async {
+      await (delete(bodyMeasurements)..where((t) => t.id.equals(id))).go();
+      await (delete(syncQueue)..where((t) => t.localId.equals('bm:$id'))).go();
+    });
+  }
 
   // --- Sync status ---------------------------------------------------------
 
