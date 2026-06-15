@@ -60,8 +60,14 @@ and the **same domain logic** via the `fitvn_domain` package (Phase 1).
   enqueues a sync op when Supabase is configured, and `SyncService` pushes them
   (idempotent via `remoteId`). Pre-existing local rows aren't back-filled.
 
+- **Phase 10 — downstream pull sync:** `PullService` fetches the user's remote
+  health readings + body measurements after each push and merges any not present
+  locally (deduped by `remoteId`, inserted as 'synced', never re-enqueued) —
+  multi-device additive sync. Runs in `SyncController.syncNow` after the push;
+  skipped in local-only mode. Deletions aren't propagated yet.
+
 Remaining for later phases: finishing FCM wiring, writing data back to Health,
-and a pull/merge path (downstream sync) for multi-device.
+and propagating deletions / conflict resolution in pull sync.
 
 ### Original phase-2 layout
 

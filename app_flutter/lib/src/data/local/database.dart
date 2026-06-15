@@ -230,6 +230,18 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
+  /// remoteIds already present locally — used to dedupe a downstream pull.
+  Future<Set<String>> healthReadingRemoteIds() async {
+    final rows = await (selectOnly(healthReadings)
+          ..addColumns([healthReadings.remoteId])
+          ..where(healthReadings.remoteId.isNotNull()))
+        .get();
+    return rows
+        .map((r) => r.read(healthReadings.remoteId))
+        .whereType<String>()
+        .toSet();
+  }
+
   // --- Body measurements (weight history) ----------------------------------
 
   /// Insert a measurement; when [enqueue], also queue a sync op ('bm:<id>').
@@ -279,6 +291,18 @@ class AppDatabase extends _$AppDatabase {
       await (delete(bodyMeasurements)..where((t) => t.id.equals(id))).go();
       await (delete(syncQueue)..where((t) => t.localId.equals('bm:$id'))).go();
     });
+  }
+
+  /// remoteIds already present locally — used to dedupe a downstream pull.
+  Future<Set<String>> measurementRemoteIds() async {
+    final rows = await (selectOnly(bodyMeasurements)
+          ..addColumns([bodyMeasurements.remoteId])
+          ..where(bodyMeasurements.remoteId.isNotNull()))
+        .get();
+    return rows
+        .map((r) => r.read(bodyMeasurements.remoteId))
+        .whereType<String>()
+        .toSet();
   }
 
   // --- Sync status ---------------------------------------------------------

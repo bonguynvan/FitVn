@@ -12,6 +12,7 @@ import '../data/repositories/measurement_repository.dart';
 import '../data/repositories/nutrition_repository.dart';
 import '../data/repositories/profile_repository.dart';
 import '../data/repositories/workout_repository.dart';
+import '../data/sync/pull_service.dart';
 import '../data/sync/sync_service.dart';
 import '../features/coach/coach_client.dart';
 
@@ -35,6 +36,10 @@ final profileRepositoryProvider =
 
 final syncServiceProvider = Provider<SyncService>(
   (ref) => SyncService(ref.watch(databaseProvider), supabase),
+);
+
+final pullServiceProvider = Provider<PullService>(
+  (ref) => PullService(ref.watch(databaseProvider), supabase),
 );
 
 final coachClientProvider = Provider<CoachClient>((ref) {

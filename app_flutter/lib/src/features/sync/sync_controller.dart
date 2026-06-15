@@ -49,6 +49,11 @@ class SyncController extends Notifier<SyncState> {
     state = state.copyWith(running: true, error: null);
     try {
       final summary = await ref.read(syncServiceProvider).pushPending();
+      // Then pull others' rows (multi-device). Skipped in local-only mode.
+      final uid = ref.read(currentUserIdProvider);
+      if (uid != 'local') {
+        await ref.read(pullServiceProvider).pull(uid);
+      }
       state = SyncState(running: false, last: summary);
     } catch (e) {
       state = SyncState(running: false, error: e.toString());
