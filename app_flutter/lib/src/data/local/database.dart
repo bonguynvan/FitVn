@@ -21,6 +21,7 @@ part 'database.g.dart';
     SyncQueue,
     CachedFoods,
     HealthReadings,
+    BodyMeasurements,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -30,7 +31,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -38,6 +39,8 @@ class AppDatabase extends _$AppDatabase {
         onUpgrade: (m, from, to) async {
           // v2: health-marker readings.
           if (from < 2) await m.createTable(healthReadings);
+          // v3: body measurements (weight history).
+          if (from < 3) await m.createTable(bodyMeasurements);
         },
       );
 
@@ -184,6 +187,24 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> deleteHealthReading(int id) =>
       (delete(healthReadings)..where((t) => t.id.equals(id))).go();
+
+  // --- Body measurements (weight history) ----------------------------------
+
+  Future<void> addMeasurement(BodyMeasurementsCompanion m) =>
+      into(bodyMeasurements).insert(m);
+
+  /// Oldest → newest, chart-ready (reverse for a newest-first history list).
+  Stream<List<BodyMeasurement>> watchMeasurements() {
+    return (select(bodyMeasurements)
+          ..orderBy([
+            (t) => OrderingTerm.asc(t.measuredOn),
+            (t) => OrderingTerm.asc(t.createdAt),
+          ]))
+        .watch();
+  }
+
+  Future<void> deleteMeasurement(int id) =>
+      (delete(bodyMeasurements)..where((t) => t.id.equals(id))).go();
 
   // --- Sync status ---------------------------------------------------------
 

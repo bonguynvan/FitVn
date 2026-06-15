@@ -71,6 +71,17 @@ class HealthReadings extends Table {
   IntColumn get createdAt => integer()();
 }
 
+/// A body measurement entry (weight + optional body-fat % / waist), for the
+/// Progress trends. Local-only for now, like [HealthReadings].
+class BodyMeasurements extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get measuredOn => text()(); // yyyy-mm-dd
+  RealColumn get weightKg => real()();
+  RealColumn get bodyFatPct => real().nullable()();
+  RealColumn get waistCm => real().nullable()();
+  IntColumn get createdAt => integer()();
+}
+
 /// A locally cached food row for offline search (subset of public.foods).
 class CachedFoods extends Table {
   TextColumn get id => text()();

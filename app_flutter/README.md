@@ -48,9 +48,14 @@ and the **same domain logic** via the `fitvn_domain` package (Phase 1).
   HealthKit capability + Info.plist usage strings (iOS), Health Connect
   permissions (Android).
 
-Remaining for later phases: weight/measurement history + charts, finishing FCM
-wiring, and writing data back to Health. Health-marker readings are local-only
-until a Supabase table + sync are added.
+- **Phase 8 — weight history + charts:** local `BodyMeasurements` Drift table
+  (schema v3 + migration) for weight + optional body-fat % / waist. Progress tab
+  shows weight (and body-fat/waist when present) trend cards with `LineChart` +
+  delta, a history list, and an add sheet. Logging a measurement also updates
+  the profile's current weight (recomputing targets).
+
+Remaining for later phases: finishing FCM wiring, writing data back to Health,
+and syncing health/measurement data to a Supabase table (local-only for now).
 
 ### Original phase-2 layout
 

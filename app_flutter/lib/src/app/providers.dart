@@ -8,6 +8,7 @@ import '../data/local/database.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/food_repository.dart';
 import '../data/repositories/health_repository.dart';
+import '../data/repositories/measurement_repository.dart';
 import '../data/repositories/nutrition_repository.dart';
 import '../data/repositories/profile_repository.dart';
 import '../data/repositories/workout_repository.dart';
@@ -55,6 +56,10 @@ final foodRepositoryProvider = Provider<FoodRepository>(
 
 final healthRepositoryProvider = Provider<HealthRepository>(
   (ref) => HealthRepository(ref.watch(databaseProvider)),
+);
+
+final measurementRepositoryProvider = Provider<MeasurementRepository>(
+  (ref) => MeasurementRepository(ref.watch(databaseProvider)),
 );
 
 /// Local on-device notifications (reminders). Initialized in `main`.
