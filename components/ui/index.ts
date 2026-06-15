@@ -18,5 +18,6 @@ export { EmptyState } from "./EmptyState";
 export { Sheet } from "./Sheet";
 export { CollapsibleSection } from "./CollapsibleSection";
 export { Stepper } from "./Stepper";
+export { NumberField } from "./NumberField";
 export { Toggle } from "./Toggle";
 export { SegmentedControl, type SegmentOption } from "./SegmentedControl";

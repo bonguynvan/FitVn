@@ -13,7 +13,7 @@ import {
 
 import { logout } from "@/app/login/actions";
 import { BrandHero } from "@/components/nav/BrandHero";
-import { Card, CollapsibleSection, IconBadge, Toggle } from "@/components/ui";
+import { Card, CollapsibleSection, IconBadge, NumberField, Toggle } from "@/components/ui";
 import {
   ACTIVITY_OPTIONS,
   GOAL_OPTIONS,
@@ -22,6 +22,7 @@ import {
   type DailyTargets,
   type UserProfile,
 } from "@/lib/fitness/targets";
+import { PROFILE_BOUNDS, clampProfileMetrics } from "@/lib/fitness/profile-bounds";
 import { getProfile, saveProfile } from "@/lib/store/profile-store";
 import { DataSection } from "@/components/profile/DataSection";
 import { RemindersSection } from "@/components/profile/RemindersSection";
@@ -123,9 +124,13 @@ export function ProfileScreen() {
 
   function onSave() {
     const conditions = form.conditions ?? [];
+    // Validate body metrics on save, not while typing. Reflect the clamped
+    // values back into the form so the fields show what was actually stored.
+    const clamped = clampProfileMetrics(form);
+    setForm(clamped);
     saveProfile({
-      ...form,
-      name: form.name.trim(),
+      ...clamped,
+      name: clamped.name.trim(),
       conditions,
       goutMode: conditions.includes("gout"),
       customTargets: manual ? customTargets : null,
@@ -216,9 +221,9 @@ export function ProfileScreen() {
         </Field>
 
         <div className="grid grid-cols-3 gap-3">
-          <NumberField label="Tuổi" value={form.age} onChange={(v) => set("age", v)} min={10} max={100} />
-          <NumberField label="Cao (cm)" value={form.heightCm} onChange={(v) => set("heightCm", v)} min={120} max={230} />
-          <NumberField label="Nặng (kg)" value={form.weightKg} onChange={(v) => set("weightKg", v)} min={30} max={250} />
+          <NumberField label="Tuổi" value={form.age} onChange={(v) => set("age", v)} min={PROFILE_BOUNDS.age.min} max={PROFILE_BOUNDS.age.max} />
+          <NumberField label="Cao (cm)" value={form.heightCm} onChange={(v) => set("heightCm", v)} min={PROFILE_BOUNDS.heightCm.min} max={PROFILE_BOUNDS.heightCm.max} />
+          <NumberField label="Nặng (kg)" value={form.weightKg} onChange={(v) => set("weightKg", v)} min={PROFILE_BOUNDS.weightKg.min} max={PROFILE_BOUNDS.weightKg.max} />
         </div>
 
         <label className="flex flex-col gap-1.5">
@@ -430,38 +435,6 @@ function CustomField({
         onChange={(e) => onChange(e.target.value)}
         placeholder="0"
         className="w-full rounded-btn border border-border bg-surface px-3 py-2.5 text-base font-semibold text-text outline-none focus:border-primary"
-      />
-    </label>
-  );
-}
-
-function NumberField({
-  label,
-  value,
-  onChange,
-  min,
-  max,
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-  min: number;
-  max: number;
-}) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-medium text-muted">{label}</span>
-      <input
-        type="number"
-        inputMode="numeric"
-        value={Number.isFinite(value) ? value : ""}
-        min={min}
-        max={max}
-        onChange={(e) => {
-          const n = Number(e.target.value);
-          if (Number.isFinite(n)) onChange(Math.min(max, Math.max(min, n)));
-        }}
-        className="w-full rounded-btn border border-border bg-surface px-3 py-3 text-center text-base font-semibold text-text outline-none focus:border-primary"
       />
     </label>
   );

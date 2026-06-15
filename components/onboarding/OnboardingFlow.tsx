@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, Flame, Sparkles } from "lucide-react";
 
-import { Card, IconBadge, Toggle } from "@/components/ui";
+import { Card, IconBadge, NumberField, Toggle } from "@/components/ui";
 import {
   ACTIVITY_OPTIONS,
   GOAL_OPTIONS,
@@ -12,6 +12,7 @@ import {
   computeTargets,
   type UserProfile,
 } from "@/lib/fitness/targets";
+import { PROFILE_BOUNDS, clampProfileMetrics } from "@/lib/fitness/profile-bounds";
 import {
   CONDITION_ORDER,
   CONDITIONS,
@@ -63,9 +64,12 @@ export function OnboardingFlow() {
 
   function finish() {
     const conditions = form.conditions ?? [];
+    // Validate body metrics here — not while typing — so partial entries are
+    // never rewritten under the user's cursor.
+    const clamped = clampProfileMetrics(form);
     saveProfile({
-      ...form,
-      name: form.name.trim(),
+      ...clamped,
+      name: clamped.name.trim(),
       conditions,
       goutMode: conditions.includes("gout"),
       customTargets: null,
@@ -161,9 +165,9 @@ export function OnboardingFlow() {
       {step === 2 ? (
         <div className="flex flex-1 flex-col gap-5">
           <div className="grid grid-cols-3 gap-3">
-            <NumberField label="Tuổi" value={form.age} onChange={(v) => set("age", v)} min={10} max={100} />
-            <NumberField label="Cao (cm)" value={form.heightCm} onChange={(v) => set("heightCm", v)} min={120} max={230} />
-            <NumberField label="Nặng (kg)" value={form.weightKg} onChange={(v) => set("weightKg", v)} min={30} max={250} />
+            <NumberField label="Tuổi" value={form.age} onChange={(v) => set("age", v)} min={PROFILE_BOUNDS.age.min} max={PROFILE_BOUNDS.age.max} />
+            <NumberField label="Cao (cm)" value={form.heightCm} onChange={(v) => set("heightCm", v)} min={PROFILE_BOUNDS.heightCm.min} max={PROFILE_BOUNDS.heightCm.max} />
+            <NumberField label="Nặng (kg)" value={form.weightKg} onChange={(v) => set("weightKg", v)} min={PROFILE_BOUNDS.weightKg.min} max={PROFILE_BOUNDS.weightKg.max} />
           </div>
           <label className="flex flex-col gap-1.5">
             <span className="text-sm font-semibold text-text">
@@ -335,34 +339,3 @@ function Choice({
   );
 }
 
-function NumberField({
-  label,
-  value,
-  onChange,
-  min,
-  max,
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-  min: number;
-  max: number;
-}) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-medium text-muted">{label}</span>
-      <input
-        type="number"
-        inputMode="numeric"
-        value={Number.isFinite(value) ? value : ""}
-        min={min}
-        max={max}
-        onChange={(e) => {
-          const n = Number(e.target.value);
-          if (Number.isFinite(n)) onChange(Math.min(max, Math.max(min, n)));
-        }}
-        className="w-full rounded-btn border border-border bg-surface px-3 py-3 text-center text-base font-semibold text-text outline-none focus:border-primary"
-      />
-    </label>
-  );
-}
