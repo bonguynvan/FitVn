@@ -3,9 +3,21 @@
 Native iOS + Android client. Shares the **same Supabase backend** as the web app
 and the **same domain logic** via the `fitvn_domain` package (Phase 1).
 
-## What's in this phase
+## What's built
 
-Phase 2 builds the **data layer + app shell** — no real screens yet (Phase 3).
+- **Phase 2 — data layer:** Drift local store, Supabase sync, auth/profile repos.
+- **Phase 3a — theme + onboarding:** ported design tokens, shared widgets
+  (incl. the free-typing `NumberField`), and the onboarding flow.
+- **Phase 3b — app shell + screens:** bottom-tab `MainShell` (Trang chủ · Lịch
+  tập · Dinh dưỡng · HLV AI · Tiến độ), a data-driven Home, an editable Profile,
+  a working Coach chat (calls the Edge Function), and data-aware preview screens
+  for Workouts / Nutrition / Progress. `RootGate` shows onboarding until a
+  profile exists, then the shell.
+
+Remaining for later phases: meal/workout logging UIs, food library + offline
+search, health-marker history, charts, push, and Apple Health / Google Fit.
+
+### Original phase-2 layout
 
 ```
 lib/
