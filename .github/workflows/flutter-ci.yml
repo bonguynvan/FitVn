@@ -1,0 +1,53 @@
+name: Flutter CI
+
+# Keeps the native app green: domain golden tests, Drift codegen, analyze, and
+# widget tests. The web app (Next.js) has its own checks; this covers app_flutter
+# and the shared packages/fitvn_domain package.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app_flutter/**'
+      - 'packages/fitvn_domain/**'
+      - '.github/workflows/flutter-ci.yml'
+  pull_request:
+    paths:
+      - 'app_flutter/**'
+      - 'packages/fitvn_domain/**'
+      - '.github/workflows/flutter-ci.yml'
+
+jobs:
+  flutter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Domain — analyze & golden tests
+        working-directory: packages/fitvn_domain
+        run: |
+          dart pub get
+          dart analyze
+          dart test
+
+      - name: App — install deps
+        working-directory: app_flutter
+        run: flutter pub get
+
+      - name: App — Drift codegen
+        working-directory: app_flutter
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # NOTE: re-enable the format gate after a one-time `dart format .`:
+      #   dart format --set-exit-if-changed lib test
+      - name: App — analyze
+        working-directory: app_flutter
+        run: flutter analyze
+
+      - name: App — tests
+        working-directory: app_flutter
+        run: flutter test
