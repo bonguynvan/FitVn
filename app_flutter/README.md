@@ -14,8 +14,13 @@ and the **same domain logic** via the `fitvn_domain` package (Phase 1).
   for Workouts / Nutrition / Progress. `RootGate` shows onboarding until a
   profile exists, then the shell.
 
-Remaining for later phases: meal/workout logging UIs, food library + offline
-search, health-marker history, charts, push, and Apple Health / Google Fit.
+- **Phase 4a — nutrition logging:** log meals against a seed food catalog →
+  writes a pending log item + sync-queue entry in Drift (exercising the Phase 2
+  store), with live consumed-vs-target totals on Nutrition + Home.
+
+Remaining for later phases: workout logging UI, the full FCT food library +
+offline search, a connectivity-triggered sync run, health-marker history,
+charts, push, and Apple Health / Google Fit.
 
 ### Original phase-2 layout
 

@@ -40,6 +40,9 @@ dependencies:
   # Local profile persistence (mirrors the web app's localStorage profile-store).
   shared_preferences: ^2.2.3
 
+  # Client-generated ids for offline-created records (localId).
+  uuid: ^4.4.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/env.dart';
 import '../core/supabase.dart';
 import '../data/local/database.dart';
 import '../data/repositories/auth_repository.dart';
+import '../data/repositories/nutrition_repository.dart';
 import '../data/repositories/profile_repository.dart';
 import '../data/sync/sync_service.dart';
 import '../features/coach/coach_client.dart';
@@ -32,6 +34,18 @@ final syncServiceProvider = Provider<SyncService>(
 final coachClientProvider = Provider<CoachClient>((ref) {
   final client = CoachClient();
   return client;
+});
+
+final nutritionRepositoryProvider = Provider<NutritionRepository>(
+  (ref) => NutritionRepository(ref.watch(databaseProvider)),
+);
+
+/// The signed-in user's id, or 'local' when running without a backend (the
+/// native counterpart to the web app's stub session). Pending records key off
+/// this so they sync to the right account once signed in.
+final currentUserIdProvider = Provider<String>((ref) {
+  if (!Env.isSupabaseConfigured) return 'local';
+  return supabase.auth.currentUser?.id ?? 'local';
 });
 
 /// Auth state stream — drives the router's redirect (logged-in vs login).

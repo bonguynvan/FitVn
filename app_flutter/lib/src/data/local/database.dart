@@ -56,6 +56,38 @@ class AppDatabase extends _$AppDatabase {
   Future<PendingLogItem?> pendingLog(String localId) =>
       (select(pendingLogItems)..where((t) => t.localId.equals(localId)))
           .getSingleOrNull();
+
+  // --- Nutrition logging ---------------------------------------------------
+
+  /// Insert a pending log item AND enqueue its sync op atomically, so a record
+  /// is never left un-queued (mirrors the web app's create-then-enqueue).
+  Future<void> addPendingLog(PendingLogItemsCompanion item, int enqueuedAt) {
+    return transaction(() async {
+      await into(pendingLogItems).insert(item);
+      await into(syncQueue).insert(SyncQueueCompanion.insert(
+        entity: 'log_item',
+        localId: item.localId.value,
+        enqueuedAt: enqueuedAt,
+      ));
+    });
+  }
+
+  /// Live stream of a day's logged items (oldest first), for reactive totals.
+  Stream<List<PendingLogItem>> watchLogsForDate(String date) {
+    return (select(pendingLogItems)
+          ..where((t) => t.loggedOn.equals(date))
+          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
+        .watch();
+  }
+
+  /// Remove a log item and any queued op that still references it.
+  Future<void> removePendingLog(String localId) {
+    return transaction(() async {
+      await (delete(pendingLogItems)..where((t) => t.localId.equals(localId)))
+          .go();
+      await (delete(syncQueue)..where((t) => t.localId.equals(localId))).go();
+    });
+  }
 }
 
 LazyDatabase _openConnection() {
