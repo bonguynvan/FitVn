@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../theme/tokens.dart';
+import '../../widgets/app_card.dart';
 import '../../widgets/choice_tile.dart';
 import '../../widgets/number_field.dart';
 import '../../widgets/targets_card.dart';
+import '../sync/sync_controller.dart';
 import 'profile_controller.dart';
 
 /// Edit the profile — same fields as onboarding, reusing the free-typing
@@ -57,6 +59,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         padding: const EdgeInsets.all(20),
         children: [
           DailyTargetsCard(targets: targets),
+          const SizedBox(height: 16),
+          const _SyncRow(),
           const SizedBox(height: 20),
           const Text('Tên hiển thị',
               style: TextStyle(fontWeight: FontWeight.w600)),
@@ -153,6 +157,52 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             onPressed: _save,
             child: Text(_saved ? 'Đã lưu ✓' : 'Lưu hồ sơ'),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Pending-sync count + manual "sync now". Reflects the offline queue that
+/// nutrition/workout logging fills; auto-syncs on reconnect (SyncController).
+class _SyncRow extends ConsumerWidget {
+  const _SyncRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pending = ref.watch(pendingSyncCountProvider).valueOrNull ?? 0;
+    final syncing = ref.watch(syncControllerProvider).running;
+    return AppCard(
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Đồng bộ',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 2),
+                Text(
+                  pending == 0
+                      ? 'Đã đồng bộ — không có mục chờ'
+                      : '$pending mục đang chờ đồng bộ',
+                  style:
+                      const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                ),
+              ],
+            ),
+          ),
+          syncing
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : TextButton(
+                  onPressed: () =>
+                      ref.read(syncControllerProvider.notifier).syncNow(),
+                  child: const Text('Đồng bộ ngay'),
+                ),
         ],
       ),
     );

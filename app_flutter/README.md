@@ -15,12 +15,16 @@ and the **same domain logic** via the `fitvn_domain` package (Phase 1).
   profile exists, then the shell.
 
 - **Phase 4a — nutrition logging:** log meals against a seed food catalog →
-  writes a pending log item + sync-queue entry in Drift (exercising the Phase 2
-  store), with live consumed-vs-target totals on Nutrition + Home.
+  pending log item + sync-queue entry in Drift, with live consumed-vs-target
+  totals on Nutrition + Home.
+- **Phase 4b — sync trigger + workout logging:** `SyncController` drains the
+  queue on startup and on connectivity changes (connectivity_plus), with a
+  pending-count + manual "sync now" row on Profile. Workout logging builds a
+  session (exercise + sets) → pending workout session enqueued for sync;
+  Workouts shows today's sessions.
 
-Remaining for later phases: workout logging UI, the full FCT food library +
-offline search, a connectivity-triggered sync run, health-marker history,
-charts, push, and Apple Health / Google Fit.
+Remaining for later phases: the full FCT food library + offline search,
+health-marker history, charts, push, and Apple Health / Google Fit.
 
 ### Original phase-2 layout
 

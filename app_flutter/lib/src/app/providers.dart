@@ -6,6 +6,7 @@ import '../data/local/database.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/nutrition_repository.dart';
 import '../data/repositories/profile_repository.dart';
+import '../data/repositories/workout_repository.dart';
 import '../data/sync/sync_service.dart';
 import '../features/coach/coach_client.dart';
 
@@ -38,6 +39,10 @@ final coachClientProvider = Provider<CoachClient>((ref) {
 
 final nutritionRepositoryProvider = Provider<NutritionRepository>(
   (ref) => NutritionRepository(ref.watch(databaseProvider)),
+);
+
+final workoutRepositoryProvider = Provider<WorkoutRepository>(
+  (ref) => WorkoutRepository(ref.watch(databaseProvider)),
 );
 
 /// The signed-in user's id, or 'local' when running without a backend (the

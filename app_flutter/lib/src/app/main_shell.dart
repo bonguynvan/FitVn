@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/coach/coach_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/nutrition/nutrition_screen.dart';
 import '../features/progress/progress_screen.dart';
+import '../features/sync/sync_controller.dart';
 import '../features/workouts/workouts_screen.dart';
 import '../theme/tokens.dart';
 
@@ -12,14 +14,14 @@ import '../theme/tokens.dart';
 ///
 /// Uses an [IndexedStack] so each tab keeps its state across switches (the
 /// coach conversation, scroll positions, etc.).
-class MainShell extends StatefulWidget {
+class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
 
   @override
-  State<MainShell> createState() => _MainShellState();
+  ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell> {
+class _MainShellState extends ConsumerState<MainShell> {
   int _index = 0;
 
   static const _tabs = [
@@ -29,6 +31,14 @@ class _MainShellState extends State<MainShell> {
     CoachScreen(),
     ProgressScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Instantiate the sync controller so its connectivity listener + startup
+    // drain run for the app's lifetime.
+    ref.read(syncControllerProvider);
+  }
 
   @override
   Widget build(BuildContext context) {

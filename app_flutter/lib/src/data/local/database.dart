@@ -88,6 +88,47 @@ class AppDatabase extends _$AppDatabase {
       await (delete(syncQueue)..where((t) => t.localId.equals(localId))).go();
     });
   }
+
+  // --- Workout logging -----------------------------------------------------
+
+  /// Insert a pending workout session AND enqueue its sync op atomically.
+  Future<void> addPendingWorkout(
+      PendingWorkoutSessionsCompanion session, int enqueuedAt) {
+    return transaction(() async {
+      await into(pendingWorkoutSessions).insert(session);
+      await into(syncQueue).insert(SyncQueueCompanion.insert(
+        entity: 'workout_session',
+        localId: session.localId.value,
+        enqueuedAt: enqueuedAt,
+      ));
+    });
+  }
+
+  Stream<List<PendingWorkoutSession>> watchWorkoutsForDate(String date) {
+    return (select(pendingWorkoutSessions)
+          ..where((t) => t.performedOn.equals(date))
+          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
+        .watch();
+  }
+
+  Future<void> removePendingWorkout(String localId) {
+    return transaction(() async {
+      await (delete(pendingWorkoutSessions)
+            ..where((t) => t.localId.equals(localId)))
+          .go();
+      await (delete(syncQueue)..where((t) => t.localId.equals(localId))).go();
+    });
+  }
+
+  // --- Sync status ---------------------------------------------------------
+
+  /// Live count of records still waiting to sync — for badges / status rows.
+  Stream<int> watchPendingCount() {
+    final c = countAll();
+    return (selectOnly(syncQueue)..addColumns([c]))
+        .watchSingle()
+        .map((row) => row.read(c) ?? 0);
+  }
 }
 
 LazyDatabase _openConnection() {

@@ -43,6 +43,9 @@ dependencies:
   # Client-generated ids for offline-created records (localId).
   uuid: ^4.4.0
 
+  # Connectivity changes → trigger the offline sync push.
+  connectivity_plus: ^6.0.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
