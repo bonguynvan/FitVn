@@ -120,6 +120,38 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
+  // --- Food library cache --------------------------------------------------
+
+  Future<int> cachedFoodsCount() async {
+    final c = countAll();
+    final row = await (selectOnly(cachedFoods)..addColumns([c])).getSingle();
+    return row.read(c) ?? 0;
+  }
+
+  /// Upsert a batch of foods (id conflict → update), keeping the cache fresh.
+  Future<void> cacheFoods(List<CachedFoodsCompanion> foods) {
+    return batch((b) => b.insertAllOnConflictUpdate(cachedFoods, foods));
+  }
+
+  /// Substring search over the cached slice; Vietnamese foods first, then name.
+  Future<List<CachedFood>> searchCachedFoods(String query, int limit) {
+    final q = query.trim().toLowerCase();
+    final sel = select(cachedFoods);
+    if (q.isNotEmpty) sel.where((t) => t.searchKey.like('%$q%'));
+    sel
+      ..orderBy([
+        (t) => OrderingTerm.desc(t.isVietnamese),
+        (t) => OrderingTerm.asc(t.nameVi),
+      ])
+      ..limit(limit);
+    return sel.get();
+  }
+
+  Stream<List<CachedFood>> watchAllCachedFoods() => select(cachedFoods).watch();
+
+  Future<CachedFood?> cachedFood(String id) =>
+      (select(cachedFoods)..where((t) => t.id.equals(id))).getSingleOrNull();
+
   // --- Sync status ---------------------------------------------------------
 
   /// Live count of records still waiting to sync — for badges / status rows.

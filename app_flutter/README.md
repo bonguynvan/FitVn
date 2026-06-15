@@ -23,8 +23,14 @@ and the **same domain logic** via the `fitvn_domain` package (Phase 1).
   session (exercise + sets) → pending workout session enqueued for sync;
   Workouts shows today's sessions.
 
-Remaining for later phases: the full FCT food library + offline search,
-health-marker history, charts, push, and Apple Health / Google Fit.
+- **Phase 4c — food library + offline search:** `FoodRepository` searches
+  Supabase `foods` when online (caching hits into Drift `cachedFoods`) and falls
+  back to the cache offline; the bundle seeds the cache on first run. The
+  add-food sheet now searches the library (debounced); logged-item macros
+  resolve from the cached-food index.
+
+Remaining for later phases: health-marker history, charts, push, and
+Apple Health / Google Fit.
 
 ### Original phase-2 layout
 

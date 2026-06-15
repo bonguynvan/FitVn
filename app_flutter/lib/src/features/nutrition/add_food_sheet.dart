@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/providers.dart';
 import '../../theme/tokens.dart';
 import '../../widgets/choice_tile.dart';
-import 'food_catalog.dart';
+import 'food.dart';
 import 'nutrition_controller.dart';
 
 const _meals = [
@@ -33,23 +36,39 @@ class _AddFoodSheet extends ConsumerStatefulWidget {
 }
 
 class _AddFoodSheetState extends ConsumerState<_AddFoodSheet> {
-  String _query = '';
   String _meal = 'breakfast';
-  CatalogFood? _selected;
+  Food? _selected;
+  List<Food> _results = [];
+  bool _loading = true;
+  Timer? _debounce;
   final _qtyCtrl = TextEditingController(text: '100');
 
   @override
+  void initState() {
+    super.initState();
+    _runSearch('');
+  }
+
+  @override
   void dispose() {
+    _debounce?.cancel();
     _qtyCtrl.dispose();
     super.dispose();
   }
 
-  List<CatalogFood> get _results {
-    final q = _query.trim().toLowerCase();
-    if (q.isEmpty) return seedFoods;
-    return seedFoods
-        .where((f) => f.nameVi.toLowerCase().contains(q))
-        .toList();
+  void _onQueryChanged(String q) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 250), () => _runSearch(q));
+  }
+
+  Future<void> _runSearch(String q) async {
+    setState(() => _loading = true);
+    final foods = await ref.read(foodRepositoryProvider).search(q);
+    if (!mounted) return;
+    setState(() {
+      _results = foods;
+      _loading = false;
+    });
   }
 
   Future<void> _save() async {
@@ -91,7 +110,7 @@ class _AddFoodSheetState extends ConsumerState<_AddFoodSheet> {
           ),
           const SizedBox(height: 12),
           TextField(
-            onChanged: (v) => setState(() => _query = v),
+            onChanged: _onQueryChanged,
             decoration: const InputDecoration(
               hintText: 'Tìm món…',
               prefixIcon: Icon(Icons.search),
@@ -99,38 +118,44 @@ class _AddFoodSheetState extends ConsumerState<_AddFoodSheet> {
           ),
           const SizedBox(height: 8),
           ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 240),
-            child: ListView(
-              shrinkWrap: true,
-              children: [
-                for (final f in _results)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: ChoiceTile(
-                      active: _selected?.id == f.id,
-                      title: f.nameVi,
-                      hint:
-                          '${f.caloriesPer100g.round()} kcal/100g${f.servingDesc != null ? ' · ${f.servingDesc}' : ''}',
-                      onTap: () => setState(() => _selected = f),
+            constraints: const BoxConstraints(maxHeight: 260),
+            child: _loading
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: CircularProgressIndicator(),
                     ),
-                  ),
-              ],
-            ),
+                  )
+                : _results.isEmpty
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(24),
+                          child: Text('Không tìm thấy món nào.',
+                              style: TextStyle(color: AppColors.textMuted)),
+                        ),
+                      )
+                    : ListView(
+                        shrinkWrap: true,
+                        children: [
+                          for (final f in _results)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 6),
+                              child: ChoiceTile(
+                                active: _selected?.id == f.id,
+                                title: f.nameVi,
+                                hint:
+                                    '${f.caloriesPer100g.round()} kcal/100g${f.servingDesc != null ? ' · ${f.servingDesc}' : ''}',
+                                onTap: () => setState(() => _selected = f),
+                              ),
+                            ),
+                        ],
+                      ),
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _qtyCtrl,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(
-                    labelText: 'Khối lượng (g)',
-                  ),
-                ),
-              ),
-            ],
+          TextField(
+            controller: _qtyCtrl,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(labelText: 'Khối lượng (g)'),
           ),
           const SizedBox(height: 12),
           FilledButton(
